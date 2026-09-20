@@ -5,6 +5,132 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [3.5.4] — 2026-09-20 — Audit pass: accessibility, correctness, and real gates
+
+A full audit of the React and Vue sources (UI, charts, shapes, canvas effects, motion)
+and the fixes for everything it found. No intentional breaking changes.
+
+### Fixed — user-visible bugs
+
+- **Vue charts rendered in ECharts' default colours, not BoldKit's.** The palette and the
+  whole `neubrutalismTheme` were `hsl(var(--token))` strings handed to a **canvas**
+  renderer, which has no CSS cascade — an unresolvable colour assigned to `fillStyle` is
+  silently ignored and the previous value persists. Variables are now resolved against the
+  chart's own element (so scoped themes and dark mode work) and re-resolved when the
+  document theme changes.
+- **`Stepper` could never be completed.** `totalSteps` counted `<StepperItem>` among the
+  root's *direct* children, but every documented composition nests them inside
+  `<StepperList>` — so `totalSteps` was 0, `isLast` was permanently false, "Next" ran past
+  the final step into blank panels and `onComplete` never fired. Counting is now
+  depth-first, with an explicit `totalSteps` prop as an override.
+- **The documented `Stepper` snippet threw on paste.** `<StepperSeparator>` required an
+  item context the docs' own markup doesn't provide. It now renders outside an item.
+- **`Tour` fought the user's scroll.** `scrollIntoView` ran inside the capture-phase scroll
+  handler, so it re-triggered itself through its own smooth animation and pinned the page
+  to the spotlight. Scrolling is now part of the step transition; measurement is
+  rAF-coalesced.
+- **`Carousel` swallowed Arrow keys** from any `<input>`/`<textarea>` inside a slide — it
+  preventDefault'd in the capture phase, so the field never saw the key.
+- **Heatmap and Sankey crashed on `undefined` data** — the memos reading `data` ran above
+  the empty guard, making its `!data` branch unreachable. That is the shape a still-loading
+  fetch passes.
+- **`GaugeChart` zone bounds were read as dial percentages, not data units**, so any
+  `min`/`max` other than 0/100 painted the wrong bands and picked the wrong colour.
+- **`TagInput`'s `delimiter` was compiled as a regex in Vue** — `'.'` split on every
+  character, `'('` threw on every keystroke. It now splits on the literal string, as React
+  always did.
+- **Chart exports were unreadable in dark mode** — a hardcoded white backdrop under
+  near-white inlined text. The backdrop now follows the chart's own background.
+- **`Slider`** called `setState` from inside another updater (double-fired under
+  StrictMode) and produced `NaN` in inline styles when `max === min` or `step === 0`.
+- **Shapes ignored `color` when not filled.** `<Shape filled={false} color="red" />` drew a
+  black outline with no way to recolour it. `color` now drives the outline for unfilled
+  shapes, and a `strokeColor` prop overrides it — across all 110 components.
+- **Vue `canvas-effect-core` was stale**, missing the large-canvas clamping fix React got.
+
+### Fixed — accessibility
+
+- The **docs site ignored `prefers-reduced-motion`**: `src/styles/globals.css` was missing
+  the universal reset the other two stylesheets ship, so all 18 smooth shape presets and
+  the marquee ran at full speed for users who asked for no motion.
+- **JS-driven animation now respects reduced motion** — a CSS media query can't stop a loop
+  that mutates attributes. The two MathCurve components and all 34 ASCII shapes (React
+  factory + 17 Vue SFCs) consult it, react to changes mid-session, and additionally pause
+  off-screen and in background tabs. The Vue ASCII shapes were also missing `aria-hidden`.
+- **`TreeView`** rebuilt to the ARIA tree pattern in both frameworks: one tab stop instead
+  of one per node, Up/Down/Home/End navigation, treeitems actually owned by a `tree`/`group`,
+  no interactive controls nested inside a treeitem, and `aria-selected` only where
+  selection exists.
+- **`Tour`** is now a real modal dialog in both frameworks — role, `aria-modal`, accessible
+  name and description, initial focus, a focus trap, Escape to close, and focus restored on
+  close. Previously Tab wandered onto the page hidden behind the scrim.
+- **`TagInput`** exposes proper combobox/listbox semantics with `aria-activedescendant`, and
+  announces validation errors instead of showing them only visually.
+- **`Dropzone` was mouse-only in Vue** — focusable but Enter and Space did nothing, and the
+  drop target had no name. Its remove buttons now say which file they remove.
+- **`ComboboxMultiTrigger`** chips moved out of the trigger button, so removing one is
+  keyboard-reachable and named rather than a bare unfocusable `<svg onClick>`.
+- **`Stepper`** dropped tab roles it never implemented (no arrow keys, tabs not owned by the
+  tablist) for `aria-current="step"`.
+- **`Rating`** moves DOM focus with its roving tabindex, and a read-only rating is exposed as
+  read-only rather than removed from the accessibility tree.
+- **`GaugeChart` is a `meter`** with its value exposed; **sparklines** have a derived
+  accessible name; **heatmaps** no longer hide their own labelled cells behind `role="img"`
+  or put hundreds of nameless cells in the tab order; **Sankey** ships a visually-hidden
+  table alternative to its hover-only tooltip; **every Vue chart** accepts `ariaLabel`.
+- **`Marquee`**'s duplicated track is `inert`, and it pauses on keyboard focus, not just hover.
+
+### Fixed — things the registry shipped broken
+
+- `motion.css` declared `--shadow-color: var(--shadow-color, …)`, which is self-referential
+  and therefore invalid — every `.bk-press` / `.bk-pulse-shadow` shadow resolved to nothing
+  for anyone installing it standalone.
+- The `styles` item shipped `globals.css` without `motion.css` in **both** frameworks, so
+  consumers got a dangling `animation: bk-stamp-in` and none of the six motion recipes.
+- `registry/default/ui/chart.tsx` had drifted: a legend `key` bug src had already fixed,
+  and `useChart` / `ChartContext` / `THEMES` / `getPayloadConfigFromPayload` / the tooltip
+  and legend prop types unexported. The entire chart **annotations** API shipped nowhere at
+  all and is now bundled.
+
+### Fixed — tooling
+
+- **`npm run typecheck` checked zero files.** The root `tsconfig.json` is a solution file
+  (`"files": []` plus references), so `tsc --noEmit` against it was a no-op. It now checks
+  both projects.
+- **ESLint's 1907 warnings were 77% template formatting**, burying the two that mattered.
+  Formatting rules are off (that is Prettier's job); output is down to 1.
+
+### Added — guards, so these can't come back
+
+- `stylesheet-parity.test.ts` enforces the five-stylesheet rule that has now shipped broken
+  three times: token and rule parity across the three `globals.css`, byte identity of the
+  two `motion.css`, every `animation:` resolving to a reachable `@keyframes`, no
+  self-referential custom properties, and a reduced-motion reset in each.
+- The registry sync script asserts the hand-maintained chart bundle exports a superset of
+  the modules it bundles.
+- Tests: 677 → 839 (React), 114 → 313 (Vue), covering every fix above plus the first
+  coverage for shapes, TreeView, Tour, the pickers and the chart a11y surface.
+
+### Changed
+
+- Vue charts accept React's `emptyState` prop name; `emptyMessage` still works.
+- `DatePicker` gained `defaultValue`. It, `TimePicker` and `DateRangePicker` now decide
+  controlled-ness from whether the `value` prop is *present*, latched on first render —
+  `undefined` is a legal controlled value for an optional date, so the ordinary
+  `useState<Date>()` pattern used to start uncontrolled and silently flip on first pick.
+- `Rating`, `DatePicker`, `TimePicker`, `DateRangePicker` and `Sidebar` forward refs and
+  rest props. `Sidebar`'s mobile branch previously dropped `ref`, `className` and `...props`
+  entirely, so the same component honoured different props depending on viewport width.
+
+### Known divergences (not changed — these need a breaking release)
+
+- `variant` means chart *geometry* in React but container *style* in Vue.
+- `RadialBarChart` scales to `max(values)` in React and `max(values) * 1.2` in Vue.
+- `RadarChart`'s `showLegend` defaults `true` in React, `false` in Vue.
+- `height` is a number of pixels in React, a CSS string in Vue.
+
+---
+
 ## [3.5.3] — 2026-08-30 — Green CI: 155 lint errors cleared
 
 CI had been failing since May 2026. Because Lint ran first, every typecheck, test and build step

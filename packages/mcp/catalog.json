@@ -128,7 +128,8 @@
         "url": "https://boldkit.dev/r/ascii-shapes.json",
         "dependencies": [],
         "registryDependencies": [
-          "@boldkit/utils"
+          "@boldkit/utils",
+          "@boldkit/motion-core"
         ],
         "files": [
           "registry/default/ui/ascii-shapes.tsx"
@@ -159,7 +160,8 @@
           "components/ui/ascii-shapes/AsciiVortex.vue",
           "components/ui/ascii-shapes/AsciiWave.vue",
           "components/ui/ascii-shapes/constants.ts",
-          "components/ui/ascii-shapes/index.ts"
+          "components/ui/ascii-shapes/index.ts",
+          "components/ui/ascii-shapes/useAsciiLoop.ts"
         ]
       },
       "frameworks": [
@@ -2063,7 +2065,8 @@
         "registryDependencies": [
           "@boldkit/utils",
           "@boldkit/math-curves",
-          "@boldkit/error-boundary"
+          "@boldkit/error-boundary",
+          "@boldkit/motion-core"
         ],
         "files": [
           "registry/default/ui/math-curve-background.tsx"
@@ -2098,7 +2101,8 @@
         "registryDependencies": [
           "@boldkit/utils",
           "@boldkit/math-curves",
-          "@boldkit/error-boundary"
+          "@boldkit/error-boundary",
+          "@boldkit/motion-core"
         ],
         "files": [
           "registry/default/ui/math-curve-loader.tsx"
@@ -3413,10 +3417,12 @@
           "class-variance-authority"
         ],
         "registryDependencies": [
-          "@boldkit/utils"
+          "@boldkit/utils",
+          "@boldkit/chart-utils"
         ],
         "files": [
-          "components/ui/SparklineChart.vue"
+          "components/ui/SparklineChart.vue",
+          "components/ui/chart-utils.ts"
         ]
       },
       "frameworks": [
@@ -3584,7 +3590,8 @@
         "dependencies": [],
         "registryDependencies": [],
         "files": [
-          "registry/default/styles/globals.css"
+          "registry/default/styles/globals.css",
+          "registry/default/styles/motion.css"
         ]
       },
       "vue": {
@@ -3592,7 +3599,8 @@
         "dependencies": [],
         "registryDependencies": [],
         "files": [
-          "styles/globals.css"
+          "styles/globals.css",
+          "styles/motion.css"
         ]
       },
       "frameworks": [

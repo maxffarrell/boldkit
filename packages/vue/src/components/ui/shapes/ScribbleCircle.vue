@@ -7,7 +7,10 @@ interface Props {
   size?: number
   strokeWidth?: number
   filled?: boolean
+  /** Fill colour when `filled`, outline colour when not. */
   color?: string
+  /** Outline colour. Defaults to the foreground token. */
+  strokeColor?: string
   animation?:
     | 'none'
     // smooth presets
@@ -23,6 +26,19 @@ const props = withDefaults(defineProps<Props>(), {
   filled: true,
   animation: 'none',
   speed: 'normal',
+})
+
+/**
+ * Resolve the outline colour.
+ *
+ * `color` used to apply to `fill` only, so `<Shape :filled="false" color="red" />`
+ * rendered a black outline and the prop was a silent no-op. When the shape *is*
+ * its outline, `color` is what the caller meant.
+ */
+const strokeValue = computed(() => {
+  if (props.strokeColor) return props.strokeColor
+  if (!props.filled && props.color) return props.color
+  return 'hsl(var(--foreground))'
 })
 
 const animClass = computed(() => {
@@ -46,13 +62,13 @@ const animClass = computed(() => {
       cy="50"
       r="42"
       :fill="filled ? (color || 'currentColor') : 'none'"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
     />
     <path
       d="M20 50 Q30 30 50 25 Q70 20 80 40 Q85 60 70 75 Q50 90 30 75 Q15 60 20 50"
       fill="none"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth - 1"
       stroke-dasharray="5,5"
     />

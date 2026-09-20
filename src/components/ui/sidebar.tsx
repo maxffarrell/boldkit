@@ -197,7 +197,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
             className="w-[var(--sidebar-width-mobile)] p-0"
             style={{ '--sidebar-width-mobile': SIDEBAR_WIDTH_MOBILE } as React.CSSProperties & Record<string, string>}
           >
-            <div className="flex h-full flex-col">{children}</div>
+            {/* Same prop contract as the desktop branch below. This branch
+                used to drop ref, className AND ...props entirely, so the same
+                component honoured different props depending on viewport width
+                — and any ref silently became null on small screens. */}
+            <div ref={ref} className={cn('flex h-full flex-col', className)} {...props}>
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
       )

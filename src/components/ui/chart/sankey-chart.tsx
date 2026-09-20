@@ -207,8 +207,11 @@ function computeLayout(
 const SankeyChart = React.forwardRef<HTMLDivElement, SankeyChartProps>(
   (
     {
-      nodes,
-      links,
+      // Defaulted at the destructure: computeLayout() runs *above* the empty
+      // guard, so `undefined` (the shape a still-loading fetch passes) would
+      // throw before the guard could render <ChartEmpty>.
+      nodes = [],
+      links = [],
       height = 320,
       showTooltip = true,
       showLabels = true,
@@ -256,12 +259,34 @@ const SankeyChart = React.forwardRef<HTMLDivElement, SankeyChartProps>(
     return (
       <div
         ref={ref}
-        role="img"
+        role="group"
         aria-label={ariaLabel}
         className={cn('relative w-full', className)}
         {...props}
       >
-        <div ref={containerRef} style={{ height }}>
+        {/* Text alternative. The diagram's only data affordance is a mouse
+            hover tooltip, so without this the flows are unreadable to anyone
+            not using a pointer. Visually hidden, fully announced. */}
+        <table className="sr-only">
+          <caption>{ariaLabel}</caption>
+          <thead>
+            <tr>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+              <th scope="col">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {links.map((link, i) => (
+              <tr key={`${link.source}-${link.target}-${i}`}>
+                <td>{link.source}</td>
+                <td>{link.target}</td>
+                <td>{link.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div ref={containerRef} aria-hidden="true" style={{ height }}>
           <svg width="100%" height={height}>
             {/* Links */}
             {computedLinks.map((link, i) => (

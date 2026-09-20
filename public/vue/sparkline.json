@@ -9,11 +9,16 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "@boldkit/utils"
+    "@boldkit/utils",
+    "@boldkit/chart-utils"
   ],
   "files": [
     {
       "path": "components/ui/SparklineChart.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/chart-utils.ts",
       "type": "registry:ui"
     }
   ],

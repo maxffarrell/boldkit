@@ -1,7 +1,9 @@
 <script lang="ts">
 // Module-scope so `withDefaults` (hoisted out of setup) can reference DEFAULT_ZONES.
 export interface GaugeChartZone {
+  /** Lower bound, in the same units as `value` (i.e. between `min` and `max`). */
   from: number
+  /** Upper bound, in the same units as `value`. */
   to: number
   color: string
   label?: string
@@ -63,7 +65,17 @@ const props = withDefaults(defineProps<GaugeChartProps>(), {
 })
 
 const normalizedValue = computed(() => Math.max(props.min, Math.min(props.max, props.value)))
-const percentage = computed(() => props.max === props.min ? 0 : ((normalizedValue.value - props.min) / (props.max - props.min)) * 100)
+function toPercent(v: number) {
+  return props.max === props.min ? 0 : ((v - props.min) / (props.max - props.min)) * 100
+}
+const percentage = computed(() => toPercent(normalizedValue.value))
+// Zone bounds are in data units, so they need the same mapping as `value`.
+// Fed raw to a 0–100 dial scale, a {from: 0, to: 100} zone on a min=0 max=200
+// gauge painted the first half of the *dial* instead of the first half of the
+// range, and picked the wrong current colour.
+const zonesPct = computed(() =>
+  props.zones.map(z => ({ ...z, fromPct: toPercent(z.from), toPct: toPercent(z.to) }))
+)
 
 // Whether this variant uses a 360° full circle or a 180° semicircle sweep
 const isFull = computed(() => props.variant === 'full')
@@ -146,7 +158,7 @@ function createArcPath(startPercent: number, endPercent: number, radius: number)
  * Find the zone color for the current percentage (used by meter variant).
  */
 const currentZoneColor = computed(() => {
-  const z = props.zones.find(zone => percentage.value >= zone.from && percentage.value <= zone.to)
+  const z = zonesPct.value.find(zone => percentage.value >= zone.fromPct && percentage.value <= zone.toPct)
   return z ? z.color : 'hsl(var(--primary))'
 })
 
@@ -170,10 +182,21 @@ function getTickCoords(tick: number) {
 </script>
 
 <template>
-  <div :class="cn(gaugeChartVariants({ size }), props.class)" :style="{ maxWidth: `${config.width}px` }">
+  <!-- A gauge is exactly what role="meter" describes, and every value it needs
+       is already computed here. Without this the chart shipped as an unlabelled
+       decorative blob with no value exposed to assistive tech. -->
+  <div
+    role="meter"
+    :aria-valuenow="normalizedValue"
+    :aria-valuemin="min"
+    :aria-valuemax="max"
+    :aria-valuetext="valueFormatter(normalizedValue)"
+    :aria-label="label ?? 'Gauge'"
+    :class="cn(gaugeChartVariants({ size }), props.class)"
+    :style="{ maxWidth: `${config.width}px` }"
+  >
     <svg
-      width="100%"
-      height="auto"
+      class="h-auto w-full"
       :viewBox="`0 0 ${config.width} ${config.height}`"
     >
       <!-- Background track -->
@@ -187,9 +210,9 @@ function getTickCoords(tick: number) {
 
       <!-- Zone arcs -->
       <path
-        v-for="(zone, index) in zones"
+        v-for="(zone, index) in zonesPct"
         :key="index"
-        :d="createArcPath(zone.from, zone.to, config.radius)"
+        :d="createArcPath(zone.fromPct, zone.toPct, config.radius)"
         fill="none"
         :stroke="zone.color"
         :stroke-width="config.strokeWidth"

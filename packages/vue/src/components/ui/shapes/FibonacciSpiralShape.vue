@@ -7,7 +7,10 @@ interface Props {
   size?: number
   strokeWidth?: number
   filled?: boolean
+  /** Fill colour when `filled`, outline colour when not. */
   color?: string
+  /** Outline colour. Defaults to the foreground token. */
+  strokeColor?: string
   animation?:
     | 'none'
     // smooth presets
@@ -69,7 +72,7 @@ const fibonacciPath = computed(() => {
     <path
       :d="fibonacciPath"
       fill="none"
-      :stroke="color || 'currentColor'"
+      :stroke="strokeColor || color || 'currentColor'"
       :stroke-width="strokeWidth"
       stroke-linecap="round"
     />

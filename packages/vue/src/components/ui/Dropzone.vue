@@ -52,6 +52,8 @@ interface DropzoneProps {
   disabled?: boolean
   variant?: DropzoneVariants['variant']
   class?: string
+  /** Accessible name for the drop target. Matches the React default. */
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<DropzoneProps>(), {
@@ -59,6 +61,7 @@ const props = withDefaults(defineProps<DropzoneProps>(), {
   maxFiles: 10,
   disabled: false,
   variant: 'default',
+  ariaLabel: 'File upload area',
 })
 
 const emit = defineEmits<{
@@ -205,6 +208,16 @@ function handleClick() {
   }
 }
 
+// role="button" without a key handler is a keyboard trap: focusable, but Enter
+// and Space do nothing, so the picker can never be opened without a mouse.
+// Mirrors handleKeyDown in src/components/ui/dropzone.tsx.
+function handleKeyDown(e: KeyboardEvent) {
+  if (!props.disabled && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault()
+    inputRef.value?.click()
+  }
+}
+
 function handleInputChange(e: Event) {
   const target = e.target as HTMLInputElement
   processFiles(target.files)
@@ -235,11 +248,13 @@ provide(DROPZONE_INJECTION_KEY, { reset })
     role="button"
     :tabindex="disabled ? -1 : 0"
     :aria-disabled="disabled"
+    :aria-label="ariaLabel"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
     @dragover="handleDragOver"
     @drop="handleDrop"
     @click="handleClick"
+    @keydown="handleKeyDown"
   >
     <input
       ref="inputRef"
@@ -247,6 +262,7 @@ provide(DROPZONE_INJECTION_KEY, { reset })
       :accept="acceptString"
       :multiple="maxFiles > 1"
       :disabled="disabled"
+      tabindex="-1"
       class="hidden"
       @change="handleInputChange"
     />

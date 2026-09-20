@@ -84,7 +84,8 @@ function CircleIcon({ filled }: { filled: boolean }) {
 type IconType = 'star' | 'heart' | 'circle'
 type SizeVariant = 'sm' | 'md' | 'lg' | 'xl'
 
-interface RatingProps {
+interface RatingProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'> {
   /** Controlled value */
   value?: number
   /** Uncontrolled default value */
@@ -127,19 +128,23 @@ const iconLabelFor = (icon: IconType, count: number) =>
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function Rating({
-  value: controlledValue,
-  defaultValue = 0,
-  max = 5,
-  precision = 1,
-  icon = 'star',
-  size = 'md',
-  readOnly = false,
-  disabled = false,
-  onChange,
-  onHoverChange,
-  className,
-}: RatingProps) {
+export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(function Rating(
+  {
+    value: controlledValue,
+    defaultValue = 0,
+    max = 5,
+    precision = 1,
+    icon = 'star',
+    size = 'md',
+    readOnly = false,
+    disabled = false,
+    onChange,
+    onHoverChange,
+    className,
+    ...props
+  },
+  ref
+) {
   const isControlled = controlledValue !== undefined
   const [internalValue, setInternalValue] = React.useState(defaultValue)
   // Unique gradient id per instance so multiple ratings don't share/clobber the
@@ -154,6 +159,20 @@ export function Rating({
   }
 
   const interactive = !readOnly && !disabled
+  const groupRef = React.useRef<HTMLDivElement>(null)
+
+  /**
+   * Move DOM focus onto whichever star now holds the roving tabindex.
+   *
+   * Without this the focus ring stopped tracking the value after the first
+   * arrow press, and Tab-ing back re-entered at a different star than the one
+   * that looked focused — the classic broken roving-tabindex symptom.
+   */
+  const focusActiveStar = (next: number) => {
+    const index = Math.min(Math.max(Math.ceil(next), 1), max)
+    const stars = groupRef.current?.querySelectorAll<HTMLButtonElement>('button')
+    stars?.[index - 1]?.focus()
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!interactive) return
@@ -175,6 +194,8 @@ export function Rating({
       return
     }
     setValue(next)
+    // The roving tabindex moves with the value; DOM focus has to follow it.
+    focusActiveStar(next)
   }
 
   const handleMouseLeave = () => {
@@ -211,10 +232,20 @@ export function Rating({
     // focusable slider wrapping focusable buttons is a nested-interactive
     // violation (axe). Arrow keys still work — keydown bubbles from the stars.
     <div
+      ref={(node) => {
+        groupRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) ref.current = node
+      }}
       role="group"
       aria-label={`Rating: ${valueText}`}
+      // A read-only rating is still meaningful content, so expose it as
+      // read-only rather than removing it from the a11y tree entirely.
+      aria-readonly={readOnly || undefined}
+      aria-disabled={disabled || undefined}
       onKeyDown={handleKeyDown}
       onMouseLeave={handleMouseLeave}
+      {...props}
       className={cn(
         'flex items-center gap-0.5 outline-none',
         sizeClasses[size],
@@ -251,4 +282,5 @@ export function Rating({
       })}
     </div>
   )
-}
+})
+Rating.displayName = 'Rating'

@@ -283,8 +283,12 @@ const componentMeta = {
   },
   sparkline: {
     deps: ['vue-echarts', 'echarts', 'class-variance-authority'],
+    // Uses `extent()` from chart-utils — Math.min(...values) blows the call
+    // stack on the large series sparklines are typically fed.
+    registryDeps: ['chart-utils'],
     desc: 'A compact sparkline chart component for inline data visualization with line, area, and bar variants',
     files: ['SparklineChart'],
+    extraFiles: ['chart-utils.ts'],
   },
 
   // ──────────────────────────────────────────────────────────────────
@@ -658,17 +662,32 @@ function createStylesRegistry() {
     return null
   }
 
-  // In-repo, globals.css pulls the motion layer in via `@import './motion.css'`.
-  // This item ships globals.css alone, and the motion rules are already inlined
-  // further down the file — so leaving the import in hands consumers a dangling
-  // specifier that fails the Vite/Tailwind build.
-  const cssContent = rawCss.replace(/^@import\s+['"]\.\/motion\.css['"];?[ \t]*\r?\n/gm, '')
+  // globals.css pulls the motion layer in via `@import './motion.css'` — the L1
+  // keyframes and L2 recipes (.bk-press, .bk-reveal, .bk-stamp-in, …) live ONLY
+  // there, they are not inlined further down. So this item has to ship both
+  // files: globals.css alone leaves `animation: bk-stamp-in` dangling and every
+  // motion recipe matching nothing.
+  const motionCss = readFile(path.join(STYLES_DIR, 'motion.css'))
+  if (!motionCss) {
+    throw new Error('createStylesRegistry: motion.css not found — globals.css imports it')
+  }
+
+  const files = [
+    { path: 'styles/globals.css', content: rawCss, type: 'registry:style', target: 'styles/globals.css' },
+    { path: 'styles/motion.css', content: motionCss, type: 'registry:style', target: 'styles/motion.css' },
+  ]
+
   // Invariant: nothing this item ships may point at a sibling file it doesn't ship.
-  const dangling = cssContent.match(/^@import\s+['"]\.[^'"]*['"]/gm)
-  if (dangling) {
-    throw new Error(
-      `createStylesRegistry: globals.css still has relative import(s) with no shipped sibling: ${dangling.join(', ')}`
-    )
+  const shipped = new Set(files.map(f => path.basename(f.target)))
+  for (const file of files) {
+    for (const spec of file.content.match(/^@import\s+['"]\.[^'"]*['"]/gm) ?? []) {
+      const name = path.basename(spec.replace(/^@import\s+['"]/, '').replace(/['"]$/, ''))
+      if (!shipped.has(name)) {
+        throw new Error(
+          `createStylesRegistry: ${file.target} imports "${name}", which this item does not ship`
+        )
+      }
+    }
   }
 
   return {
@@ -676,12 +695,7 @@ function createStylesRegistry() {
     name: 'styles',
     type: 'registry:style',
     description: 'BoldKit neubrutalism CSS variables and utilities',
-    files: [{
-      path: 'styles/globals.css',
-      content: cssContent,
-      type: 'registry:style',
-      target: 'styles/globals.css'
-    }]
+    files
   }
 }
 

@@ -6,6 +6,7 @@ import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { cn } from '@/lib/utils'
+import { extent } from './chart-utils'
 
 // Register ECharts components
 use([CanvasRenderer, BarChart, LineChart, GridComponent])
@@ -20,6 +21,9 @@ interface SparklineProps {
   strokeWidth?: number
   trend?: 'up' | 'down' | 'neutral'
   animated?: boolean
+  /** Accessible name. A sparkline conveys a trend, which is invisible to AT
+   *  without one; defaults to a summary of the series. */
+  ariaLabel?: string
   class?: string
 }
 
@@ -34,6 +38,15 @@ const props = withDefaults(defineProps<SparklineProps>(), {
 
 const isEmpty = computed(() => !props.data || props.data.length === 0)
 
+// `aria-label` on a plain <div> is ignored by most AT — it needs a role.
+// Default the name to something useful rather than leaving the trend invisible.
+const accessibleLabel = computed(() =>
+  props.ariaLabel ??
+  (isEmpty.value
+    ? 'Sparkline, no data'
+    : `Sparkline, ${props.data.length} points, from ${props.data[0]} to ${props.data[props.data.length - 1]}`)
+)
+
 const resolvedColor = computed(() => {
   if (props.color) return props.color
   if (props.trend === 'up') return 'hsl(var(--success))'
@@ -44,8 +57,9 @@ const resolvedColor = computed(() => {
 const strokeColor = 'hsl(var(--foreground))'
 
 const option = computed(() => {
-  const dataMin = props.data.length > 0 ? Math.min(...props.data) : 0
-  const dataMax = props.data.length > 0 ? Math.max(...props.data) : 1
+  const dataExtent = extent(props.data)
+  const dataMin = props.data.length > 0 ? dataExtent.min : 0
+  const dataMax = props.data.length > 0 ? dataExtent.max : 1
   const range = dataMax - dataMin
   // Use 10% of the range as padding; fall back to abs(value)*0.1 for flat data, or 1 for zero
   const axisPadding = range === 0 ? (Math.abs(dataMax) * 0.1 || 1) : range * 0.1
@@ -138,10 +152,12 @@ const option = computed(() => {
 
 <template>
   <div
+    role="img"
+    :aria-label="accessibleLabel"
     :class="cn('inline-block', props.class)"
     :style="{ width: typeof width === 'number' ? `${width}px` : width, height: `${height}px` }"
   >
-    <div v-if="isEmpty" aria-label="No data" class="h-full w-full border-b-2 border-dashed border-foreground/30" />
+    <div v-if="isEmpty" class="h-full w-full border-b-2 border-dashed border-foreground/30" />
     <VChart v-else :option="option" :autoresize="true" style="width: 100%; height: 100%" />
   </div>
 </template>

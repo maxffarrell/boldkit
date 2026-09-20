@@ -6,6 +6,37 @@ import { cn, sanitizeCssValue } from '@/lib/utils'
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
 
+// ---------------------------------------------------------------------------
+// Chart annotation vocabulary (shared, unified across React/Recharts and
+// Vue/echarts — identical shape so the same annotation objects author in both).
+// ---------------------------------------------------------------------------
+
+export interface ChartReferenceLineSpec {
+  axis: 'x' | 'y'
+  value: number | string
+  label?: string
+  color?: string
+  dash?: boolean
+}
+
+export interface ChartCalloutSpec {
+  x: number | string
+  y: number
+  text: string
+  placement?: 'top' | 'right' | 'bottom' | 'left'
+}
+
+export interface ChartArrowSpec {
+  from: { x: number | string; y: number }
+  to: { x: number | string; y: number }
+  label?: string
+}
+
+export type ChartAnnotation =
+  | ({ kind: 'referenceLine' } & ChartReferenceLineSpec)
+  | ({ kind: 'callout' } & ChartCalloutSpec)
+  | ({ kind: 'arrow' } & ChartArrowSpec)
+
 // Neubrutalism color palettes for charts
 export const CHART_PALETTES = {
   bold: [
@@ -391,13 +422,13 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload.map((item) => {
+      {payload.map((item, index) => {
         const key = `${nameKey || item.dataKey || 'value'}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
         return (
           <div
-            key={item.value}
+            key={item.dataKey ?? item.value ?? index}
             className={cn(
               'flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-foreground'
             )}
@@ -548,4 +579,159 @@ export {
   ChartEmpty,
   ChartLoading,
   chartContainerVariants,
+  // Needed to write a custom tooltip/legend against this bundle. The src
+  // barrel (src/components/ui/chart/index.ts) exports all of these; omitting
+  // them here left installed charts with a strictly smaller API than the docs.
+  ChartContext,
+  useChart,
+  THEMES,
+  getPayloadConfigFromPayload,
+}
+export type { ChartContextProps, ChartTooltipContentProps, ChartLegendContentProps }
+
+/* ---------------------------------------------------------------------------
+   Chart annotations (reference lines, callouts, arrows).
+   Kept in this bundle so an installed chart has the same annotation API the
+   docs describe — previously these shipped nowhere and were unusable.
+   --------------------------------------------------------------------------- */
+
+/**
+ * Unified chart annotations for Recharts. Recharts only renders its own
+ * component types when they are DIRECT children of a chart, so a wrapper
+ * component around <RechartsPrimitive.ReferenceLine> would be silently dropped. Instead these are
+ * element factories that return real Recharts elements; drop the result into a
+ * Cartesian chart's children via {renderChartAnnotations([...])}.
+ *
+ * Reference lines require a Cartesian chart (Area/Bar/Line/Composed). Callouts
+ * and arrows are data-anchored via RechartsPrimitive.ReferenceDot and also work only where those
+ * coordinates exist.
+ */
+
+const FOREGROUND = 'hsl(var(--foreground))'
+const DASH = '6 4'
+
+// Brutalist bordered label box rendered inside a RechartsPrimitive.ReferenceDot label slot.
+// Recharts passes the resolved pixel viewBox as `viewBox`.
+function CalloutLabel({
+  viewBox,
+  text,
+  placement = 'top',
+}: {
+  viewBox?: { x?: number; y?: number }
+  text: string
+  placement?: ChartCalloutSpec['placement']
+}) {
+  const cx = viewBox?.x ?? 0
+  const cy = viewBox?.y ?? 0
+  const padX = 8
+  const width = text.length * 7 + padX * 2
+  const height = 22
+  const offset = 14
+  const dx = placement === 'left' ? -width - offset : placement === 'right' ? offset : -width / 2
+  const dy = placement === 'bottom' ? offset : -height - offset
+  return (
+    <g>
+      <line x1={cx} y1={cy} x2={cx + dx + width / 2} y2={cy + dy + height} stroke={FOREGROUND} strokeWidth={2} />
+      <rect
+        x={cx + dx}
+        y={cy + dy}
+        width={width}
+        height={height}
+        fill="hsl(var(--background))"
+        stroke={FOREGROUND}
+        strokeWidth={2}
+      />
+      <text
+        x={cx + dx + width / 2}
+        y={cy + dy + height / 2 + 4}
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={700}
+        fill={FOREGROUND}
+        style={{ textTransform: 'uppercase' }}
+      >
+        {text}
+      </text>
+    </g>
+  )
+}
+
+export function referenceLineElement(
+  spec: ChartReferenceLineSpec,
+  key?: React.Key
+): React.ReactElement<React.ComponentProps<typeof RechartsPrimitive.ReferenceLine>> {
+  const axisProp = spec.axis === 'x' ? { x: spec.value } : { y: spec.value }
+  return (
+    <RechartsPrimitive.ReferenceLine
+      key={key}
+      {...axisProp}
+      stroke={spec.color ?? FOREGROUND}
+      strokeWidth={3}
+      strokeDasharray={spec.dash ? DASH : undefined}
+      label={
+        spec.label
+          ? { value: spec.label, position: 'insideTopRight', fontWeight: 700, fontSize: 11 }
+          : undefined
+      }
+      ifOverflow="extendDomain"
+    />
+  )
+}
+
+export function calloutElement(
+  spec: ChartCalloutSpec,
+  key?: React.Key
+): React.ReactElement<React.ComponentProps<typeof RechartsPrimitive.ReferenceDot>> {
+  return (
+    <RechartsPrimitive.ReferenceDot
+      key={key}
+      x={spec.x}
+      y={spec.y}
+      r={0}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      label={(props: any) => (
+        <CalloutLabel viewBox={props?.viewBox} text={spec.text} placement={spec.placement} />
+      )}
+    />
+  )
+}
+
+export function arrowElements(spec: ChartArrowSpec, key?: React.Key): React.ReactElement[] {
+  const k = key ?? 'arrow'
+  return [
+    <RechartsPrimitive.ReferenceLine
+      key={`${k}-line`}
+      segment={[
+        { x: spec.from.x, y: spec.from.y },
+        { x: spec.to.x, y: spec.to.y },
+      ]}
+      stroke={FOREGROUND}
+      strokeWidth={3}
+      label={
+        spec.label
+          ? { value: spec.label, position: 'center', fontWeight: 700, fontSize: 11 }
+          : undefined
+      }
+      ifOverflow="extendDomain"
+    />,
+    // Endpoint marker approximating an arrowhead.
+    <RechartsPrimitive.ReferenceDot
+      key={`${k}-head`}
+      x={spec.to.x}
+      y={spec.to.y}
+      r={5}
+      fill={FOREGROUND}
+      stroke={FOREGROUND}
+    />,
+  ]
+}
+
+export function renderChartAnnotations(annotations: ChartAnnotation[]): React.ReactElement[] {
+  const out: React.ReactElement[] = []
+  annotations.forEach((a, i) => {
+    if (a.kind === 'referenceLine') out.push(referenceLineElement(a, `ann-${i}`))
+    else if (a.kind === 'callout') out.push(calloutElement(a, `ann-${i}`))
+    else out.push(...arrowElements(a, `ann-${i}`))
+  })
+  return out
 }

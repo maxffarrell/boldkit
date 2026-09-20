@@ -205,8 +205,12 @@ export function mountCanvasEffect(
     const headroom = Math.sqrt(maxPixelCount / (targetWidth * targetHeight));
     const clamp = Math.min(1, headroom);
 
-    const width = Math.max(1, Math.round(targetWidth * clamp));
-    const height = Math.max(1, Math.round(targetHeight * clamp));
+    // Round to whole pixels — but floor once clamping is in play, since
+    // rounding each axis up independently can push the area back over the
+    // ceiling the clamp was there to enforce.
+    const round = clamp < 1 ? Math.floor : Math.round;
+    const width = Math.max(1, round(targetWidth * clamp));
+    const height = Math.max(1, round(targetHeight * clamp));
 
     if (canvas.width === width && canvas.height === height) return false;
 

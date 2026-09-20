@@ -9,7 +9,8 @@
   "registryDependencies": [
     "@boldkit/utils",
     "@boldkit/math-curves",
-    "@boldkit/error-boundary"
+    "@boldkit/error-boundary",
+    "@boldkit/motion-core"
   ],
   "files": [
     {

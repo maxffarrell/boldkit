@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, useId } from 'vue'
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-vue-next'
 
@@ -131,7 +131,10 @@ function handleInputChange(e: Event) {
 
   // Check for delimiter
   if (props.delimiter) {
-    const parts = value.split(props.delimiter instanceof RegExp ? props.delimiter : new RegExp(props.delimiter))
+    // String.prototype.split already accepts string | RegExp — the declared
+    // prop type. Wrapping a string in `new RegExp` reinterpreted metacharacters:
+    // '.' split every character and '(' threw on every keystroke.
+    const parts = value.split(props.delimiter)
 
     if (parts.length > 1) {
       tryAddTags(parts.slice(0, -1))
@@ -220,7 +223,15 @@ const placeholderText = computed(() => {
   return tags.value.length === 0 ? props.placeholder : ''
 })
 
-const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
+// useId, not a literal — two TagInputs on one form would otherwise emit
+// duplicate ids and aria-describedby would resolve to the wrong error.
+const uid = useId()
+const errorId = computed(() => (error.value ? `${uid}-error` : undefined))
+const listboxId = `${uid}-listbox`
+const optionId = (index: number) => `${uid}-option-${index}`
+// Single source of truth for the listbox's open state — aria-expanded and the
+// rendered listbox must never disagree.
+const suggestionsOpen = computed(() => showSuggestions.value && filteredSuggestions.value.length > 0)
 </script>
 
 <template>
@@ -269,6 +280,15 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
       <input
         ref="inputRef"
         type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-expanded="suggestionsOpen"
+        :aria-controls="suggestionsOpen ? listboxId : undefined"
+        :aria-activedescendant="
+          suggestionsOpen && selectedSuggestionIndex >= 0 ? optionId(selectedSuggestionIndex) : undefined
+        "
+        :aria-describedby="errorId"
+        :aria-invalid="error ? true : undefined"
         :value="inputValue"
         @input="handleInputChange"
         @keydown="handleKeyDown"
@@ -285,11 +305,14 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
     </div>
 
     <!-- Error message -->
-    <p v-if="error" id="tag-input-error" role="alert" class="mt-1 text-xs font-medium text-destructive">{{ error }}</p>
+    <p v-if="error" :id="`${uid}-error`" role="alert" class="mt-1 text-xs font-medium text-destructive">{{ error }}</p>
 
     <!-- Suggestions dropdown -->
     <div
-      v-if="showSuggestions && filteredSuggestions.length > 0"
+      v-if="suggestionsOpen"
+      :id="listboxId"
+      role="listbox"
+      aria-label="Suggestions"
       :class="
         cn(
           'absolute z-50 mt-1 w-full',
@@ -298,21 +321,24 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
         )
       "
     >
-      <button
+      <div
         v-for="(suggestion, index) in filteredSuggestions"
         :key="suggestion"
-        type="button"
+        :id="optionId(index)"
+        role="option"
+        :aria-selected="index === selectedSuggestionIndex"
+        @mousedown.prevent
         @click="handleSuggestionClick(suggestion)"
         :class="
           cn(
-            'w-full px-3 py-2 text-left text-sm transition-colors',
+            'w-full cursor-pointer px-3 py-2 text-left text-sm transition-colors',
             'hover:bg-muted',
             index === selectedSuggestionIndex && 'bg-accent'
           )
         "
       >
         {{ suggestion }}
-      </button>
+      </div>
     </div>
   </div>
 </template>

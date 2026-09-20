@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { shallowRef, onMounted, onUnmounted, watch } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { cn } from '@/lib/utils'
+import { useAsciiLoop } from './useAsciiLoop'
 import {
   SIZE_MAP, CHARSETS, SPEED_MAP, makeGrid, gridToLines, MULTICOLOR_PALETTE,
   type AsciiSize, type AsciiCharset, type AsciiSpeed,
@@ -19,8 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md', charset: 'blocks', speed: 'normal', animated: true, multicolor: false,
 })
 
-let rafId = 0
-let isMounted = false
+const rootEl = ref<HTMLElement | null>(null)
 const lines = shallowRef<string[]>(buildFrame(0))
 
 function drawCube(grid: string[][], cols: number, rows: number, t: number, chars: string[]) {
@@ -80,26 +80,22 @@ function buildFrame(t: number): string[] {
   return gridToLines(g)
 }
 
-function start() {
-  if (!isMounted) return
-  cancelAnimationFrame(rafId)
-  if (!props.animated) { lines.value = buildFrame(0); return }
-  const startTime = performance.now()
-  const speedMul = SPEED_MAP[props.speed]
-  function loop(now: number) {
-    lines.value = buildFrame((now - startTime) * speedMul)
-    rafId = requestAnimationFrame(loop)
-  }
-  rafId = requestAnimationFrame(loop)
-}
-
-onMounted(() => { isMounted = true; start() })
-onUnmounted(() => { isMounted = false; cancelAnimationFrame(rafId) })
-watch(() => [props.size, props.charset, props.speed, props.animated], () => start())
+// Reduced-motion, off-screen and background-tab handling all live in
+// useAsciiLoop — see that file for why a raw rAF loop wasn't enough.
+useAsciiLoop({
+  animated: () => props.animated,
+  speedMul: () => SPEED_MAP[props.speed],
+  buildFrame,
+  lines,
+  deps: () => [props.size, props.charset, props.speed, props.animated],
+  el: rootEl,
+})
 </script>
 
 <template>
   <pre
+    ref="rootEl"
+    aria-hidden="true"
     :class="cn('inline-block border-3 border-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))] bg-background overflow-hidden font-mono text-xs leading-none tracking-tight select-none p-1', props.class)"
     :style="props.multicolor ? undefined : { color: props.color || 'currentColor' }"
   ><template v-if="props.multicolor"><template v-for="(line, i) in lines" :key="i"><span :style="{ color: MULTICOLOR_PALETTE[i % MULTICOLOR_PALETTE.length] }">{{ line }}</span><template v-if="i < lines.length - 1">&#10;</template></template></template><template v-else>{{ lines.join('\n') }}</template></pre>

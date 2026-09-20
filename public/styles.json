@@ -8,6 +8,11 @@
       "path": "registry/default/styles/globals.css",
       "type": "registry:style",
       "target": "styles/globals.css"
+    },
+    {
+      "path": "registry/default/styles/motion.css",
+      "type": "registry:style",
+      "target": "styles/motion.css"
     }
   ],
   "type": "registry:style"

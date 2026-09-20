@@ -96,6 +96,17 @@ const Carousel = React.forwardRef<
 
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent<HTMLDivElement>) => {
+        // Don't steal Left/Right from a form field inside a slide — caret
+        // movement belongs to the field. (This used to run in the capture
+        // phase, so the input never even saw the key.)
+        const target = event.target as HTMLElement | null
+        if (
+          target &&
+          (target.isContentEditable ||
+            /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+        ) {
+          return
+        }
         if (event.key === 'ArrowLeft') {
           event.preventDefault()
           scrollPrev()
@@ -148,10 +159,11 @@ const Carousel = React.forwardRef<
       >
         <div
           ref={ref}
-          onKeyDownCapture={handleKeyDown}
+          onKeyDown={handleKeyDown}
           className={cn('relative', className)}
           role="region"
           aria-roledescription="carousel"
+          aria-label="Carousel"
           {...props}
         >
           {children}

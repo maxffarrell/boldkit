@@ -43,6 +43,14 @@ const TagInput = React.forwardRef<TagInputHandle, TagInputProps>(
     const [inputValue, setInputValue] = React.useState('')
     const [showSuggestions, setShowSuggestions] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
+
+    // Arrow-key highlighting and the validation errors were purely visual:
+    // nothing announced that suggestions appeared, how many there were, which
+    // one was active, or why an entry was rejected (WCAG 4.1.2 / 3.3.1).
+    const uid = React.useId()
+    const listboxId = `${uid}-suggestions`
+    const errorId = `${uid}-error`
+    const optionId = (index: number) => `${uid}-option-${index}`
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = React.useState(-1)
 
     const inputRef = React.useRef<HTMLInputElement>(null)
@@ -67,6 +75,10 @@ const TagInput = React.forwardRef<TagInputHandle, TagInputProps>(
           (allowDuplicates || !tags.includes(suggestion))
       )
     }, [inputValue, suggestions, tags, allowDuplicates])
+
+    // Single source of truth for the listbox's open state — aria-expanded and
+    // the rendered listbox must never disagree.
+    const suggestionsOpen = showSuggestions && filteredSuggestions.length > 0
 
     const updateTags = (newTags: string[]) => {
       if (!isControlled) {
@@ -250,6 +262,17 @@ const TagInput = React.forwardRef<TagInputHandle, TagInputProps>(
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={suggestionsOpen}
+            aria-controls={suggestionsOpen ? listboxId : undefined}
+            aria-activedescendant={
+              suggestionsOpen && selectedSuggestionIndex >= 0
+                ? optionId(selectedSuggestionIndex)
+                : undefined
+            }
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={error ? true : undefined}
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
@@ -266,12 +289,17 @@ const TagInput = React.forwardRef<TagInputHandle, TagInputProps>(
 
         {/* Error message */}
         {error && (
-          <p className="mt-1 text-xs font-medium text-destructive">{error}</p>
+          <p id={errorId} role="alert" className="mt-1 text-xs font-medium text-destructive">
+            {error}
+          </p>
         )}
 
         {/* Suggestions dropdown */}
-        {showSuggestions && filteredSuggestions.length > 0 && (
+        {suggestionsOpen && (
           <div
+            id={listboxId}
+            role="listbox"
+            aria-label="Suggestions"
             className={cn(
               'absolute z-50 mt-1 w-full',
               'border-3 border-foreground bg-popover',
@@ -279,18 +307,23 @@ const TagInput = React.forwardRef<TagInputHandle, TagInputProps>(
             )}
           >
             {filteredSuggestions.map((suggestion, index) => (
-              <button
+              <div
                 key={suggestion}
-                type="button"
+                id={optionId(index)}
+                role="option"
+                aria-selected={index === selectedSuggestionIndex}
+                // Options are driven by aria-activedescendant from the input,
+                // so they must not be focusable in their own right.
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className={cn(
-                  'w-full px-3 py-2 text-left text-sm transition-colors',
+                  'w-full cursor-pointer px-3 py-2 text-left text-sm transition-colors',
                   'hover:bg-muted',
                   index === selectedSuggestionIndex && 'bg-accent'
                 )}
               >
                 {suggestion}
-              </button>
+              </div>
             ))}
           </div>
         )}

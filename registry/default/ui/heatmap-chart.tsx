@@ -54,7 +54,10 @@ function getCellColor(
 const HeatmapChart = React.forwardRef<HTMLDivElement, HeatmapChartProps>(
   (
     {
-      data,
+      // Defaulted at the destructure: the memos below run *above* the empty
+      // guard, so `undefined` (the shape a still-loading fetch passes) would
+      // throw before the guard could render <ChartEmpty>.
+      data = [],
       rows,
       cols,
       colorLow,
@@ -72,7 +75,10 @@ const HeatmapChart = React.forwardRef<HTMLDivElement, HeatmapChartProps>(
   ) => {
     const [tooltip, setTooltip] = React.useState<{ x: number; y: number; row: string; col: string; value: number } | null>(null)
     const isInteractive = !!onCellClick
-    const cellTabIndex = showTooltip || isInteractive ? 0 : undefined
+    // Only genuinely interactive cells belong in the tab order. This used to
+    // include `showTooltip` (on by default), so a 12x30 heatmap injected 360
+    // sequential tab stops for a mouse-only hover affordance.
+    const cellTabIndex = isInteractive ? 0 : undefined
 
     const valueMap = React.useMemo(() => {
       const map = new Map<string, number>()
@@ -103,7 +109,10 @@ const HeatmapChart = React.forwardRef<HTMLDivElement, HeatmapChartProps>(
     return (
       <div
         ref={ref}
-        role="img"
+        // NOT role="img": that makes the whole subtree presentational, so the
+        // per-cell labels below were never announced even though the cells
+        // stayed focusable. A group keeps them reachable AND named.
+        role="group"
         aria-label={ariaLabel}
         className={cn('relative w-full overflow-x-auto', className)}
         {...props}
@@ -159,8 +168,8 @@ const HeatmapChart = React.forwardRef<HTMLDivElement, HeatmapChartProps>(
                 return (
                   <div
                     key={col}
-                    role={isInteractive ? 'button' : undefined}
-                    aria-label={isInteractive ? `${row}, ${col}: ${value}` : undefined}
+                    role={isInteractive ? 'button' : 'img'}
+                    aria-label={`${row}, ${col}: ${value}`}
                     tabIndex={cellTabIndex}
                     className={cn(
                       'border border-foreground/30 transition duration-100 hover:border-foreground hover:border-2 hover:z-10 focus:border-foreground focus:border-2 focus:z-10 focus:outline-none',

@@ -189,7 +189,6 @@ export function AnimationPanel({ state, dispatch, activeGrid }: AnimationPanelPr
     tick()
     intervalRef.current = setInterval(tick, 1000 / fps)
     return stopInterval
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, fps, dispatch])
 
   const sFont = { fontFamily: 'var(--studio-font)' }

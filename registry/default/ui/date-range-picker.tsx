@@ -17,7 +17,8 @@ export interface DateRangePickerPreset {
   value: DateRange
 }
 
-export interface DateRangePickerProps {
+export interface DateRangePickerProps
+  extends Omit<React.ComponentPropsWithoutRef<typeof Button>, 'onChange' | 'value' | 'defaultValue'> {
   value?: DateRange
   defaultValue?: DateRange
   onChange?: (range: DateRange | undefined) => void
@@ -61,8 +62,15 @@ const getDefaultPresets = (): DateRangePickerPreset[] => {
 }
 
 const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps>(
-  (
-    {
+  (allProps, ref) => {
+    // Controlled-ness is decided by whether the `value` PROP IS PRESENT,
+    // latched on first render — not by whether it is defined. `undefined` is a
+    // legal controlled value for an optional range, so the ordinary
+    // `useState<DateRange>()` + `value` pattern used to start uncontrolled and
+    // silently flip on the first pick.
+    const isControlled = React.useRef('value' in allProps).current
+
+    const {
       value: controlledValue,
       defaultValue,
       onChange,
@@ -75,13 +83,21 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
       placeholder = 'Pick a date range',
       align = 'start',
       className,
-    },
-    ref
-  ) => {
+      ...props
+    } = allProps
+
+    if (process.env.NODE_ENV !== 'production') {
+      if (isControlled !== ('value' in allProps)) {
+        console.warn(
+          '[DateRangePicker] Switching between controlled and uncontrolled is not supported. ' +
+            'Pass `defaultValue` for uncontrolled use.'
+        )
+      }
+    }
+
     const [open, setOpen] = React.useState(false)
     const [uncontrolledValue, setUncontrolledValue] = React.useState<DateRange | undefined>(defaultValue)
 
-    const isControlled = controlledValue !== undefined
     const selectedRange = isControlled ? controlledValue : uncontrolledValue
 
     const resolvedPresets = presets ?? getDefaultPresets()
@@ -134,6 +150,7 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
             ref={ref}
             variant="outline"
             disabled={disabled}
+            {...props}
             className={cn(
               'w-full justify-start text-left font-normal',
               !selectedRange && 'text-muted-foreground',

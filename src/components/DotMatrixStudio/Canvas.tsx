@@ -162,7 +162,7 @@ export function Canvas({ state, dispatch, activeGrid, isPreviewMode }: CanvasPro
       const pts = getShapePoints(row, col, row, col, activeShape)
       updateShapePreview(pts)
     }
-  }, [activeTool, activeShape, activeGrid, rows, cols, dispatch, isPreviewMode, updateShapePreview])
+  }, [activeTool, activeShape, activeGrid, dispatch, isPreviewMode, updateShapePreview])
 
   const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (!isDragging.current || isPreviewMode) return

@@ -390,8 +390,11 @@ function FileListItem({ file, progress, error, uploading, onRemove }: FileListIt
       {uploading ? (
         <Spinner size="sm" />
       ) : onRemove ? (
+        // Icon-only, so it needs a name that says WHICH file: with N files
+        // there would otherwise be N identically anonymous "button"s.
         <button
           type="button"
+          aria-label={`Remove ${file.name}`}
           onClick={(e) => {
             e.stopPropagation()
             onRemove()

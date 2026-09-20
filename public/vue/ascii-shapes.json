@@ -83,6 +83,10 @@
     {
       "path": "components/ui/ascii-shapes/index.ts",
       "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/useAsciiLoop.ts",
+      "type": "registry:ui"
     }
   ],
   "title": "ASCII Shapes"

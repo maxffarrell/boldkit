@@ -40,9 +40,6 @@
   --bk-translate-press:     2px;
   --bk-reveal-offset:       16px;
 
-  /* Fallbacks — if consumer hasn't defined the BoldKit shadow color,
-     fall back to currentColor so the press shadow is still visible. */
-  --shadow-color: var(--shadow-color, 240 10% 10%);
 }
 
 /* ──────────────────────────────────────────────────────
@@ -103,17 +100,17 @@
    correctly with a background colour: hover lifts and grows the shadow, active
    presses into the page and collapses it. */
 .bk-press {
-  box-shadow: var(--bk-shadow-offset) var(--bk-shadow-offset) 0 hsl(var(--shadow-color));
+  box-shadow: var(--bk-shadow-offset) var(--bk-shadow-offset) 0 hsl(var(--shadow-color, 240 10% 10%));
   transition: transform var(--bk-dur-snap) var(--bk-ease-snap),
               box-shadow var(--bk-dur-snap) var(--bk-ease-snap);
 }
 .bk-press:hover {
   transform: translate(calc(var(--bk-translate-press) * -1), calc(var(--bk-translate-press) * -1));
-  box-shadow: calc(var(--bk-shadow-offset) + var(--bk-translate-press)) calc(var(--bk-shadow-offset) + var(--bk-translate-press)) 0 hsl(var(--shadow-color));
+  box-shadow: calc(var(--bk-shadow-offset) + var(--bk-translate-press)) calc(var(--bk-shadow-offset) + var(--bk-translate-press)) 0 hsl(var(--shadow-color, 240 10% 10%));
 }
 .bk-press:active {
   transform: translate(var(--bk-shadow-offset), var(--bk-shadow-offset));
-  box-shadow: var(--bk-shadow-offset-press) var(--bk-shadow-offset-press) 0 hsl(var(--shadow-color));
+  box-shadow: var(--bk-shadow-offset-press) var(--bk-shadow-offset-press) 0 hsl(var(--shadow-color, 240 10% 10%));
   transition-duration: var(--bk-dur-instant);
 }
 @media (hover: none) {
@@ -149,7 +146,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: hsl(var(--shadow-color));
+  background: hsl(var(--shadow-color, 240 10% 10%));
   transform: translate(var(--bk-shadow-offset), var(--bk-shadow-offset));
   animation: bk-pulse-shadow 1.6s var(--bk-ease-snap) infinite;
   pointer-events: none;

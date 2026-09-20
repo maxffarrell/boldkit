@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { RadarChart as ERadarChart } from 'echarts/charts'
 import { TooltipComponent, LegendComponent, RadarComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { cn } from '@/lib/utils'
-import { neubrutalismTheme, type ChartConfig, CHART_PALETTES } from './chart-utils'
+import { extent, type ChartConfig, CHART_PALETTES, useResolvedChart } from './chart-utils'
 import { chartContainerVariants } from './chart-variants'
 import ChartEmpty from './ChartEmpty.vue'
 import type { VariantProps } from 'class-variance-authority'
@@ -27,15 +27,32 @@ interface RadarChartProps {
   variant?: ChartVariants['variant']
   class?: string
   emptyMessage?: string
+  /** React calls this `emptyState`. Accepted here so the same prop name works
+   *  in both frameworks; `emptyMessage` stays supported. */
+  emptyState?: string
+  /** Accessible name. React exposes this on every chart; without it the
+   *  chart ships with no name at all. */
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<RadarChartProps>(), {
+  ariaLabel: 'Radar chart',
   showLegend: false,
   showGrid: true,
   fillOpacity: 0.6,
   height: '300px',
   variant: 'default',
 })
+
+// Prefer the React-compatible name when both are given.
+const resolvedEmptyMessage = computed(() => props.emptyState ?? props.emptyMessage)
+
+// ECharts draws to a canvas, which has no CSS cascade: an
+// `hsl(var(--primary))` string assigned to fillStyle is silently dropped.
+// Resolve the option and theme against this element before they reach VChart.
+const rootEl = ref<HTMLElement | null>(null)
+const { theme: resolvedTheme, resolve } = useResolvedChart(rootEl)
+const resolvedOption = computed(() => resolve(option.value))
 
 const isEmpty = computed(() => !props.data || props.data.length === 0 || !props.dataKeys || props.dataKeys.length === 0)
 
@@ -47,10 +64,10 @@ const indicators = computed(() => {
   const maxValues: Record<string, number> = {}
   props.dataKeys.forEach(key => {
     const values = props.data.map(d => (d[key] as number) || 0)
-    maxValues[key] = Math.max(...values)
+    maxValues[key] = extent(values).max
   })
 
-  const globalMax = Math.max(...props.dataKeys.map(key => maxValues[key]), 0) * 1.2
+  const globalMax = Math.max(extent(props.dataKeys.map(key => maxValues[key])).max, 0) * 1.2
 
   return props.data.map(d => ({
     name: d.subject,
@@ -126,14 +143,17 @@ const option = computed(() => ({
 
 <template>
   <div
+    ref="rootEl"
+    role="img"
+    :aria-label="ariaLabel"
     data-slot="chart"
     :class="cn(chartContainerVariants({ variant }), props.class)"
   >
-    <ChartEmpty v-if="isEmpty" :message="emptyMessage" />
+    <ChartEmpty v-if="isEmpty" :message="resolvedEmptyMessage" />
     <VChart
       v-else
-      :option="option"
-      :theme="neubrutalismTheme"
+      :option="resolvedOption"
+      :theme="resolvedTheme"
       :autoresize="true"
       :style="{ width: '100%', height }"
     />

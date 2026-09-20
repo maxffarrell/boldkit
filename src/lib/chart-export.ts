@@ -124,6 +124,29 @@ function inlineComputedStyles(src: Element, dst: Element): void {
 }
 
 /**
+ * The opaque colour to composite an export onto.
+ *
+ * Hardcoding white made dark-mode exports unreadable: `inlineComputedStyles`
+ * pins the *computed* text and axis colours, which in dark mode are near-white,
+ * so a white backdrop produced a near-blank image. Walk up from the chart until
+ * an element declares a non-transparent background, then fall back to white.
+ */
+function resolveExportBackground(from: Element | null): string {
+  if (!isBrowser) return '#ffffff'
+  let node: Element | null = from
+  while (node && node !== document.documentElement) {
+    const bg = getComputedStyle(node).backgroundColor
+    if (bg && bg !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(bg)) return bg
+    node = node.parentElement
+  }
+  const rootBg = document.documentElement
+    ? getComputedStyle(document.documentElement).backgroundColor
+    : ''
+  if (rootBg && rootBg !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(rootBg)) return rootBg
+  return '#ffffff'
+}
+
+/**
  * Clone the live <svg>, inline every element's computed style so it renders
  * standalone, and return the serialized markup plus its rendered size.
  */
@@ -140,13 +163,14 @@ function serializeSvg(svg: SVGSVGElement): { source: string; width: number; heig
   if (!clone.getAttribute('viewBox')) {
     clone.setAttribute('viewBox', `0 0 ${width} ${height}`)
   }
-  // Opaque backdrop so the export isn't transparent (reads as black in some viewers).
+  // Opaque backdrop so the export isn't transparent (reads as black in some
+  // viewers) — using the chart's own background so dark mode stays legible.
   const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
   bg.setAttribute('x', '0')
   bg.setAttribute('y', '0')
   bg.setAttribute('width', String(width))
   bg.setAttribute('height', String(height))
-  bg.setAttribute('fill', '#ffffff')
+  bg.setAttribute('fill', resolveExportBackground(svg))
   clone.insertBefore(bg, clone.firstChild)
 
   return { source: new XMLSerializer().serializeToString(clone), width, height }
@@ -188,7 +212,7 @@ export async function exportPNG(
     out.height = canvasEl.height
     const c = out.getContext('2d')
     if (!c) return
-    c.fillStyle = '#ffffff'
+    c.fillStyle = resolveExportBackground(canvasEl)
     c.fillRect(0, 0, out.width, out.height)
     c.drawImage(canvasEl, 0, 0)
     triggerDownload(out.toDataURL('image/png'), filename)
@@ -210,8 +234,8 @@ export async function exportPNG(
       canvas.height = height * scale
       const ctx = canvas.getContext('2d')
       if (!ctx) return resolve()
-      // White backdrop so transparent charts don't render black on export.
-      ctx.fillStyle = '#ffffff'
+      // Opaque backdrop so transparent charts don't render black on export.
+      ctx.fillStyle = resolveExportBackground(svg)
       ctx.fillRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       triggerDownload(canvas.toDataURL('image/png'), filename)

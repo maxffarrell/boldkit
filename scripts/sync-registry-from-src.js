@@ -168,3 +168,73 @@ if (drifted) {
   process.exit(1)
 }
 console.log('All in-scope mirrors in sync. (Charts excluded — structural divergence; see registry/default/ui/<chart>.tsx)')
+
+// ---------------------------------------------------------------------------
+// Chart bundle drift check.
+//
+// registry/default/ui/chart.tsx is a HAND-MAINTAINED flat bundle of the
+// src/components/ui/chart/* core modules — the sync above deliberately skips
+// it (UI_SKIP). That's exactly how it fell behind: the legend key fix never
+// landed there, and useChart/getPayloadConfigFromPayload/the annotations API
+// were never exported at all, so installed charts had a strictly smaller and
+// partly stale API than the docs describe.
+//
+// This asserts the bundle still exports everything the src modules it bundles
+// do. Per-chart components (DonutChart, GaugeChart, …) ship as their own
+// registry items and are not part of this check.
+// ---------------------------------------------------------------------------
+
+const CHART_BUNDLE = join(root, 'registry/default/ui/chart.tsx')
+const CHART_CORE_MODULES = [
+  'types.ts',
+  'palettes.ts',
+  'container.tsx',
+  'tooltip.tsx',
+  'legend.tsx',
+  'utils.ts',
+  'empty.tsx',
+  'loading.tsx',
+  'annotations.tsx',
+]
+
+function exportedNames(rawSource) {
+  // Strip comments first — a comment inside an `export { … }` list would
+  // otherwise be parsed as part of the adjacent identifier.
+  const source = rawSource
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^[ \t]*\/\/.*$/gm, '')
+  const names = new Set()
+  // `export const X`, `export function X`, `export interface X`, `export type X`
+  for (const m of source.matchAll(/^export\s+(?:declare\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/gm)) {
+    names.add(m[1])
+  }
+  // `export { A, B as C }` / `export type { A }` — ignore re-export sources
+  for (const m of source.matchAll(/^export\s+(?:type\s+)?\{([^}]*)\}/gm)) {
+    for (const part of m[1].split(',')) {
+      const name = part.trim().split(/\s+as\s+/).pop()?.trim()
+      if (name) names.add(name)
+    }
+  }
+  return names
+}
+
+if (existsSync(CHART_BUNDLE)) {
+  const bundleExports = exportedNames(readFileSync(CHART_BUNDLE, 'utf-8'))
+  const missing = []
+  for (const mod of CHART_CORE_MODULES) {
+    const modPath = join(CHART_SRC, mod)
+    if (!existsSync(modPath)) continue
+    for (const name of exportedNames(readFileSync(modPath, 'utf-8'))) {
+      if (!bundleExports.has(name)) missing.push(`${mod} → ${name}`)
+    }
+  }
+  if (missing.length) {
+    console.error(
+      `✗ registry/default/ui/chart.tsx is missing ${missing.length} export(s) its src modules provide:`
+    )
+    for (const m of missing) console.error(`    ${m}`)
+    console.error('  Add them to the flat bundle (it is hand-maintained; the sync above skips it).')
+    process.exit(1)
+  }
+  console.log(`Chart bundle export parity OK (${bundleExports.size} exports).`)
+}
