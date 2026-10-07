@@ -1,4 +1,5 @@
-import { createContext, useContext, useId, useState, type ReactNode } from 'react'
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useCallback, useContext, useId, useMemo, useState, type ReactNode } from 'react'
 
 export type Framework = 'react' | 'vue' | 'svelte'
 
@@ -23,13 +24,15 @@ export function FrameworkProvider({ children }: { children: ReactNode }) {
     return 'react'
   })
 
-  const setFramework = (newFramework: Framework) => {
+  const setFramework = useCallback((newFramework: Framework) => {
     setFrameworkState(newFramework)
     localStorage.setItem(STORAGE_KEY, newFramework)
-  }
+  }, [])
+
+  const value = useMemo(() => ({ framework, setFramework }), [framework, setFramework])
 
   return (
-    <FrameworkContext.Provider value={{ framework, setFramework }}>
+    <FrameworkContext.Provider value={value}>
       {children}
     </FrameworkContext.Provider>
   )

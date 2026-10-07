@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Badge } from '@/components/ui/badge'
+import { copyToClipboard } from '@/lib/clipboard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SEO } from '@/components/SEO'
@@ -68,15 +69,22 @@ const TOC_ITEMS = [
 // ── Copy button ──────────────────────────────────────────
 function CopyCodeButton({ code }: { code: string }) {
   const [copied, setCopied] = React.useState(false)
+  // Without this a second click inherits the first click's pending timer, which
+  // then clears the "copied" state early — and an unmount within 2s leaks it.
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  React.useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }, [])
   return (
     <button
-      onClick={() => {
-        navigator.clipboard.writeText(code)
+      onClick={async () => {
+        if (!(await copyToClipboard(code))) return
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        if (timerRef.current) clearTimeout(timerRef.current)
+        timerRef.current = setTimeout(() => setCopied(false), 2000)
       }}
       className={cn(
-        'flex items-center gap-1.5 text-[10px] font-mono font-bold px-2 py-0.5 transition-all duration-100',
+        'flex items-center gap-1.5 text-[10px] font-mono font-bold px-2 py-0.5 transition duration-100',
         copied
           ? 'bg-success text-success-foreground border border-success'
           : 'border border-background/30 text-background/70 hover:text-background hover:border-background/60'
@@ -150,7 +158,7 @@ function NavSection({ section, defaultOpen = true }: { section: typeof NAV_SECTI
               <a
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-2 px-3 py-[5px] text-sm transition-all duration-100 border-l-2',
+                  'flex items-center gap-2 px-3 py-[5px] text-sm transition duration-100 border-l-2',
                   item.active
                     ? 'border-primary bg-primary/8 font-bold text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-muted/40'
@@ -175,6 +183,14 @@ export function DocsTemplate() {
   const [dark, setDark] = React.useState(false)
   const [searchVal, setSearchVal] = React.useState('')
 
+  const query = searchVal.trim().toLowerCase()
+  const filteredSections = query
+    ? NAV_SECTIONS.map(section => ({
+        ...section,
+        items: section.items.filter(item => item.label.toLowerCase().includes(query)),
+      })).filter(section => section.items.length > 0)
+    : NAV_SECTIONS
+
   return (
     <div className={cn('min-h-screen bg-background text-foreground', dark && 'dark')}>
       <SEO
@@ -191,7 +207,7 @@ export function DocsTemplate() {
         {/* Mobile menu */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="lg:hidden p-1.5 border-2 border-foreground hover:bg-foreground hover:text-background transition-all"
+          className="lg:hidden p-1.5 border-2 border-foreground hover:bg-foreground hover:text-background transition"
           aria-label="Toggle menu"
         >
           {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -199,7 +215,7 @@ export function DocsTemplate() {
 
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 flex-shrink-0 group">
-          <div className="w-7 h-7 bg-primary border-2 border-foreground flex items-center justify-center shadow-[2px_2px_0px_hsl(var(--shadow-color))] group-hover:translate-x-[-1px] group-hover:translate-y-[-1px] group-hover:shadow-[3px_3px_0px_hsl(var(--shadow-color))] transition-all duration-100">
+          <div className="w-7 h-7 bg-primary border-2 border-foreground flex items-center justify-center shadow-[2px_2px_0px_hsl(var(--shadow-color))] group-hover:translate-x-[-1px] group-hover:translate-y-[-1px] group-hover:shadow-[3px_3px_0px_hsl(var(--shadow-color))] transition duration-100">
             <BookOpen className="h-3.5 w-3.5 text-primary-foreground" />
           </div>
           <div className="hidden sm:flex items-baseline gap-1.5">
@@ -227,7 +243,7 @@ export function DocsTemplate() {
           </div>
           <button
             onClick={() => setDark(!dark)}
-            className="p-1.5 border-2 border-foreground hover:bg-foreground hover:text-background transition-all"
+            className="p-1.5 border-2 border-foreground hover:bg-foreground hover:text-background transition"
             aria-label="Toggle dark mode"
           >
             {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -236,7 +252,7 @@ export function DocsTemplate() {
             href="https://github.com/ANIBIT14/boldkit"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 border-2 border-foreground hover:bg-foreground hover:text-background transition-all"
+            className="p-1.5 border-2 border-foreground hover:bg-foreground hover:text-background transition"
             aria-label="GitHub"
           >
             <Github className="h-3.5 w-3.5" />
@@ -269,9 +285,18 @@ export function DocsTemplate() {
 
             {/* Nav sections */}
             <div className="space-y-0.5">
-              {NAV_SECTIONS.map((section, i) => (
-                <NavSection key={section.title} section={section} defaultOpen={i < 2} />
+              {filteredSections.map((section, i) => (
+                <NavSection
+                  key={section.title + query}
+                  section={section}
+                  defaultOpen={query ? true : i < 2}
+                />
               ))}
+              {filteredSections.length === 0 && (
+                <p className="px-2 py-3 text-xs font-mono text-muted-foreground">
+                  No results for &ldquo;{searchVal}&rdquo;
+                </p>
+              )}
             </div>
           </div>
         </aside>
@@ -330,7 +355,7 @@ export function DocsTemplate() {
                 ].map(card => (
                   <div
                     key={card.title}
-                    className="flex items-start gap-3 p-3.5 border-3 border-foreground shadow-[3px_3px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_hsl(var(--shadow-color))] transition-all duration-100 cursor-default"
+                    className="flex items-start gap-3 p-3.5 border-3 border-foreground shadow-[3px_3px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_hsl(var(--shadow-color))] transition duration-100 cursor-default"
                   >
                     <div className={cn('p-1.5 border-2 border-foreground flex-shrink-0', card.color)}>
                       {card.icon}
@@ -403,7 +428,7 @@ export default function App() {
                   <thead>
                     <tr className="bg-foreground text-background">
                       {['Prop', 'Type', 'Default', 'Description'].map(h => (
-                        <th key={h} className="text-left px-4 py-2.5 font-black text-[10px] uppercase tracking-[0.12em] whitespace-nowrap">
+                        <th key={h} scope="col" className="text-left px-4 py-2.5 font-black text-[10px] uppercase tracking-[0.12em] whitespace-nowrap">
                           {h}
                         </th>
                       ))}

@@ -7,13 +7,13 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Separator.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Separator.vue"
+      "path": "components/ui/Separator.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Separator"
 }

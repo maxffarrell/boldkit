@@ -22,6 +22,7 @@ import {
   Settings, LogIn, FileX, Package, BarChart3, Wand2, Cpu,
 } from 'lucide-react'
 import { useState, useEffect, useRef, type CSSProperties } from 'react'
+import mcpLogo from '@lobehub/icons-static-svg/icons/mcp.svg?raw'
 import { SEO, pageSEO } from '@/components/SEO'
 import {
   FrameworkIcon,
@@ -43,7 +44,8 @@ import {
   AsciiSpiral, AsciiVortex, AsciiMatrix, AsciiGrid,
 } from '@/components/ui/ascii-shapes'
 import {
-  Aurora, FlowField, Plasma, Metaballs, MatrixRain, ParticleWeb,
+  Aurora, Plasma,
+  MeshGradient, Swirl, GodRays, PulsingBorder,
 } from '@/components/CanvasEffects/react'
 
 const DISPLAY: CSSProperties = { fontFamily: "'Bebas Neue', sans-serif" }
@@ -118,11 +120,11 @@ export function Home() {
   const shapesCount     = useCountUp({ end: COUNTS.shapes,     duration: 1100 })
   const blocksCount     = useCountUp({ end: COUNTS.blocks,     duration: 800  })
 
-  const showcaseReveal  = useScrollReveal()
-  const toolsReveal     = useScrollReveal()
-  const effectsReveal   = useScrollReveal()
-  const featuresReveal  = useScrollReveal()
-  const ctaReveal       = useScrollReveal()
+  const { ref: showcaseRef, inView: showcaseInView } = useScrollReveal()
+  const { ref: toolsRef, inView: toolsInView } = useScrollReveal()
+  const { ref: effectsRef, inView: effectsInView } = useScrollReveal()
+  const { ref: featuresRef, inView: featuresInView } = useScrollReveal()
+  const { ref: ctaRef, inView: ctaInView } = useScrollReveal()
 
   const commands: Record<Framework, string> = {
     react: 'npx shadcn@latest add https://boldkit.dev/r/button.json',
@@ -148,7 +150,7 @@ export function Home() {
 
         {/* ── ANNOUNCEMENT BAR ───────────────────────────────────────── */}
         <a
-          href="https://favgrab.boldkit.dev"
+          href="https://favgrab.boldkit.dev/convert"
           target="_blank"
           rel="noopener noreferrer"
           className="group flex items-center justify-center gap-3 border-b-3 border-foreground bg-primary px-4 py-2 hover:bg-primary/90 transition-colors"
@@ -156,7 +158,7 @@ export function Home() {
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground/70" style={MONO}>New Tool</span>
           <span className="h-3 w-[2px] bg-primary-foreground/30" />
           <span className="text-xs font-bold text-primary-foreground" style={MONO}>
-            FavGrab — Extract &amp; download favicons from any website
+            FavGrab — Extract favicons &amp; convert images, free in your browser
           </span>
         </a>
 
@@ -185,17 +187,28 @@ export function Home() {
                       <path d="M13.464 3.222L21 18.222h-4.151l-2.607-5.185-2.591 5.185H7.5L13.464 3.222zM3 18.222h4.151l2.607-5.185 2.591 5.185H16.5L10.536 3.222 3 18.222z"/>
                     </svg>
                     Nuxt
+                  </Badge>
+                  <Badge variant="secondary" className="gap-1.5">
+                    <span
+                      aria-hidden
+                      className="inline-flex h-4 w-4 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                      dangerouslySetInnerHTML={{ __html: mcpLogo }}
+                    />
+                    MCP
                     <span className="ml-0.5 rounded-sm bg-background/25 px-1 py-px text-[9px] font-black">NEW</span>
                   </Badge>
                   <Badge variant="default" className="gap-1.5">
                     <SvelteIcon className="h-4 w-4" /> Svelte
                   </Badge>
                   <span className="h-4 w-[2px] bg-foreground/20 hidden sm:block" />
-                  <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hidden sm:block" style={MONO}>v3.3.2</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hidden sm:block" style={MONO}>v3.5.4</span>
                 </div>
 
                 {/* Giant masthead — newspaper column style */}
-                <div className="mb-0 select-none">
+                <h1
+                  className="mb-0 select-none font-normal"
+                  aria-label="BoldKit — Neubrutalism UI Components for React and Vue 3"
+                >
                   {/* "BOLD" with thick left color bar */}
                   <div className="flex items-stretch animate-stagger-fade-in stagger-2">
                     <div className="w-[6px] shrink-0 bg-primary mr-4" />
@@ -215,7 +228,7 @@ export function Home() {
                   >
                     KIT
                   </div>
-                </div>
+                </h1>
 
                 {/* Subline */}
                 <p className="mt-6 mb-7 max-w-md text-base leading-relaxed text-foreground/65 border-l-4 border-primary pl-4 animate-stagger-fade-in stagger-4" style={MONO}>
@@ -271,6 +284,14 @@ export function Home() {
                       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                     </Button>
                   </div>
+                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground" style={MONO}>
+                    <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                    Or let an AI agent do it —
+                    <Link to="/docs/mcp" className="font-bold text-foreground underline decoration-2 underline-offset-2">
+                      install via MCP
+                    </Link>
+                    for Claude, Cursor &amp; more.
+                  </p>
                 </div>
               </div>
 
@@ -279,7 +300,7 @@ export function Home() {
 
                 {/* Row header */}
                 <div className="border-b-3 border-foreground bg-foreground px-4 py-2 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-background" style={MONO}>BoldKit v3.3 — Live Preview</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-background" style={MONO}>BoldKit v3.4 — Live Preview</span>
                   <div className="flex gap-1">
                     <div className="h-2.5 w-2.5 bg-primary" />
                     <div className="h-2.5 w-2.5 bg-secondary" />
@@ -324,7 +345,7 @@ export function Home() {
                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-accent" style={MONO}>Canvas Effects</span>
                     </div>
                     <div className="absolute top-3 right-3">
-                      <Badge variant="accent" className="text-[8px] px-1.5 py-0 h-4">New v3.3</Badge>
+                      <Badge variant="accent" className="text-[8px] px-1.5 py-0 h-4">New v3.4</Badge>
                     </div>
                   </div>
 
@@ -459,8 +480,8 @@ export function Home() {
             ACT 3 — COMPONENT UNIVERSE (Tabbed Showcase)
         ═══════════════════════════════════════════════════════════════ */}
         <section
-          ref={showcaseReveal.ref}
-          className={`border-b-3 border-foreground py-14 md:py-20 overflow-x-hidden transition-all duration-700 ease-out ${showcaseReveal.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          ref={showcaseRef}
+          className={`border-b-3 border-foreground py-14 md:py-20 overflow-x-hidden transition duration-700 ease-out ${showcaseInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
           <div className="container mx-auto px-4">
 
@@ -754,7 +775,7 @@ export function Home() {
                     { Component: HexagonShape,   anim: 'glitch', label: 'Glitch', bg: 'bg-success',   color: 'hsl(var(--success-foreground))'   },
                   ] as const).map(({ Component, anim, label, bg, color }) => (
                     <Link key={anim} to="/shapes/builder">
-                      <div className="group border-3 border-foreground hover:shadow-[4px_4px_0px_hsl(var(--primary))] hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150 overflow-hidden">
+                      <div className="group border-3 border-foreground hover:shadow-[4px_4px_0px_hsl(var(--primary))] hover:-translate-x-1 hover:-translate-y-1 transition duration-150 overflow-hidden">
                         <div className={`${bg} flex items-center justify-center py-5`}>
                           <Component size={52} color={color} animation={anim} speed="normal" />
                         </div>
@@ -842,14 +863,14 @@ export function Home() {
             ACT 4 — TOOLS (3-panel: Shape Builder | Dot Matrix | Canvas Effects)
         ═══════════════════════════════════════════════════════════════ */}
         <section
-          ref={toolsReveal.ref}
-          className={`border-b-3 border-foreground transition-all duration-700 ease-out ${toolsReveal.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          ref={toolsRef}
+          className={`border-b-3 border-foreground transition duration-700 ease-out ${toolsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
           {/* Section header */}
           <div className="border-b-3 border-foreground px-4 md:px-8 py-5 flex items-center justify-between bg-background">
             <div className="flex items-center gap-3">
               <div className="h-[3px] w-8 bg-primary" />
-              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground" style={MONO}>Interactive Tools — v3.3</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground" style={MONO}>Interactive Tools — v3.4</span>
             </div>
             <Badge variant="secondary" className="gap-1.5">3 Tools</Badge>
           </div>
@@ -998,8 +1019,8 @@ export function Home() {
             ACT 5 — EFFECTS GALLERY (Math Curves | ASCII | Canvas — 3 columns)
         ═══════════════════════════════════════════════════════════════ */}
         <section
-          ref={effectsReveal.ref}
-          className={`relative overflow-hidden border-b-3 border-foreground transition-all duration-700 ease-out ${effectsReveal.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          ref={effectsRef}
+          className={`relative overflow-hidden border-b-3 border-foreground transition duration-700 ease-out ${effectsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
           style={{ background: '#080810' }}
         >
           {/* Section header */}
@@ -1095,7 +1116,7 @@ export function Home() {
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-white font-black text-lg uppercase" style={MONO}>Canvas FX</h3>
-                  <p className="text-white/40 text-[11px] mt-0.5" style={MONO}>10 zero-dep components</p>
+                  <p className="text-white/40 text-[11px] mt-0.5" style={MONO}>23 components &middot; 4 new</p>
                 </div>
                 <Link to="/canvas-effects">
                   <Button variant="ghost" size="sm" className="text-accent border-accent/30 gap-1 text-xs">
@@ -1105,13 +1126,13 @@ export function Home() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {([
-                  { node: <FlowField count={100} hueStart={170} hueRange={120} speed={1} decay={0.028} />,       label: 'FLOW FIELD', accent: '#22d3ee' },
+                  { node: <MeshGradient colors={['#ff4b82','#ffc832','#00d2dc','#241d9a']} speed={1} />,          label: 'MESH',      accent: '#ff4b82', isNew: true },
+                  { node: <Swirl colors={['#0a1450','#00d2dc','#ffc832','#ff4b82']} bands={6} twist={2.2} />,     label: 'SWIRL',     accent: '#00d2dc', isNew: true },
+                  { node: <GodRays colors={['#ffc832','#ff8a3d','#ff4b82','#ffe98a']} rayCount={18} />,           label: 'GOD RAYS',  accent: '#ffc832', isNew: true },
+                  { node: <PulsingBorder colors={['#ff4b82','#ffc832','#00d2dc','#7df9ff']} thickness={4} />,     label: 'BORDER',    accent: '#7df9ff', isNew: true },
                   { node: <Plasma palette={['#0a1450','#1e64c8','#00d2dc','#5affa6','#ffc832','#ff4b82']} speed={1} />, label: 'PLASMA',    accent: '#fb923c' },
-                  { node: <Metaballs colors={['#ff5050','#3cb9ff','#ffc32d','#aa4bff']} blobRadius={55} speed={1} />,  label: 'METABALLS', accent: '#f472b6' },
                   { node: <Aurora colors={['#00ffaa','#00beff','#78ff64','#be50ff']} starCount={80} speed={1} />,  label: 'AURORA',    accent: '#00ffaa' },
-                  { node: <MatrixRain headColor="#00ff41" trailHue={120} speed={1} />,                             label: 'MATRIX',    accent: '#00ff41' },
-                  { node: <ParticleWeb count={60} particleColor="#5b4fcf" lineColor="#5b4fcf" />,                    label: 'PARTICLE',  accent: '#a78bfa' },
-                ] as const).map(({ node, label, accent }) => (
+                ] as const).map(({ node, label, accent, ...rest }) => (
                   <Link key={label} to="/canvas-effects">
                     <div className="group flex flex-col items-center gap-1.5 hover:opacity-90 transition-opacity">
                       <div className="overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors relative" style={{ width: '100%', height: 72, background: '#070707' }}>
@@ -1119,13 +1140,16 @@ export function Home() {
                         <div className="absolute bottom-1 left-1.5">
                           <span className="text-[7px] font-black uppercase" style={{ ...MONO, color: accent }}>{label}</span>
                         </div>
+                        {'isNew' in rest && rest.isNew && (
+                          <span className="absolute top-1 right-1 text-[7px] font-black uppercase tracking-wider bg-white text-black px-1" style={MONO}>New</span>
+                        )}
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
               <div className="mt-4 flex flex-wrap gap-1.5">
-                {['Aurora', 'Flow Field', 'Plasma', 'Metaballs', 'Matrix Rain', 'Particle Web', 'Dot Wave', 'Dot Blob', 'Mouse Ripple', 'Lissajous'].map(name => (
+                {['Mesh Gradient', 'Swirl', 'God Rays', 'Pulsing Border', 'Aurora', 'Flow Field', 'Plasma', 'Metaballs', 'Matrix Rain', 'Particle Web'].map(name => (
                   <span key={name} className="text-[9px] font-bold uppercase border border-white/10 px-1.5 py-0.5 text-white/35" style={MONO}>{name}</span>
                 ))}
               </div>
@@ -1137,8 +1161,8 @@ export function Home() {
             ACT 6 — WHY BOLDKIT (Bento-grid features)
         ═══════════════════════════════════════════════════════════════ */}
         <section
-          ref={featuresReveal.ref}
-          className={`border-b-3 border-foreground py-14 md:py-20 transition-all duration-700 ease-out ${featuresReveal.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          ref={featuresRef}
+          className={`border-b-3 border-foreground py-14 md:py-20 transition duration-700 ease-out ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
           <div className="container mx-auto px-4">
             <div className="mb-8 md:mb-12">
@@ -1279,8 +1303,8 @@ export function Home() {
             ACT 7 — FINAL CTA (with live Plasma background)
         ═══════════════════════════════════════════════════════════════ */}
         <section
-          ref={ctaReveal.ref}
-          className={`relative overflow-hidden bg-foreground py-20 md:py-28 transition-all duration-700 ease-out ${ctaReveal.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          ref={ctaRef}
+          className={`relative overflow-hidden bg-foreground py-20 md:py-28 transition duration-700 ease-out ${ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
           {/* Live Plasma canvas behind overlay */}
           <div className="absolute inset-0 pointer-events-none">
@@ -1297,7 +1321,7 @@ export function Home() {
             <Stamp size="sm" variant="secondary" rotation="none">MIT</Stamp>
           </div>
           <div className="absolute -bottom-2 left-8 opacity-75 hidden md:block pointer-events-none select-none" style={{ transform: 'rotate(-6deg)' }}>
-            <Stamp size="sm" rotation="none">v3.3</Stamp>
+            <Stamp size="sm" rotation="none">v3.4</Stamp>
           </div>
           <div className="absolute bottom-4 -right-3 opacity-85 hidden sm:block pointer-events-none select-none" style={{ transform: 'rotate(9deg)' }}>
             <Sticker variant="secondary" rotation="none" size="sm">Open Source</Sticker>

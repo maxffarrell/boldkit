@@ -7,13 +7,13 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Badge.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Badge.vue"
+      "path": "components/ui/Badge.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Badge"
 }

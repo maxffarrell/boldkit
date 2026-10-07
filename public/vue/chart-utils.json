@@ -9,14 +9,15 @@
   "registryDependencies": [],
   "files": [
     {
-      "path": "registry/default/ui/chart-utils.ts",
+      "path": "components/ui/chart-utils.ts",
       "type": "registry:ui",
-      "target": "components/ui/chart-utils.ts"
+      "target": ""
     },
     {
-      "path": "registry/default/ui/chart-variants.ts",
+      "path": "components/ui/chart-variants.ts",
       "type": "registry:ui",
-      "target": "components/ui/chart-variants.ts"
+      "target": ""
     }
-  ]
+  ],
+  "title": "Chart Utils"
 }

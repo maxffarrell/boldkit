@@ -1,5 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { cn, safeHref } from '@/lib/utils'
 import { Marquee } from '@/components/ui/marquee'
 
 export interface LogoItem {
@@ -153,7 +154,7 @@ export function LogoCloudCards({
           {logos.map((logo) => {
             const inner = (
               <div
-                className="border-3 border-foreground bg-card p-6 flex items-center justify-center h-24 hover:shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all cursor-pointer"
+                className="border-3 border-foreground bg-card p-6 flex items-center justify-center h-24 hover:shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition cursor-pointer"
               >
                 {typeof logo.logo === 'string' ? (
                   <img
@@ -167,7 +168,7 @@ export function LogoCloudCards({
               </div>
             )
             return logo.url ? (
-              <a key={`logo-${logo.name}`} href={logo.url} target="_blank" rel="noopener noreferrer">
+              <a key={`logo-${logo.name}`} href={safeHref(logo.url)} target="_blank" rel="noopener noreferrer">
                 {inner}
               </a>
             ) : (
@@ -187,6 +188,12 @@ export interface LogoCloudWithStatsProps {
   title?: string
   logos: LogoItem[]
   stats: Array<{ value: string; label: string }>
+  /**
+   * Cap the number of logos rendered. Omit to render all of them — the 3-column
+   * grid simply grows another row. Previously this was hard-capped at 9, which
+   * dropped the rest with only a console warning.
+   */
+  maxLogos?: number
   className?: string
 }
 
@@ -194,11 +201,10 @@ export function LogoCloudWithStats({
   title,
   logos,
   stats,
+  maxLogos,
   className,
 }: LogoCloudWithStatsProps) {
-  if (import.meta.env.DEV && logos.length > 9) {
-    console.warn(`[LogoCloud] WithStats variant only shows first 9 logos. ${logos.length} logos provided.`)
-  }
+  const visibleLogos = maxLogos === undefined ? logos : logos.slice(0, maxLogos)
   return (
     <section className={cn('py-16 px-4 md:px-8 lg:px-16', className)}>
       <div className="max-w-6xl mx-auto">
@@ -226,7 +232,7 @@ export function LogoCloudWithStats({
           </div>
 
           <div className="grid grid-cols-3 gap-6">
-            {logos.slice(0, 9).map((logo) => {
+            {visibleLogos.map((logo) => {
               const inner = (
                 <div
                   className="flex items-center justify-center h-16 opacity-70 hover:opacity-100 transition-opacity"
@@ -235,7 +241,7 @@ export function LogoCloudWithStats({
                     <img
                       src={logo.logo}
                       alt={logo.name}
-                      className="h-8 w-auto object-contain grayscale hover:grayscale-0 transition-all"
+                      className="h-8 w-auto object-contain grayscale hover:grayscale-0 transition"
                     />
                   ) : (
                     logo.logo
@@ -243,7 +249,7 @@ export function LogoCloudWithStats({
                 </div>
               )
               return logo.url ? (
-                <a key={`logo-${logo.name}`} href={logo.url} target="_blank" rel="noopener noreferrer" className="cursor-pointer">
+                <a key={`logo-${logo.name}`} href={safeHref(logo.url)} target="_blank" rel="noopener noreferrer" className="cursor-pointer">
                   {inner}
                 </a>
               ) : (
@@ -277,7 +283,7 @@ function LogoCloudItem({ logo }: { logo: LogoItem }) {
 
   if (logo.url) {
     return (
-      <a href={logo.url} target="_blank" rel="noopener noreferrer">
+      <a href={safeHref(logo.url)} target="_blank" rel="noopener noreferrer">
         {content}
       </a>
     )

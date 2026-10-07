@@ -7,14 +7,14 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils",
-    "button"
+    "@boldkit/utils",
+    "@boldkit/button"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Tour.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Tour.vue"
+      "path": "components/ui/Tour.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Tour"
 }

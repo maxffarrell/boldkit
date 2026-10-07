@@ -1,13 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "tour",
+  "title": "Tour",
   "description": "Step-by-step product tour with spotlight highlighting and progress indicators",
   "dependencies": [
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils",
-    "button"
+    "@boldkit/utils",
+    "@boldkit/button"
   ],
   "files": [
     {

@@ -20,6 +20,9 @@ export interface SparklineProps extends React.HTMLAttributes<HTMLDivElement> {
   strokeWidth?: number
   trend?: 'up' | 'down' | 'neutral'
   animated?: boolean
+  /** Accessible name. A sparkline conveys a trend, which is invisible to AT
+   *  without one; defaults to a summary of the series. */
+  ariaLabel?: string
 }
 
 const Sparkline = React.forwardRef<HTMLDivElement, SparklineProps>(
@@ -34,24 +37,49 @@ const Sparkline = React.forwardRef<HTMLDivElement, SparklineProps>(
       strokeWidth = 2,
       trend,
       animated = true,
+      ariaLabel,
       className,
       ...props
     },
     ref
   ) => {
+    // `aria-label` on a plain <div> is ignored by most AT — it needs a role.
+    // Default the name to something useful rather than leaving the trend
+    // entirely invisible.
+    const accessibleLabel =
+      ariaLabel ??
+      (data && data.length
+        ? `Sparkline, ${data.length} points, from ${data[0]} to ${data[data.length - 1]}`
+        : 'Sparkline, no data')
     // Unique ID per instance prevents gradient collision when multiple sparklines render on the same page
     const uid = React.useId().replace(/:/g, '')
 
-    // Convert data array to format recharts expects
-    const chartData = data.map((value, index) => ({ value, index }))
-
-    // Determine color based on trend or explicit color
+    // Determine color based on trend or explicit color.
+    // Must run before the empty-data early return — hooks cannot be called
+    // conditionally, otherwise an empty→populated data transition crashes with
+    // "Rendered more hooks than during the previous render".
     const resolvedColor = React.useMemo(() => {
       if (color) return color
       if (trend === 'up') return 'hsl(var(--success))'
       if (trend === 'down') return 'hsl(var(--destructive))'
       return 'hsl(var(--primary))'
     }, [color, trend])
+
+    if (!data || data.length === 0) {
+      return (
+        <div
+          ref={ref}
+          role="img"
+          aria-label={ariaLabel ?? 'Sparkline, no data'}
+          className={cn('inline-block border-b-2 border-dashed border-foreground/30', className)}
+          style={{ width, height }}
+          {...props}
+        />
+      )
+    }
+
+    // Convert data array to format recharts expects
+    const chartData = data.map((value, index) => ({ value, index }))
 
     const strokeColor = 'hsl(var(--foreground))'
     const lastIndex = data.length - 1
@@ -81,6 +109,8 @@ const Sparkline = React.forwardRef<HTMLDivElement, SparklineProps>(
       return (
         <div
           ref={ref}
+          role="img"
+          aria-label={accessibleLabel}
           className={cn('inline-block', className)}
           style={{ width, height }}
           {...props}
@@ -105,6 +135,8 @@ const Sparkline = React.forwardRef<HTMLDivElement, SparklineProps>(
       return (
         <div
           ref={ref}
+          role="img"
+          aria-label={accessibleLabel}
           className={cn('inline-block', className)}
           style={{ width, height }}
           {...props}
@@ -138,6 +170,8 @@ const Sparkline = React.forwardRef<HTMLDivElement, SparklineProps>(
     return (
       <div
         ref={ref}
+        role="img"
+        aria-label={accessibleLabel}
         className={cn('inline-block', className)}
         style={{ width, height }}
         {...props}

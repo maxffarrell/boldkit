@@ -1,6 +1,20 @@
 // Types and context
 export { ChartContext, useChart, THEMES } from './types'
 export type { ChartConfig, ChartContextProps } from './types'
+export type {
+  ChartAnnotation,
+  ChartReferenceLineSpec,
+  ChartCalloutSpec,
+  ChartArrowSpec,
+} from './types'
+
+// Annotations (reference lines, callouts, arrows)
+export {
+  referenceLineElement,
+  calloutElement,
+  arrowElements,
+  renderChartAnnotations,
+} from './annotations'
 
 // Palettes and color helpers
 export { CHART_PALETTES, getChartColor, createChartConfig } from './palettes'
@@ -20,6 +34,14 @@ export type { ChartLegendContentProps } from './legend'
 
 // Utility functions
 export { getPayloadConfigFromPayload } from './utils'
+
+// Empty state
+export { ChartEmpty } from './empty'
+export type { ChartEmptyProps } from './empty'
+
+// Loading state
+export { ChartLoading } from './loading'
+export type { ChartLoadingProps } from './loading'
 
 // Sparkline chart
 export { Sparkline } from './sparkline'

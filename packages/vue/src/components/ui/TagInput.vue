@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, useId } from 'vue'
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-vue-next'
 
@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<TagInputProps>(), {
   defaultValue: () => [],
   suggestions: () => [],
   allowDuplicates: false,
-  delimiter: ',' as string | RegExp,
+  delimiter: ',',
   placeholder: 'Add tag...',
   disabled: false,
 })
@@ -72,34 +72,46 @@ function updateTags(newTags: string[]) {
   emit('update:modelValue', newTags)
 }
 
-function addTag(tagValue: string): boolean {
-  const trimmedTag = tagValue.trim()
-  if (!trimmedTag) return false
+// Adds one or more tags atomically. Validation (maxTags, duplicates, custom)
+// runs against a single working copy so a batched add (e.g. pasting "a,b,c,")
+// can't bypass limits or collapse to only the last value — which would happen
+// in controlled mode where `tags` doesn't update mid-batch.
+function tryAddTags(tagValues: string[]): boolean {
+  let working = tags.value
+  let added = false
+  let nextError: string | null = null
 
-  // Check max tags
-  if (props.maxTags && tags.value.length >= props.maxTags) {
-    error.value = `Maximum ${props.maxTags} tags allowed`
-    return false
-  }
+  for (const tagValue of tagValues) {
+    const trimmedTag = tagValue.trim()
+    if (!trimmedTag) continue
 
-  // Check duplicates
-  if (!props.allowDuplicates && tags.value.includes(trimmedTag)) {
-    error.value = 'Tag already exists'
-    return false
-  }
-
-  // Validate tag
-  if (props.validateTag) {
-    const validationResult = props.validateTag(trimmedTag)
-    if (validationResult !== true) {
-      error.value = typeof validationResult === 'string' ? validationResult : 'Invalid tag'
-      return false
+    if (props.maxTags && working.length >= props.maxTags) {
+      nextError = `Maximum ${props.maxTags} tags allowed`
+      break
     }
+    if (!props.allowDuplicates && working.includes(trimmedTag)) {
+      nextError = 'Tag already exists'
+      continue
+    }
+    if (props.validateTag) {
+      const validationResult = props.validateTag(trimmedTag)
+      if (validationResult !== true) {
+        nextError = typeof validationResult === 'string' ? validationResult : 'Invalid tag'
+        continue
+      }
+    }
+
+    working = [...working, trimmedTag]
+    added = true
   }
 
-  error.value = null
-  updateTags([...tags.value, trimmedTag])
-  return true
+  error.value = nextError
+  if (added) updateTags(working)
+  return added
+}
+
+function addTag(tagValue: string): boolean {
+  return tryAddTags([tagValue])
 }
 
 function removeTag(index: number) {
@@ -119,11 +131,13 @@ function handleInputChange(e: Event) {
 
   // Check for delimiter
   if (props.delimiter) {
-    const parts = value.split(props.delimiter instanceof RegExp ? props.delimiter : new RegExp(props.delimiter))
+    // String.prototype.split already accepts string | RegExp — the declared
+    // prop type. Wrapping a string in `new RegExp` reinterpreted metacharacters:
+    // '.' split every character and '(' threw on every keystroke.
+    const parts = value.split(props.delimiter)
 
     if (parts.length > 1) {
-      const newTags = parts.slice(0, -1).filter((part) => part.trim())
-      newTags.forEach((tag) => addTag(tag))
+      tryAddTags(parts.slice(0, -1))
       inputValue.value = parts[parts.length - 1]
     }
   }
@@ -209,7 +223,15 @@ const placeholderText = computed(() => {
   return tags.value.length === 0 ? props.placeholder : ''
 })
 
-const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
+// useId, not a literal — two TagInputs on one form would otherwise emit
+// duplicate ids and aria-describedby would resolve to the wrong error.
+const uid = useId()
+const errorId = computed(() => (error.value ? `${uid}-error` : undefined))
+const listboxId = `${uid}-listbox`
+const optionId = (index: number) => `${uid}-option-${index}`
+// Single source of truth for the listbox's open state — aria-expanded and the
+// rendered listbox must never disagree.
+const suggestionsOpen = computed(() => showSuggestions.value && filteredSuggestions.value.length > 0)
 </script>
 
 <template>
@@ -222,7 +244,7 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
       :class="
         cn(
           'flex flex-wrap items-center gap-2 min-h-11 w-full border-3 border-input bg-background px-3 py-2',
-          'shadow-[4px_4px_0px_hsl(var(--shadow-color))] transition-all duration-200',
+          'shadow-[4px_4px_0px_hsl(var(--shadow-color))] transition duration-200',
           'focus-within:translate-x-[4px] focus-within:translate-y-[4px] focus-within:shadow-none',
           disabled && 'opacity-50 cursor-not-allowed',
           error && 'border-destructive',
@@ -258,6 +280,15 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
       <input
         ref="inputRef"
         type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-expanded="suggestionsOpen"
+        :aria-controls="suggestionsOpen ? listboxId : undefined"
+        :aria-activedescendant="
+          suggestionsOpen && selectedSuggestionIndex >= 0 ? optionId(selectedSuggestionIndex) : undefined
+        "
+        :aria-describedby="errorId"
+        :aria-invalid="error ? true : undefined"
         :value="inputValue"
         @input="handleInputChange"
         @keydown="handleKeyDown"
@@ -274,11 +305,14 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
     </div>
 
     <!-- Error message -->
-    <p v-if="error" id="tag-input-error" role="alert" class="mt-1 text-xs font-medium text-destructive">{{ error }}</p>
+    <p v-if="error" :id="`${uid}-error`" role="alert" class="mt-1 text-xs font-medium text-destructive">{{ error }}</p>
 
     <!-- Suggestions dropdown -->
     <div
-      v-if="showSuggestions && filteredSuggestions.length > 0"
+      v-if="suggestionsOpen"
+      :id="listboxId"
+      role="listbox"
+      aria-label="Suggestions"
       :class="
         cn(
           'absolute z-50 mt-1 w-full',
@@ -287,21 +321,24 @@ const errorId = computed(() => error.value ? 'tag-input-error' : undefined)
         )
       "
     >
-      <button
+      <div
         v-for="(suggestion, index) in filteredSuggestions"
         :key="suggestion"
-        type="button"
+        :id="optionId(index)"
+        role="option"
+        :aria-selected="index === selectedSuggestionIndex"
+        @mousedown.prevent
         @click="handleSuggestionClick(suggestion)"
         :class="
           cn(
-            'w-full px-3 py-2 text-left text-sm transition-colors',
+            'w-full cursor-pointer px-3 py-2 text-left text-sm transition-colors',
             'hover:bg-muted',
             index === selectedSuggestionIndex && 'bg-accent'
           )
         "
       >
         {{ suggestion }}
-      </button>
+      </div>
     </div>
   </div>
 </template>

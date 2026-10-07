@@ -8,14 +8,22 @@
     "echarts"
   ],
   "registryDependencies": [
-    "utils",
-    "chart-utils"
+    "@boldkit/utils",
+    "@boldkit/chart-utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/SankeyChart.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SankeyChart.vue"
+      "path": "components/ui/SankeyChart.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ChartEmpty.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/chart-types.ts",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Sankey Chart"
 }

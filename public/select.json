@@ -1,13 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "select",
+  "title": "Select",
   "description": "Displays a list of options with neubrutalism styling",
   "dependencies": [
     "@radix-ui/react-select",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

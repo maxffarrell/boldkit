@@ -1,11 +1,8 @@
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { ComponentDoc, ExampleSection } from '@/components/docs/ComponentDoc'
+import sourceCode from '@/components/ui/aspect-ratio.tsx?raw'
+import vueSourceCode from '@vue-ui/AspectRatio.vue?raw'
 
-const sourceCode = `import * as AspectRatioPrimitive from '@radix-ui/react-aspect-ratio'
-
-const AspectRatio = AspectRatioPrimitive.Root
-
-export { AspectRatio }`
 
 const usageCode = `import { AspectRatio } from '@/components/ui/aspect-ratio'
 
@@ -21,18 +18,9 @@ export default function Example() {
   )
 }`
 
-const vueSourceCode = `<script setup lang="ts">
-import { AspectRatio as AspectRatioPrimitive } from 'reka-ui'
-</script>
-
-<template>
-  <AspectRatioPrimitive v-bind="$attrs">
-    <slot />
-  </AspectRatioPrimitive>
-</template>`
 
 const vueUsageCode = `<script setup lang="ts">
-import { AspectRatio } from '@/components/ui'
+import AspectRatio from '@/components/ui/AspectRatio.vue'
 </script>
 
 <template>

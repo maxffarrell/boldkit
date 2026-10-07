@@ -1,11 +1,10 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
-import { ChevronRight, Folder, File } from 'lucide-react'
+import { ChevronRight, Folder, File, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 
 export interface TreeNode {
@@ -38,6 +37,11 @@ interface TreeViewContextValue {
   selectionMode: 'none' | 'single' | 'multiple'
   showCheckboxes: boolean
   showIcons: boolean
+  /** The single tabbable node. ARIA trees are ONE tab stop, not one per node. */
+  focusedId: string | null
+  setFocusedId: (id: string) => void
+  /** Visible nodes in render order, for Up/Down/Home/End navigation. */
+  visibleIds: string[]
 }
 
 const TreeViewContext = React.createContext<TreeViewContextValue | null>(null)
@@ -78,13 +82,16 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeViewProps>(
     const isExpandedControlled = controlledExpandedIds !== undefined
     const isSelectedControlled = controlledSelectedIds !== undefined
 
-    const expandedIds = isExpandedControlled
-      ? new Set(controlledExpandedIds)
-      : uncontrolledExpandedIds
+    // Memoize Set objects to prevent useCallback dependencies from changing on every render
+    const expandedIds = React.useMemo(
+      () => (isExpandedControlled ? new Set(controlledExpandedIds) : uncontrolledExpandedIds),
+      [isExpandedControlled, controlledExpandedIds, uncontrolledExpandedIds]
+    )
 
-    const selectedIds = isSelectedControlled
-      ? new Set(controlledSelectedIds)
-      : uncontrolledSelectedIds
+    const selectedIds = React.useMemo(
+      () => (isSelectedControlled ? new Set(controlledSelectedIds) : uncontrolledSelectedIds),
+      [isSelectedControlled, controlledSelectedIds, uncontrolledSelectedIds]
+    )
 
     const toggleExpanded = React.useCallback(
       (id: string) => {
@@ -128,6 +135,25 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeViewProps>(
       [selectedIds, selectionMode, isSelectedControlled, onSelectedChange]
     )
 
+    // Flattened visible order — what ArrowUp/ArrowDown/Home/End walk.
+    const visibleIds = React.useMemo(() => {
+      const out: string[] = []
+      const walk = (nodes: TreeNode[]) => {
+        for (const node of nodes) {
+          out.push(node.id)
+          if (node.children?.length && expandedIds.has(node.id)) walk(node.children)
+        }
+      }
+      walk(data)
+      return out
+    }, [data, expandedIds])
+
+    // An ARIA tree is a single tab stop: exactly one node carries tabIndex=0
+    // and the arrow keys move between nodes. Every node being tabbable made a
+    // 200-node tree cost 200 Tab presses to get past.
+    const [focusedId, setFocusedId] = React.useState<string | null>(null)
+    const activeId = focusedId && visibleIds.includes(focusedId) ? focusedId : visibleIds[0] ?? null
+
     return (
       <TreeViewContext.Provider
         value={{
@@ -138,6 +164,9 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeViewProps>(
           selectionMode,
           showCheckboxes,
           showIcons,
+          focusedId: activeId,
+          setFocusedId,
+          visibleIds,
         }}
       >
         <div
@@ -175,13 +204,44 @@ function TreeNodeItem({ node, level }: TreeNodeProps) {
     selectionMode,
     showCheckboxes,
     showIcons,
+    focusedId,
+    setFocusedId,
+    visibleIds,
   } = useTreeView()
 
   const hasChildren = node.children && node.children.length > 0
   const isExpanded = expandedIds.has(node.id)
   const isSelected = selectedIds.has(node.id)
+  const isFocused = focusedId === node.id
+  const itemRef = React.useRef<HTMLDivElement>(null)
+
+  // Move DOM focus to whichever node holds the roving tabindex, otherwise the
+  // focus ring stops tracking arrow-key navigation.
+  React.useEffect(() => {
+    if (isFocused && document.activeElement !== itemRef.current) {
+      const tree = itemRef.current?.closest('[role="tree"]')
+      if (tree?.contains(document.activeElement)) itemRef.current?.focus()
+    }
+  }, [isFocused])
+
+  const moveFocus = (delta: number | 'first' | 'last') => {
+    if (!visibleIds.length) return
+    const current = Math.max(0, visibleIds.indexOf(node.id))
+    const next =
+      delta === 'first'
+        ? 0
+        : delta === 'last'
+          ? visibleIds.length - 1
+          : Math.min(visibleIds.length - 1, Math.max(0, current + delta))
+    setFocusedId(visibleIds[next])
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // A treeitem contains its descendants' group, so a key pressed on a child
+    // also bubbles to every ancestor treeitem. Without this, the outermost
+    // handler runs last and overwrites the focus the child just moved.
+    if (e.target !== e.currentTarget) return
+
     switch (e.key) {
       case 'Enter':
       case ' ':
@@ -192,131 +252,141 @@ function TreeNodeItem({ node, level }: TreeNodeProps) {
           toggleExpanded(node.id)
         }
         break
+      case 'ArrowDown':
+        e.preventDefault()
+        moveFocus(1)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        moveFocus(-1)
+        break
+      case 'Home':
+        e.preventDefault()
+        moveFocus('first')
+        break
+      case 'End':
+        e.preventDefault()
+        moveFocus('last')
+        break
       case 'ArrowRight':
-        if (hasChildren && !isExpanded) {
-          e.preventDefault()
-          toggleExpanded(node.id)
-        }
+        e.preventDefault()
+        // APG: expand a collapsed parent, else move into it.
+        if (hasChildren && !isExpanded) toggleExpanded(node.id)
+        else if (hasChildren) moveFocus(1)
         break
       case 'ArrowLeft':
-        if (hasChildren && isExpanded) {
-          e.preventDefault()
-          toggleExpanded(node.id)
-        }
-        break
-      case 'ArrowDown': {
         e.preventDefault()
-        const allItems = Array.from(
-          document.querySelectorAll<HTMLElement>('[role="treeitem"]')
-        )
-        const currentIndex = allItems.findIndex((el) => el === e.currentTarget)
-        if (currentIndex < allItems.length - 1) {
-          allItems[currentIndex + 1].focus()
-        }
+        // APG: collapse an expanded parent, else move out to the parent.
+        if (hasChildren && isExpanded) toggleExpanded(node.id)
+        else moveFocus(-1)
         break
-      }
-      case 'ArrowUp': {
-        e.preventDefault()
-        const allItems = Array.from(
-          document.querySelectorAll<HTMLElement>('[role="treeitem"]')
-        )
-        const currentIndex = allItems.findIndex((el) => el === e.currentTarget)
-        if (currentIndex > 0) {
-          allItems[currentIndex - 1].focus()
-        }
-        break
-      }
     }
   }
 
-  const content = (
+  // The treeitem owns its own group, so every treeitem's nearest role-bearing
+  // ancestor is `tree` or `group` (axe `aria-required-parent`). It used to be
+  // wrapped in a CollapsibleTrigger, which both broke that and made the row a
+  // button containing other buttons (axe `nested-interactive`).
+  return (
     <div
+      ref={itemRef}
       role="treeitem"
-      aria-selected={isSelected}
+      // Pin the name to the label: the group of descendants lives inside this
+      // element, and would otherwise be concatenated into its accessible name.
+      aria-label={typeof node.label === 'string' ? node.label : undefined}
+      // Only advertise selection where selection is actually possible.
+      aria-selected={selectionMode === 'none' ? undefined : isSelected}
       aria-expanded={hasChildren ? isExpanded : undefined}
       aria-disabled={node.disabled}
-      tabIndex={node.disabled ? -1 : 0}
+      tabIndex={isFocused && !node.disabled ? 0 : -1}
       onKeyDown={handleKeyDown}
-      onClick={() => {
+      onFocus={(e) => {
+        if (e.target === e.currentTarget) setFocusedId(node.id)
+      }}
+      onClick={(e) => {
         if (node.disabled) return
+        // A treeitem owns its descendants' group, so a click inside a child
+        // must not also activate this node.
+        e.stopPropagation()
+        setFocusedId(node.id)
+        if (hasChildren) {
+          toggleExpanded(node.id)
+        }
         if (selectionMode !== 'none') {
           toggleSelected(node.id)
         }
       }}
-      className={cn(
-        'flex items-center gap-2 px-2 py-1.5 cursor-pointer transition-colors',
-        'hover:bg-muted focus:outline-none focus:bg-muted',
-        isSelected && 'bg-accent',
-        node.disabled && 'opacity-50 cursor-not-allowed'
-      )}
-      style={{ paddingLeft: `${level * 16 + 8}px` }}
+      className="focus:outline-none"
     >
-      {/* Expand/collapse button */}
-      {hasChildren ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleExpanded(node.id)
-          }}
-          className="p-0.5 hover:bg-muted-foreground/20 transition-colors"
-          aria-label={isExpanded ? `Collapse ${node.label}` : `Expand ${node.label}`}
-        >
+      <div
+        className={cn(
+          'flex items-center gap-2 px-2 py-1.5 cursor-pointer transition-colors',
+          'hover:bg-muted',
+          isFocused && 'bg-muted',
+          isSelected && 'bg-accent',
+          node.disabled && 'opacity-50 cursor-not-allowed'
+        )}
+        style={{ paddingLeft: `${level * 16 + 8}px` }}
+      >
+        {/* Expand/collapse affordance. Presentational, not a button: the row
+            already toggles on click and ArrowLeft/ArrowRight do it from the
+            keyboard, and a real button here would be interactive content
+            nested inside the treeitem. */}
+        {hasChildren ? (
           <ChevronRight
+            aria-hidden="true"
             className={cn(
-              'h-4 w-4 stroke-[3] transition-transform duration-200',
+              'h-4 w-4 shrink-0 stroke-[3] transition-transform duration-200',
               isExpanded && 'rotate-90'
             )}
           />
-        </button>
-      ) : (
-        <span className="w-5" />
-      )}
+        ) : (
+          <span className="w-4 shrink-0" />
+        )}
 
-      {/* Checkbox */}
-      {showCheckboxes && selectionMode !== 'none' && (
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={() => toggleSelected(node.id)}
-          onClick={(e) => e.stopPropagation()}
-          disabled={node.disabled}
-          className="h-5 w-5 border-2 border-foreground data-[state=checked]:bg-primary data-[state=checked]:shadow-[2px_2px_0px_hsl(var(--shadow-color))]"
-        />
-      )}
+        {/* Checkbox — drawn, not a real control. `aria-selected` on the
+            treeitem already conveys the state, and Radix's Checkbox renders a
+            <button>, which inside a treeitem is an axe `nested-interactive`
+            violation however it is tabindexed. */}
+        {showCheckboxes && selectionMode !== 'none' && (
+          <span
+            aria-hidden="true"
+            className={cn(
+              'flex h-5 w-5 shrink-0 items-center justify-center border-2 border-foreground',
+              isSelected && 'bg-primary shadow-[2px_2px_0px_hsl(var(--shadow-color))]'
+            )}
+          >
+            {isSelected && <Check className="h-3.5 w-3.5 stroke-[4]" />}
+          </span>
+        )}
 
-      {/* Icon */}
-      {showIcons && (
-        <span className="shrink-0">
-          {node.icon || (hasChildren ? (
-            <Folder className="h-4 w-4" />
-          ) : (
-            <File className="h-4 w-4" />
-          ))}
-        </span>
-      )}
+        {/* Icon */}
+        {showIcons && (
+          <span className="shrink-0" aria-hidden="true">
+            {node.icon || (hasChildren ? (
+              <Folder className="h-4 w-4" />
+            ) : (
+              <File className="h-4 w-4" />
+            ))}
+          </span>
+        )}
 
-      {/* Label */}
-      <span className="text-sm truncate">{node.label}</span>
+        {/* Label */}
+        <span className="text-sm truncate">{node.label}</span>
+      </div>
+
+      {hasChildren && (
+        <Collapsible open={isExpanded}>
+          <CollapsibleContent>
+            <div role="group">
+              {(node.children ?? []).map((child) => (
+                <TreeNodeItem key={child.id} node={child} level={level + 1} />
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
-  )
-
-  if (!hasChildren) {
-    return content
-  }
-
-  return (
-    <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(node.id)}>
-      <CollapsibleTrigger asChild className="w-full">
-        {content}
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div role="group">
-          {node.children!.map((child) => (
-            <TreeNodeItem key={child.id} node={child} level={level + 1} />
-          ))}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
   )
 }
 

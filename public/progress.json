@@ -1,12 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "progress",
+  "title": "Progress",
   "description": "Displays an indicator showing the completion progress of a task",
   "dependencies": [
     "@radix-ui/react-progress"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/motion"
   ],
   "files": [
     {

@@ -3,13 +3,15 @@
   "name": "lissajous-grid",
   "description": "Parametric curve table — grid of Lissajous figures morphing via phase drift",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@boldkit/use-canvas-effect"
+  ],
   "files": [
     {
-      "path": "registry/default/ui/canvas-effects/LissajousGrid.vue",
-      "type": "registry:ui",
-      "target": "components/ui/canvas-effects/LissajousGrid.vue"
+      "path": "components/ui/canvas-effects/LissajousGrid.vue",
+      "type": "registry:ui"
     }
   ],
-  "type": "registry:ui"
+  "type": "registry:ui",
+  "title": "Lissajous Grid"
 }

@@ -7,23 +7,21 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/HoverCard.vue",
-      "type": "registry:ui",
-      "target": "components/ui/HoverCard.vue"
+      "path": "components/ui/HoverCard.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/HoverCardTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/HoverCardTrigger.vue"
+      "path": "components/ui/HoverCardTrigger.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/HoverCardContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/HoverCardContent.vue"
+      "path": "components/ui/HoverCardContent.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Hover Card"
 }

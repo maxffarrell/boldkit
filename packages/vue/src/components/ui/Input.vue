@@ -2,18 +2,35 @@
 import { computed } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<{
+interface InputProps {
   class?: string
   modelValue?: string | number
   type?: string
-}>()
+  placeholder?: string
+  disabled?: boolean
+  readonly?: boolean
+  required?: boolean
+  name?: string
+  id?: string
+  autocomplete?: string
+  autofocus?: boolean
+  maxlength?: number | string
+  minlength?: number | string
+  max?: number | string
+  min?: number | string
+  step?: number | string
+  pattern?: string
+  inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+}
+
+const props = defineProps<InputProps>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: string | number]
 }>()
 
 const modelValue = computed({
-  get: () => props.modelValue,
+  get: () => props.modelValue ?? '',
   set: (value) => emit('update:modelValue', value),
 })
 </script>
@@ -24,7 +41,7 @@ const modelValue = computed({
     :type="type"
     :class="
       cn(
-        'flex h-11 w-full border-3 border-input bg-background px-4 py-2 text-base shadow-[4px_4px_0px_hsl(var(--shadow-color))] transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:translate-x-[4px] focus-visible:translate-y-[4px] focus-visible:shadow-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+        'flex h-11 w-full border-3 border-input bg-background px-4 py-2 text-base shadow-[4px_4px_0px_hsl(var(--shadow-color))] bk-interactive file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:translate-x-[4px] focus-visible:translate-y-[4px] focus-visible:shadow-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
         props.class
       )
     "

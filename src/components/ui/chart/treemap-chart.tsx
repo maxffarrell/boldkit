@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { Treemap as RechartsTreemap, ResponsiveContainer, Tooltip } from 'recharts'
+import { ChartEmpty } from './empty'
 
 export interface TreemapChartData {
   name: string
@@ -15,6 +16,9 @@ export interface TreemapChartProps extends React.HTMLAttributes<HTMLDivElement> 
   showTooltip?: boolean
   animated?: boolean
   height?: number
+  /** Accessible label for screen readers (default: "Treemap chart") */
+  ariaLabel?: string
+  emptyState?: React.ReactNode
 }
 
 const NEUBRUTALISM_COLORS = [
@@ -91,14 +95,22 @@ const TreemapChart = React.forwardRef<HTMLDivElement, TreemapChartProps>(
       showTooltip = true,
       animated = true,
       height = 320,
+      ariaLabel = 'Treemap chart',
+      emptyState,
       className,
       ...props
     },
     ref
   ) => {
+    if (!data || data.length === 0) {
+      return <ChartEmpty ref={ref} message={emptyState} className={className} {...props} />
+    }
+
     return (
       <div
         ref={ref}
+        role="img"
+        aria-label={ariaLabel}
         className={cn('w-full', className)}
         style={{ height }}
         {...props}
@@ -119,9 +131,12 @@ const TreemapChart = React.forwardRef<HTMLDivElement, TreemapChartProps>(
                   borderRadius: 0,
                   boxShadow: '4px 4px 0px hsl(var(--foreground))',
                   background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 12,
                 }}
+                itemStyle={{ color: 'hsl(var(--foreground))' }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
                 formatter={(value, name) => [
                   typeof value === 'number' ? value.toLocaleString() : String(value ?? ''),
                   String(name ?? ''),

@@ -2,16 +2,21 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "skeleton",
   "type": "registry:ui",
-  "description": "Displays a loading placeholder",
+  "description": "Displays a loading placeholder with brutalist motion variants",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Skeleton.vue",
+      "path": "components/ui/Skeleton.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "styles/motion.css",
       "type": "registry:ui",
-      "target": "components/ui/Skeleton.vue"
+      "target": "styles/motion.css"
     }
-  ]
+  ],
+  "title": "Skeleton"
 }

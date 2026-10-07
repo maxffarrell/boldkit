@@ -7,23 +7,21 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Avatar.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Avatar.vue"
+      "path": "components/ui/Avatar.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/AvatarImage.vue",
-      "type": "registry:ui",
-      "target": "components/ui/AvatarImage.vue"
+      "path": "components/ui/AvatarImage.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/AvatarFallback.vue",
-      "type": "registry:ui",
-      "target": "components/ui/AvatarFallback.vue"
+      "path": "components/ui/AvatarFallback.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Avatar"
 }

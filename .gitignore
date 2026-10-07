@@ -1,10 +1,21 @@
 # Dependencies
 node_modules
 
+# This repo uses bun — keep only bun.lock committed
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # Build outputs
 dist
 dist-ssr
 *.local
+
+# Expo / React Native generated caches & build artifacts
+.expo/
+**/android/app/build/
+**/android/.gradle/
+**/ios/Pods/
 
 # Logs
 logs
@@ -43,15 +54,13 @@ coverage
 
 # Claude AI / tool config
 CLAUDE.md
+.claude/
 .mcp.json
 .superpowers/
 
 # Internal docs / design specs
 docs/superpowers/
 docs/superpowers/specs
-
-# GitHub Actions workflows (require workflow OAuth scope to push)
-.github/workflows/test-rn.yml
 
 # Git worktrees
 .worktrees/

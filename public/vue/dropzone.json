@@ -7,18 +7,19 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/progress",
+    "@boldkit/spinner"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Dropzone.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Dropzone.vue"
+      "path": "components/ui/Dropzone.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/FileList.vue",
-      "type": "registry:ui",
-      "target": "components/ui/FileList.vue"
+      "path": "components/ui/FileList.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Dropzone"
 }

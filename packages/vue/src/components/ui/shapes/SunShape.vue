@@ -7,8 +7,16 @@ interface Props {
   size?: number
   strokeWidth?: number
   filled?: boolean
+  /** Fill colour when `filled`, outline colour when not. */
   color?: string
-  animation?: 'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+  /** Outline colour. Defaults to the foreground token. */
+  strokeColor?: string
+  animation?:
+    | 'none'
+    // smooth presets
+    | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+    // stepped presets — hard, non-interpolated motion (v3.5)
+    | 'spin-step' | 'pulse-hard' | 'marquee-stamp'
   speed?: 'slow' | 'normal' | 'fast'
 }
 
@@ -18,6 +26,19 @@ const props = withDefaults(defineProps<Props>(), {
   filled: true,
   animation: 'none',
   speed: 'normal',
+})
+
+/**
+ * Resolve the outline colour.
+ *
+ * `color` used to apply to `fill` only, so `<Shape :filled="false" color="red" />`
+ * rendered a black outline and the prop was a silent no-op. When the shape *is*
+ * its outline, `color` is what the caller meant.
+ */
+const strokeValue = computed(() => {
+  if (props.strokeColor) return props.strokeColor
+  if (!props.filled && props.color) return props.color
+  return 'hsl(var(--foreground))'
 })
 
 const animClass = computed(() => {
@@ -30,6 +51,7 @@ const animClass = computed(() => {
 
 <template>
   <svg
+    aria-hidden="true"
     :width="size"
     :height="size"
     viewBox="0 0 100 100"
@@ -40,14 +62,14 @@ const animClass = computed(() => {
       cy="50"
       r="22"
       :fill="filled ? (color || 'currentColor') : 'none'"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
     />
     <path
       d="M50 5 L54 22 L46 22 Z M50 95 L54 78 L46 78 Z M5 50 L22 46 L22 54 Z M95 50 L78 46 L78 54 Z M18 18 L32 28 L28 32 Z M82 18 L68 28 L72 32 Z M18 82 L28 68 L32 72 Z M82 82 L72 68 L68 72 Z"
       fill="hsl(var(--foreground))"
-      stroke="hsl(var(--foreground))"
-      :stroke-width="strokeWidth - 2"
+      :stroke="strokeValue"
+      :stroke-width="Math.max(1, strokeWidth - 2)"
       stroke-linejoin="round"
     />
   </svg>

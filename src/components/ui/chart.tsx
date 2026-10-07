@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 // Re-export all chart components from the chart directory
 // This maintains backward compatibility with existing imports
 
@@ -39,9 +40,18 @@ export {
   TreemapChart,
   HeatmapChart,
   SankeyChart,
+  // Annotations (reference lines, callouts, arrows)
+  referenceLineElement,
+  calloutElement,
+  arrowElements,
+  renderChartAnnotations,
 } from './chart/index'
 
 export type {
+  ChartAnnotation,
+  ChartReferenceLineSpec,
+  ChartCalloutSpec,
+  ChartArrowSpec,
   ChartConfig,
   ChartContextProps,
   ChartPalette,

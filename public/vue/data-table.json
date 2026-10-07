@@ -8,19 +8,19 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils",
-    "button",
-    "checkbox",
-    "dropdown-menu",
-    "input",
-    "select",
-    "table"
+    "@boldkit/utils",
+    "@boldkit/button",
+    "@boldkit/checkbox",
+    "@boldkit/dropdown-menu",
+    "@boldkit/input",
+    "@boldkit/select",
+    "@boldkit/table"
   ],
   "files": [
     {
-      "path": "registry/default/ui/DataTable.vue",
-      "type": "registry:ui",
-      "target": "components/ui/DataTable.vue"
+      "path": "components/ui/DataTable.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Data Table"
 }

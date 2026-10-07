@@ -8,13 +8,13 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Checkbox.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Checkbox.vue"
+      "path": "components/ui/Checkbox.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Checkbox"
 }

@@ -8,13 +8,14 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/button"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Calendar.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Calendar.vue"
+      "path": "components/ui/Calendar.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Calendar"
 }

@@ -1,16 +1,18 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "heatmap-chart",
+  "title": "Heatmap Chart",
   "description": "Heatmap grid for correlation and intensity data - custom CSS Grid implementation",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/chart"
   ],
   "files": [
     {
       "path": "registry/default/ui/heatmap-chart.tsx",
       "type": "registry:ui",
-      "target": "components/ui/chart/heatmap-chart.tsx"
+      "target": "components/ui/heatmap-chart.tsx"
     }
   ],
   "type": "registry:ui"

@@ -2,32 +2,9 @@ import { useState, useEffect } from 'react'
 import { Progress } from '@/components/ui/progress'
 import { ComponentDoc, ExampleSection } from '@/components/docs/ComponentDoc'
 import { Button } from '@/components/ui/button'
+import sourceCode from '@/components/ui/progress.tsx?raw'
+import vueSourceCode from '@vue-ui/Progress.vue?raw'
 
-const sourceCode = `import * as React from 'react'
-import * as ProgressPrimitive from '@radix-ui/react-progress'
-import { cn } from '@/lib/utils'
-
-const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn(
-      'relative h-5 w-full overflow-hidden border-3 border-foreground bg-muted bk-shadow-sm',
-      className
-    )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
-      style={{ transform: \`translateX(-\${100 - (value || 0)}%)\` }}
-    />
-  </ProgressPrimitive.Root>
-))
-Progress.displayName = ProgressPrimitive.Root.displayName
-
-export { Progress }`
 
 const usageCode = `import { Progress } from '@/components/ui/progress'
 
@@ -35,37 +12,10 @@ export default function Example() {
   return <Progress value={60} />
 }`
 
-const vueSourceCode = `<script setup lang="ts">
-import {
-  ProgressIndicator,
-  ProgressRoot,
-  type ProgressRootProps,
-} from 'reka-ui'
-import { cn } from '@/lib/utils'
-
-const props = defineProps<ProgressRootProps & { class?: string }>()
-</script>
-
-<template>
-  <ProgressRoot
-    v-bind="props"
-    :class="
-      cn(
-        'relative h-5 w-full overflow-hidden border-3 border-foreground bg-muted bk-shadow-sm',
-        props.class
-      )
-    "
-  >
-    <ProgressIndicator
-      class="h-full w-full flex-1 bg-primary transition-all"
-      :style="{ transform: \`translateX(-\${100 - (props.modelValue || 0)}%)\` }"
-    />
-  </ProgressRoot>
-</template>`
 
 const vueUsageCode = `<script setup lang="ts">
 import { ref } from 'vue'
-import { Progress } from '@/components/ui'
+import Progress from '@/components/ui/Progress.vue'
 
 const progress = ref(60)
 </script>
@@ -73,6 +23,39 @@ const progress = ref(60)
 <template>
   <Progress :model-value="progress" class="w-[60%]" />
 </template>`
+
+/**
+ * The smooth/stepped difference only exists *during* the transition — two bars
+ * parked at the same value look identical. Drive them 0 <-> 100 so the fill
+ * actually travels: smooth glides, stepped lands in ten notches.
+ */
+function MotionVariantsDemo() {
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => setValue((v) => (v === 0 ? 100 : 0)), 1600)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div className="w-full max-w-md space-y-4">
+      {(['smooth', 'stepped'] as const).map((v) => (
+        <div key={v} className="space-y-1">
+          <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            {v}
+          </span>
+          <Progress value={value} variant={v} />
+        </div>
+      ))}
+      <div className="space-y-1">
+        <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          marquee (indeterminate)
+        </span>
+        <Progress variant="marquee" aria-label="Loading" />
+      </div>
+    </div>
+  )
+}
 
 export function ProgressDoc() {
   const [progress, setProgress] = useState(13)
@@ -96,6 +79,42 @@ export function ProgressDoc() {
       >
         <Progress value={progress} className="w-full max-w-md" />
       </ComponentDoc>
+
+      {/* Motion variants (v3.5) */}
+      <ExampleSection
+        title="Motion variants"
+        description="`smooth` fills continuously (the default). `stepped` snaps forward in ten discrete notches. `marquee` is indeterminate — it ignores `value` and drops aria-valuenow. The two bars below are driven 0 → 100 on a loop, since the difference only shows while the fill is travelling. Requires styles/motion.css."
+        code={`const [value, setValue] = useState(0)
+
+useEffect(() => {
+  const timer = setInterval(() => setValue((v) => (v === 0 ? 100 : 0)), 1600)
+  return () => clearInterval(timer)
+}, [])
+
+<Progress value={value} variant="smooth" />
+<Progress value={value} variant="stepped" />
+<Progress variant="marquee" aria-label="Loading" />`}
+        vueCode={`<script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+import Progress from '@/components/ui/Progress.vue'
+
+const value = ref(0)
+let timer
+
+onMounted(() => {
+  timer = setInterval(() => { value.value = value.value === 0 ? 100 : 0 }, 1600)
+})
+onUnmounted(() => clearInterval(timer))
+</script>
+
+<template>
+  <Progress :model-value="value" variant="smooth" />
+  <Progress :model-value="value" variant="stepped" />
+  <Progress variant="marquee" aria-label="Loading" />
+</template>`}
+      >
+        <MotionVariantsDemo />
+      </ExampleSection>
 
       {/* Basic */}
       <ExampleSection

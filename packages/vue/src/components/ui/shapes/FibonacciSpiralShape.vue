@@ -7,8 +7,16 @@ interface Props {
   size?: number
   strokeWidth?: number
   filled?: boolean
+  /** Fill colour when `filled`, outline colour when not. */
   color?: string
-  animation?: 'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+  /** Outline colour. Defaults to the foreground token. */
+  strokeColor?: string
+  animation?:
+    | 'none'
+    // smooth presets
+    | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+    // stepped presets — hard, non-interpolated motion (v3.5)
+    | 'spin-step' | 'pulse-hard' | 'marquee-stamp'
   speed?: 'slow' | 'normal' | 'fast'
 }
 
@@ -55,6 +63,7 @@ const fibonacciPath = computed(() => {
 
 <template>
   <svg
+    aria-hidden="true"
     :width="size"
     :height="size"
     viewBox="0 0 100 100"
@@ -63,7 +72,7 @@ const fibonacciPath = computed(() => {
     <path
       :d="fibonacciPath"
       fill="none"
-      :stroke="color || 'currentColor'"
+      :stroke="strokeColor || color || 'currentColor'"
       :stroke-width="strokeWidth"
       stroke-linecap="round"
     />

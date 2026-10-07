@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { PanelLeft } from 'lucide-react'
@@ -160,7 +161,7 @@ SidebarProvider.displayName = 'SidebarProvider'
 
 // Main Sidebar
 const sidebarVariants = cva(
-  'relative flex h-full flex-col border-r-3 border-foreground bg-background transition-all duration-300 ease-out',
+  'relative flex h-full flex-col border-r-3 border-foreground bg-background transition duration-300 ease-out',
   {
     variants: {
       collapsible: {
@@ -196,7 +197,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
             className="w-[var(--sidebar-width-mobile)] p-0"
             style={{ '--sidebar-width-mobile': SIDEBAR_WIDTH_MOBILE } as React.CSSProperties & Record<string, string>}
           >
-            <div className="flex h-full flex-col">{children}</div>
+            {/* Same prop contract as the desktop branch below. This branch
+                used to drop ref, className AND ...props entirely, so the same
+                component honoured different props depending on viewport width
+                — and any ref silently became null on small screens. */}
+            <div ref={ref} className={cn('flex h-full flex-col', className)} {...props}>
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
       )
@@ -333,7 +340,7 @@ SidebarGroupLabel.displayName = 'SidebarGroupLabel'
 
 // Sidebar Item
 const sidebarItemVariants = cva(
-  'flex w-full items-center gap-3 px-3 py-2 text-sm transition-all duration-150',
+  'flex w-full items-center gap-3 px-3 py-2 text-sm transition duration-150',
   {
     variants: {
       variant: {

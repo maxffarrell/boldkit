@@ -8,7 +8,7 @@
 
 A neubrutalism component library for React and Vue 3, built on shadcn/ui.
 
-[![Version](https://img.shields.io/badge/version-3.3.2-black)](https://github.com/ANIBIT14/boldkit/releases/tag/v3.3.2)
+[![Version](https://img.shields.io/badge/version-3.5.4-black)](https://github.com/ANIBIT14/boldkit/releases/tag/v3.5.4)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
 [![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs)](https://vuejs.org)
@@ -77,7 +77,7 @@ All blocks are installable via the shadcn CLI for both React and Vue 3/Nuxt.
 
 ![BoldKit Components](assets/preview.png)
 
-*55+ beautifully crafted neubrutalism components, 10 chart types, 64 SVG shapes, 17 animated ASCII shapes, 10 canvas effects, and 15 math curve animations for React and Vue 3*
+*55+ beautifully crafted neubrutalism components, 10 chart types, 64 SVG shapes, 17 animated ASCII shapes, 23 canvas effects, and 15 math curve animations for React and Vue 3*
 
 </div>
 
@@ -106,7 +106,7 @@ Neubrutalism (or neo-brutalism) is a bold design aesthetic characterized by:
 | **64 SVG Shapes** | Decorative shapes (geometric, organic, mathematical, mechanical) with interactive Shape Builder |
 | **17 ASCII Shapes** | Animated 3D ASCII art — Torus, Donut, Sphere, Cube, Helix, Trefoil Knot, Saturn, DNA, and more |
 | **Dot Matrix Studio** | In-browser pixel art & animation editor with 10 presets, WebM/PNG/SVG/JSON export |
-| **10 Canvas Effects** | Animated canvas components — Aurora, Flow Field, Plasma, Metaballs, Matrix Rain and more. Zero deps. |
+| **23 Canvas Effects** | Animated canvas components — Mesh Gradient, Swirl, God Rays, Pulsing Border, Dither, Halftone, CRT, Truchet, Aurora, Flow Field, Plasma, Metaballs and more. Each pauses off-screen and in background tabs, caps its pixel budget, and honours `prefers-reduced-motion`. |
 | **Math Curve Components** | Animated loaders, progress bars, and backgrounds powered by 15 mathematical curves |
 | **React & Vue 3** | Full support for both frameworks |
 | **Nuxt Ready** | SSR-compatible with shadcn-nuxt module |
@@ -116,39 +116,120 @@ Neubrutalism (or neo-brutalism) is a bold design aesthetic characterized by:
 | **TypeScript** | Complete type safety |
 | **Tailwind v4** | Modern CSS with latest Tailwind |
 
+## MCP Server & CLI
+
+Install components from an AI agent or the terminal — both auto-detect React vs Vue:
+
+```bash
+# MCP (Claude Code, Cursor, VS Code, Windsurf, Codex, Gemini CLI, ...)
+claude mcp add boldkit -- npx -y @boldkit/mcp
+
+# CLI
+npx boldkit add button card dialog
+npx boldkit search "toast"
+```
+
+Full per-client setup: [boldkit.dev/docs/mcp](https://boldkit.dev/docs/mcp)
+
 ## Quick Start
+
+> **Required first step:** register the `@boldkit` alias in your `components.json`.
+> BoldKit components reference each other via scoped names like `@boldkit/utils`,
+> and without the alias the CLI resolves these against shadcn's default registry
+> (which doesn't ship them) and installs fail.
+
+### Configure the registry alias
+
+**React** — add to `components.json`:
+
+```json
+{
+  "registries": {
+    "@boldkit": "https://boldkit.dev/r/{name}.json"
+  }
+}
+```
+
+**Vue** — add to `components.json`:
+
+```json
+{
+  "registries": {
+    "@boldkit": "https://boldkit.dev/r/vue/{name}.json"
+  }
+}
+```
 
 ### React (shadcn CLI)
 
 ```bash
 # Install a component
-npx shadcn@latest add https://boldkit.dev/r/button.json
+npx shadcn@latest add @boldkit/button
 
 # Install multiple components
-npx shadcn@latest add https://boldkit.dev/r/button.json https://boldkit.dev/r/card.json https://boldkit.dev/r/input.json
+npx shadcn@latest add @boldkit/button @boldkit/card @boldkit/input
 
 # Install shapes
-npx shadcn@latest add https://boldkit.dev/r/shapes.json
+npx shadcn@latest add @boldkit/shapes
 
-# Install theme (CSS variables)
-npx shadcn@latest add https://boldkit.dev/r/theme.json
+# Install the BoldKit theme (CSS variables)
+npx shadcn@latest add @boldkit/styles
 ```
 
 ### Vue 3 (shadcn-vue CLI)
 
 ```bash
 # Install a component
-npx shadcn-vue@latest add https://boldkit.dev/r/vue/button.json
+npx shadcn-vue@latest add @boldkit/button
 
 # Install multiple components
-npx shadcn-vue@latest add https://boldkit.dev/r/vue/button.json https://boldkit.dev/r/vue/card.json https://boldkit.dev/r/vue/input.json
+npx shadcn-vue@latest add @boldkit/button @boldkit/card @boldkit/input
 
 # Install shapes
-npx shadcn-vue@latest add https://boldkit.dev/r/vue/shapes.json
+npx shadcn-vue@latest add @boldkit/shapes
 
-# Install theme (CSS variables)
-npx shadcn-vue@latest add https://boldkit.dev/r/vue/theme.json
+# Install the BoldKit theme (CSS variables)
+npx shadcn-vue@latest add @boldkit/styles
 ```
+
+### Alternative: direct URLs
+
+For one-off installs without configuring the alias, you can pass the registry URL directly.
+**Note:** components with cross-references won't auto-install their BoldKit dependencies this way —
+you'll need to add each dependency manually.
+
+```bash
+# React
+npx shadcn@latest add https://boldkit.dev/r/button.json
+
+# Vue
+npx shadcn-vue@latest add https://boldkit.dev/r/vue/button.json
+```
+
+### Install directly from GitHub (zero config, React)
+
+BoldKit's repository is also a shadcn **GitHub registry** — install any React component straight from the
+repo with no `components.json` alias and no setup. Scoped cross-references like `@boldkit/utils` resolve
+automatically (the CLI maps them to this same registry).
+
+```bash
+# Install a component — owner/repo/item
+npx shadcn@latest add ANIBIT14/boldkit/button
+
+# Install multiple
+npx shadcn@latest add ANIBIT14/boldkit/button ANIBIT14/boldkit/card
+
+# Pin to a tag, branch, or commit SHA for reproducible installs
+npx shadcn@latest add ANIBIT14/boldkit/button#main
+
+# Browse / preview before installing
+npx shadcn@latest list ANIBIT14/boldkit
+npx shadcn@latest view ANIBIT14/boldkit/button
+npx shadcn@latest add ANIBIT14/boldkit/button --dry-run
+```
+
+> GitHub install covers the React registry (components, blocks, theme, utils, shapes). Vue 3 / Nuxt and
+> canvas effects install via the hosted URLs above.
 
 ### Nuxt
 
@@ -176,36 +257,6 @@ export default defineNuxtConfig({
 ```
 
 > **Note:** Some components (Drawer, Sonner, Command, Calendar, Chart) require `<ClientOnly>` wrapper for SSR. See the [Nuxt installation guide](https://boldkit.dev/docs/installation#nuxt-installation) for details.
-
-### Using Registry Alias
-
-**React** - Add to your `components.json`:
-
-```json
-{
-  "registries": {
-    "@boldkit": "https://boldkit.dev/r"
-  }
-}
-```
-
-**Vue** - Add to your `components.json`:
-
-```json
-{
-  "registries": {
-    "@boldkit": "https://boldkit.dev/r/vue"
-  }
-}
-```
-
-Then install:
-
-```bash
-npx shadcn@latest add @boldkit/button @boldkit/card @boldkit/input
-# or for Vue
-npx shadcn-vue@latest add @boldkit/button @boldkit/card @boldkit/input
-```
 
 ## Usage
 

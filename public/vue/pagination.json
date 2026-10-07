@@ -8,23 +8,38 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/button"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Pagination.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Pagination.vue"
+      "path": "components/ui/Pagination.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/PaginationEllipsis.vue",
-      "type": "registry:ui",
-      "target": "components/ui/PaginationEllipsis.vue"
+      "path": "components/ui/PaginationContent.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/PaginationNext.vue",
-      "type": "registry:ui",
-      "target": "components/ui/PaginationNext.vue"
+      "path": "components/ui/PaginationItem.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/PaginationLink.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/PaginationEllipsis.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/PaginationPrevious.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/PaginationNext.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Pagination"
 }

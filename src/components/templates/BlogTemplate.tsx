@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -59,7 +59,7 @@ function ArticleCard({
   const isLarge = size === 'large' || featured
 
   return (
-    <Card className={`group overflow-hidden ${isLarge ? 'md:col-span-2 md:row-span-2' : ''} hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all`}>
+    <Card className={`group overflow-hidden ${isLarge ? 'md:col-span-2 md:row-span-2' : ''} hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition`}>
       <div className={isLarge ? 'md:flex' : ''}>
         {/* Image */}
         <div className={`relative overflow-hidden ${isLarge ? 'md:w-1/2' : ''}`}>
@@ -232,13 +232,18 @@ export function BlogTemplate() {
   const { resolvedTheme, setTheme } = useTheme()
   const [isThemeAnimating, setIsThemeAnimating] = useState(false)
   const isTogglingRef = useRef(false)
+  const themeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (themeTimerRef.current) clearTimeout(themeTimerRef.current)
+  }, [])
 
   const handleThemeToggle = () => {
     if (isTogglingRef.current) return
     isTogglingRef.current = true
     setIsThemeAnimating(true)
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-    setTimeout(() => {
+    themeTimerRef.current = setTimeout(() => {
       setIsThemeAnimating(false)
       isTogglingRef.current = false
     }, 400)
@@ -256,7 +261,7 @@ export function BlogTemplate() {
       {/* Floating Theme Toggle */}
       <button
         onClick={handleThemeToggle}
-        className="fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full border-4 border-foreground bg-background shadow-[4px_4px_0px_hsl(var(--foreground))] flex items-center justify-center hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] transition-all"
+        className="fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full border-4 border-foreground bg-background shadow-[4px_4px_0px_hsl(var(--foreground))] flex items-center justify-center hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] transition"
         aria-label="Toggle theme"
       >
         {resolvedTheme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -300,10 +305,10 @@ export function BlogTemplate() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="Search">
                 <Search className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="RSS feed">
                 <Rss className="h-5 w-5" />
               </Button>
               <Button className="hidden sm:flex">Subscribe</Button>
@@ -367,7 +372,7 @@ export function BlogTemplate() {
 
               {/* Pagination */}
               <div className="flex items-center justify-center gap-2 mt-12">
-                <Button variant="outline" size="icon" disabled>
+                <Button variant="outline" size="icon" disabled aria-label="Previous page">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 {[1, 2, 3, 4, 5].map((page) => (
@@ -379,7 +384,7 @@ export function BlogTemplate() {
                     {page}
                   </Button>
                 ))}
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" aria-label="Next page">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -505,13 +510,13 @@ export function BlogTemplate() {
                 Insights on design, development, and building great products.
               </p>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="text-background/70 hover:text-background hover:bg-background/10">
+                <Button variant="ghost" size="icon" aria-label="Twitter" className="text-background/70 hover:text-background hover:bg-background/10">
                   <Twitter className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-background/70 hover:text-background hover:bg-background/10">
+                <Button variant="ghost" size="icon" aria-label="GitHub" className="text-background/70 hover:text-background hover:bg-background/10">
                   <Github className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-background/70 hover:text-background hover:bg-background/10">
+                <Button variant="ghost" size="icon" aria-label="RSS feed" className="text-background/70 hover:text-background hover:bg-background/10">
                   <Rss className="h-5 w-5" />
                 </Button>
               </div>

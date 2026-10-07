@@ -5,6 +5,7 @@ export { default as Label } from './Label.vue'
 export { default as Badge } from './Badge.vue'
 export { default as Separator } from './Separator.vue'
 export { default as Skeleton } from './Skeleton.vue'
+export { default as ErrorBoundary } from './ErrorBoundary.vue'
 
 // Card
 export { default as Card } from './Card.vue'
@@ -70,8 +71,75 @@ export { default as DropdownMenuCheckboxItem } from './DropdownMenuCheckboxItem.
 export { default as DropdownMenuRadioItem } from './DropdownMenuRadioItem.vue'
 export { default as DropdownMenuLabel } from './DropdownMenuLabel.vue'
 export { default as DropdownMenuSeparator } from './DropdownMenuSeparator.vue'
-export { default as DropdownMenuGroup } from './DropdownMenuGroup.vue'
+export { default as DropdownMenuShortcut } from './DropdownMenuShortcut.vue'
 export { default as DropdownMenuRadioGroup } from './DropdownMenuRadioGroup.vue'
+
+// Context Menu
+export { default as ContextMenu } from './ContextMenu.vue'
+export { default as ContextMenuTrigger } from './ContextMenuTrigger.vue'
+export { default as ContextMenuContent } from './ContextMenuContent.vue'
+export { default as ContextMenuItem } from './ContextMenuItem.vue'
+export { default as ContextMenuCheckboxItem } from './ContextMenuCheckboxItem.vue'
+export { default as ContextMenuRadioGroup } from './ContextMenuRadioGroup.vue'
+export { default as ContextMenuRadioItem } from './ContextMenuRadioItem.vue'
+export { default as ContextMenuLabel } from './ContextMenuLabel.vue'
+export { default as ContextMenuSeparator } from './ContextMenuSeparator.vue'
+export { default as ContextMenuShortcut } from './ContextMenuShortcut.vue'
+export { default as ContextMenuSub } from './ContextMenuSub.vue'
+export { default as ContextMenuSubTrigger } from './ContextMenuSubTrigger.vue'
+export { default as ContextMenuSubContent } from './ContextMenuSubContent.vue'
+
+// Menubar
+export { default as Menubar } from './Menubar.vue'
+export { default as MenubarMenu } from './MenubarMenu.vue'
+export { default as MenubarTrigger } from './MenubarTrigger.vue'
+export { default as MenubarContent } from './MenubarContent.vue'
+export { default as MenubarItem } from './MenubarItem.vue'
+export { default as MenubarCheckboxItem } from './MenubarCheckboxItem.vue'
+export { default as MenubarRadioGroup } from './MenubarRadioGroup.vue'
+export { default as MenubarRadioItem } from './MenubarRadioItem.vue'
+export { default as MenubarLabel } from './MenubarLabel.vue'
+export { default as MenubarSeparator } from './MenubarSeparator.vue'
+export { default as MenubarShortcut } from './MenubarShortcut.vue'
+export { default as MenubarSub } from './MenubarSub.vue'
+export { default as MenubarSubTrigger } from './MenubarSubTrigger.vue'
+export { default as MenubarSubContent } from './MenubarSubContent.vue'
+
+// Navigation Menu
+export { default as NavigationMenu } from './NavigationMenu.vue'
+export { default as NavigationMenuList } from './NavigationMenuList.vue'
+export { default as NavigationMenuItem } from './NavigationMenuItem.vue'
+export { default as NavigationMenuTrigger } from './NavigationMenuTrigger.vue'
+export { default as NavigationMenuContent } from './NavigationMenuContent.vue'
+export { default as NavigationMenuLink } from './NavigationMenuLink.vue'
+export { default as NavigationMenuIndicator } from './NavigationMenuIndicator.vue'
+export { navigationMenuTriggerStyle } from './navigation-menu-variants'
+
+// Resizable
+export { default as ResizablePanelGroup } from './ResizablePanelGroup.vue'
+export { default as ResizablePanel } from './ResizablePanel.vue'
+export { default as ResizableHandle } from './ResizableHandle.vue'
+
+// Button Group
+export { default as ButtonGroup } from './ButtonGroup.vue'
+
+// Input Group
+export { default as InputGroup } from './InputGroup.vue'
+export { default as InputGroupInput } from './InputGroupInput.vue'
+export { default as InputGroupAddon } from './InputGroupAddon.vue'
+
+// Field
+export { default as Field } from './Field.vue'
+export { default as FieldGroup } from './FieldGroup.vue'
+export { default as FieldLabel } from './FieldLabel.vue'
+export { default as FieldDescription } from './FieldDescription.vue'
+export { default as FieldError } from './FieldError.vue'
+
+// Native Select
+export { default as NativeSelect } from './NativeSelect.vue'
+
+// Date Picker
+export { default as DatePicker } from './DatePicker.vue'
 
 export { default as AlertDialog } from './AlertDialog.vue'
 export { default as AlertDialogTrigger } from './AlertDialogTrigger.vue'
@@ -129,13 +197,12 @@ export { default as AlertAction } from './AlertAction.vue'
 
 // Specialized Components
 export { default as Pagination } from './Pagination.vue'
-export { default as PaginationList } from './PaginationList.vue'
-export { default as PaginationListItem } from './PaginationListItem.vue'
-export { default as PaginationEllipsis } from './PaginationEllipsis.vue'
-export { default as PaginationFirst } from './PaginationFirst.vue'
-export { default as PaginationLast } from './PaginationLast.vue'
-export { default as PaginationPrev } from './PaginationPrev.vue'
+export { default as PaginationContent } from './PaginationContent.vue'
+export { default as PaginationItem } from './PaginationItem.vue'
+export { default as PaginationLink } from './PaginationLink.vue'
+export { default as PaginationPrevious } from './PaginationPrevious.vue'
 export { default as PaginationNext } from './PaginationNext.vue'
+export { default as PaginationEllipsis } from './PaginationEllipsis.vue'
 
 export { default as Breadcrumb } from './Breadcrumb.vue'
 export { default as BreadcrumbList } from './BreadcrumbList.vue'
@@ -190,7 +257,9 @@ export { CAROUSEL_INJECTION_KEY, type CarouselContext, type CarouselApi, type Ca
 
 // Data Table
 export { default as DataTable } from './DataTable.vue'
-export type { DataTableColumn, DataTableProps } from './DataTable.vue'
+// DataTable.vue is a generic SFC and doesn't export named types; surface the
+// column type consumers actually need from the underlying table library.
+export type { ColumnDef as DataTableColumn } from '@tanstack/vue-table'
 
 // Rating
 export { default as Rating } from './Rating.vue'
@@ -299,6 +368,8 @@ export * from './shapes'
 
 // Charts
 export { default as ChartContainer } from './ChartContainer.vue'
+export { default as ChartEmpty } from './ChartEmpty.vue'
+export { default as ChartLoading } from './ChartLoading.vue'
 export { default as DonutChart } from './DonutChart.vue'
 export { default as GaugeChart } from './GaugeChart.vue'
 export { default as RadarChart } from './RadarChart.vue'
@@ -319,6 +390,14 @@ export {
   type ChartPalette,
   type ChartConfig,
 } from './chart-utils'
+
+// Motion
+export { default as Motion } from './Motion.vue'
+export { default as Reveal } from './Reveal.vue'
+export { default as Stagger } from './Stagger.vue'
+
+// Chart toolbar
+export { default as ChartToolbar } from './ChartToolbar.vue'
 
 // Variant exports
 export { buttonVariants } from './button-variants'

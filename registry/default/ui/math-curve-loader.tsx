@@ -1,6 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { prefersReducedMotion, onReducedMotionChange } from '@/lib/motion-core'
 import {
   buildPath,
   getPoint,
@@ -71,7 +74,9 @@ const MathCurveLoader = React.forwardRef<SVGSVGElement, MathCurveLoaderProps>(
     React.useEffect(() => {
       startTimeRef.current = performance.now()
 
-      const tick = () => {
+      // Draw one frame. Separated from scheduling so reduced motion can render
+      // a static frame without starting the loop.
+      const draw = () => {
         const now = performance.now()
         const elapsed = (now - startTimeRef.current) % durationMs
         const progress = elapsed / durationMs
@@ -94,12 +99,32 @@ const MathCurveLoader = React.forwardRef<SVGSVGElement, MathCurveLoaderProps>(
           rectRef.current.setAttribute('transform', `rotate(${angle} ${cx} ${cy})`)
         }
 
+      }
+
+      const tick = () => {
+        draw()
         rafRef.current = requestAnimationFrame(tick)
       }
 
-      rafRef.current = requestAnimationFrame(tick)
+      // A CSS media query can't stop a loop that mutates SVG attributes, so
+      // the reduced-motion preference has to be consulted here. Paint one
+      // static frame and stop; re-subscribing means flipping the OS setting
+      // mid-session starts or stops the loop without a remount.
+      const start = () => {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = 0
+        if (prefersReducedMotion()) {
+          draw()
+          return
+        }
+        rafRef.current = requestAnimationFrame(tick)
+      }
+
+      start()
+      const unsubscribe = onReducedMotionChange(start)
 
       return () => {
+        unsubscribe()
         cancelAnimationFrame(rafRef.current)
       }
     }, [curve, speed, durationMs, headSize])
@@ -108,43 +133,45 @@ const MathCurveLoader = React.forwardRef<SVGSVGElement, MathCurveLoaderProps>(
     const resolvedHeadFill = headColor ?? 'hsl(var(--primary))'
 
     return (
-      <svg
-        ref={ref}
-        viewBox="0 0 100 100"
-        xmlns="http://www.w3.org/2000/svg"
-        role="status"
-        aria-label={ariaLabel}
-        className={cn(
-          mathCurveLoaderVariants({ size }),
-          'group',
-          className
-        )}
-        {...props}
-      >
-        {/* Track layer */}
-        <path
-          ref={pathRef}
-          d={trackPath}
-          fill="none"
-          stroke={resolvedTrackStroke}
-          strokeWidth={strokeWidth}
-          strokeOpacity={0.2}
-          strokeLinecap="square"
-          strokeLinejoin="miter"
-          className="group-hover:[stroke-opacity:0.4] transition-[stroke-opacity] duration-200"
-        />
-        {/* Head square */}
-        <rect
-          ref={rectRef}
-          width={headSize}
-          height={headSize}
-          x={50 - headSize / 2}
-          y={50 - headSize / 2}
-          fill={resolvedHeadFill}
-          stroke="currentColor"
-          strokeWidth={1.5}
-        />
-      </svg>
+      <ErrorBoundary>
+        <svg
+          ref={ref}
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+          role="status"
+          aria-label={ariaLabel}
+          className={cn(
+            mathCurveLoaderVariants({ size }),
+            'group',
+            className
+          )}
+          {...props}
+        >
+          {/* Track layer */}
+          <path
+            ref={pathRef}
+            d={trackPath}
+            fill="none"
+            stroke={resolvedTrackStroke}
+            strokeWidth={strokeWidth}
+            strokeOpacity={0.2}
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            className="group-hover:[stroke-opacity:0.4] transition-[stroke-opacity] duration-200"
+          />
+          {/* Head square */}
+          <rect
+            ref={rectRef}
+            width={headSize}
+            height={headSize}
+            x={50 - headSize / 2}
+            y={50 - headSize / 2}
+            fill={resolvedHeadFill}
+            stroke="currentColor"
+            strokeWidth={1.5}
+          />
+        </svg>
+      </ErrorBoundary>
     )
   }
 )

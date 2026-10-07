@@ -1,12 +1,13 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "drawer",
+  "title": "Drawer",
   "description": "A drawer component that slides in from the edge of the screen",
   "dependencies": [
     "vaul"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

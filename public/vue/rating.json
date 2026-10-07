@@ -8,13 +8,13 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Rating.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Rating.vue"
+      "path": "components/ui/Rating.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Rating"
 }

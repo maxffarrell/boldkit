@@ -1,36 +1,9 @@
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { ComponentDoc, ExampleSection } from '@/components/docs/ComponentDoc'
+import sourceCode from '@/components/ui/sonner.tsx?raw'
+import vueSourceCode from '@vue-ui/Sonner.vue?raw'
 
-const sourceCode = `import { useTheme } from '@/hooks/use-theme'
-import { Toaster as Sonner } from 'sonner'
-
-type ToasterProps = React.ComponentProps<typeof Sonner>
-
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { resolvedTheme } = useTheme()
-
-  return (
-    <Sonner
-      theme={resolvedTheme as ToasterProps['theme']}
-      className="toaster group"
-      toastOptions={{
-        classNames: {
-          toast:
-            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-3 group-[.toaster]:border-foreground group-[.toaster]:shadow-[4px_4px_0px_hsl(var(--shadow-color))]',
-          description: 'group-[.toast]:text-muted-foreground',
-          actionButton:
-            'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:border-2 group-[.toast]:border-foreground',
-          cancelButton:
-            'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:border-2 group-[.toast]:border-foreground',
-        },
-      }}
-      {...props}
-    />
-  )
-}
-
-export { Toaster }`
 
 const usageCode = `import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -45,34 +18,10 @@ export default function Example() {
   )
 }`
 
-const vueSourceCode = `<script setup lang="ts">
-import { Toaster as Sonner } from 'vue-sonner'
-import { useTheme } from '@/composables/useTheme'
-
-const { resolvedTheme } = useTheme()
-</script>
-
-<template>
-  <Sonner
-    :theme="resolvedTheme"
-    class="toaster group"
-    :toast-options="{
-      classNames: {
-        toast:
-          'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-3 group-[.toaster]:border-foreground group-[.toaster]:shadow-[4px_4px_0px_hsl(var(--shadow-color))]',
-        description: 'group-[.toast]:text-muted-foreground',
-        actionButton:
-          'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:border-2 group-[.toast]:border-foreground',
-        cancelButton:
-          'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:border-2 group-[.toast]:border-foreground',
-      },
-    }"
-  />
-</template>`
 
 const vueUsageCode = `<script setup lang="ts">
 import { toast } from 'vue-sonner'
-import { Button } from '@/components/ui'
+import Button from '@/components/ui/Button.vue'
 </script>
 
 <template>
@@ -111,7 +60,7 @@ toast.warning('Warning!')
 toast.info('Information')`}
         vueCode={`<script setup>
 import { toast } from 'vue-sonner'
-import { Button } from '@/components/ui'
+import Button from '@/components/ui/Button.vue'
 </script>
 
 <template>
@@ -152,7 +101,7 @@ import { Button } from '@/components/ui'
 })`}
         vueCode={`<script setup>
 import { toast } from 'vue-sonner'
-import { Button } from '@/components/ui'
+import Button from '@/components/ui/Button.vue'
 
 function showToast() {
   toast('Event Created', {
@@ -189,7 +138,7 @@ function showToast() {
 })`}
         vueCode={`<script setup>
 import { toast } from 'vue-sonner'
-import { Button } from '@/components/ui'
+import Button from '@/components/ui/Button.vue'
 
 function showToast() {
   toast('Event Created', {
@@ -236,7 +185,7 @@ toast.promise(promise, {
 })`}
         vueCode={`<script setup>
 import { toast } from 'vue-sonner'
-import { Button } from '@/components/ui'
+import Button from '@/components/ui/Button.vue'
 
 function showPromiseToast() {
   const promise = new Promise((resolve) => setTimeout(resolve, 2000))

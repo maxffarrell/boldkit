@@ -1,101 +1,10 @@
 import { useState } from 'react'
 import { Dropzone, FileList } from '@/components/ui/dropzone'
 import { ComponentDoc, ExampleSection } from '@/components/docs/ComponentDoc'
+import sourceCode from '@/components/ui/dropzone.tsx?raw'
+import vueSourceCode from '@vue-ui/Dropzone.vue?raw'
 
-const sourceCode = `import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-import { Progress } from '@/components/ui/progress'
-import { Spinner } from '@/components/ui/spinner'
-import { Upload, X, File, Image } from 'lucide-react'
 
-const dropzoneVariants = cva(
-  'relative flex flex-col items-center justify-center border-3 border-dashed border-foreground transition-all duration-200 cursor-pointer',
-  {
-    variants: {
-      state: {
-        idle: 'bg-background hover:bg-muted/50',
-        dragging: 'border-solid border-primary bg-primary/10 scale-[1.02] shadow-[4px_4px_0px_hsl(var(--primary))]',
-        disabled: 'opacity-50 cursor-not-allowed',
-      },
-      variant: {
-        default: 'p-8',
-        compact: 'p-4',
-        minimal: 'p-2 border-none',
-      },
-    },
-    defaultVariants: { state: 'idle', variant: 'default' },
-  }
-)
-
-export interface DropzoneProps {
-  onFilesAccepted: (files: File[]) => void
-  onFilesRejected?: (files: FileRejection[]) => void
-  accept?: Record<string, string[]>
-  maxSize?: number
-  maxFiles?: number
-  disabled?: boolean
-  variant?: 'default' | 'compact' | 'minimal'
-  children?: React.ReactNode | ((state: DropzoneState) => React.ReactNode)
-}
-
-export { Dropzone, FileList, dropzoneVariants }`
-
-const vueSourceCode = `<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-import { Progress } from '@/components/ui/progress'
-import { Spinner } from '@/components/ui/spinner'
-import { Upload, X, File, Image } from 'lucide-vue-next'
-
-const dropzoneVariants = cva(
-  'relative flex flex-col items-center justify-center border-3 border-dashed border-foreground transition-all duration-200 cursor-pointer',
-  {
-    variants: {
-      state: {
-        idle: 'bg-background hover:bg-muted/50',
-        dragging: 'border-solid border-primary bg-primary/10 scale-[1.02] shadow-[4px_4px_0px_hsl(var(--primary))]',
-        disabled: 'opacity-50 cursor-not-allowed',
-      },
-      variant: {
-        default: 'p-8',
-        compact: 'p-4',
-        minimal: 'p-2 border-none',
-      },
-    },
-    defaultVariants: { state: 'idle', variant: 'default' },
-  }
-)
-
-interface Props {
-  accept?: Record<string, string[]>
-  maxSize?: number
-  maxFiles?: number
-  disabled?: boolean
-  variant?: 'default' | 'compact' | 'minimal'
-}
-
-const emit = defineEmits<{
-  filesAccepted: [files: File[]]
-  filesRejected: [files: FileRejection[]]
-}>()
-</script>
-
-<template>
-  <div
-    :class="dropzoneVariants({ state, variant })"
-    @dragenter="handleDragEnter"
-    @dragleave="handleDragLeave"
-    @dragover="handleDragOver"
-    @drop="handleDrop"
-    @click="handleClick"
-  >
-    <slot :state="state">
-      <!-- Default content -->
-    </slot>
-  </div>
-</template>`
 
 const usageCode = `import { Dropzone, FileList } from '@/components/ui/dropzone'
 
@@ -119,7 +28,8 @@ export default function Example() {
 
 const vueUsageCode = `<script setup lang="ts">
 import { ref } from 'vue'
-import { Dropzone, FileList } from '@/components/ui'
+import Dropzone from '@/components/ui/Dropzone.vue'
+import FileList from '@/components/ui/FileList.vue'
 
 const files = ref([])
 
@@ -254,7 +164,7 @@ export function DropzoneDoc() {
           {({ isDragging }) => (
             <div className="flex flex-col items-center gap-2 text-center">
               <div
-                className={`h-8 w-8 text-muted-foreground transition-all ${
+                className={`h-8 w-8 text-muted-foreground transition ${
                   isDragging ? 'text-primary animate-bounce' : ''
                 }`}
               >

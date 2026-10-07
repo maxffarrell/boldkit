@@ -7,28 +7,25 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Sticker.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Sticker.vue"
+      "path": "components/ui/Sticker.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/sticker-variants.ts",
-      "type": "registry:ui",
-      "target": "components/ui/sticker-variants.ts"
+      "path": "components/ui/sticker-variants.ts",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/Stamp.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Stamp.vue"
+      "path": "components/ui/Stamp.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/StickyNote.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StickyNote.vue"
+      "path": "components/ui/StickyNote.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Sticker"
 }

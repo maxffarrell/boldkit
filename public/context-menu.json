@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "context-menu",
+  "title": "Context Menu",
+  "description": "Displays a menu triggered by right-click with neubrutalism styling",
+  "dependencies": [
+    "@radix-ui/react-context-menu",
+    "lucide-react"
+  ],
+  "registryDependencies": [
+    "@boldkit/utils"
+  ],
+  "files": [
+    {
+      "path": "registry/default/ui/context-menu.tsx",
+      "type": "registry:ui",
+      "target": "components/ui/context-menu.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

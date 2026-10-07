@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import { copyToClipboard } from '@/lib/clipboard'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -95,8 +97,8 @@ const languageAliases: Record<string, string> = {
 export function CodeBlock({ code, language = 'tsx' }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false)
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(code)
+  const copyCode = async () => {
+    if (!(await copyToClipboard(code))) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -132,8 +134,8 @@ export function CodeBlock({ code, language = 'tsx' }: { code: string; language?:
 export function InstallCommand({ command }: { command: string }) {
   const [copied, setCopied] = useState(false)
 
-  const copyCommand = () => {
-    navigator.clipboard.writeText(command)
+  const copyCommand = async () => {
+    if (!(await copyToClipboard(command))) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -168,6 +170,9 @@ interface ComponentDocProps {
   svelteDependencies?: string[]
   // Nuxt-specific
   nuxtClientOnly?: boolean
+  // Extra classes for the preview surface (e.g. min-height for components with
+  // open overlays like Navigation Menu that would otherwise be clipped).
+  previewClassName?: string
 }
 
 export function ComponentDoc({
@@ -186,6 +191,7 @@ export function ComponentDoc({
   svelteUsageCode,
   svelteDependencies,
   nuxtClientOnly = false,
+  previewClassName,
 }: ComponentDocProps) {
   // Use global framework context
   const { framework } = useFramework()
@@ -228,9 +234,9 @@ export function ComponentDoc({
   }, [componentRegistryName, framework, svelteSourceCode])
 
   // Generate the correct CLI commands for each framework
-  const reactCliCommand = installCommand || `npx shadcn@latest add https://boldkit.dev/r/${componentRegistryName}.json`
-  const vueCliCommand = `npx shadcn-vue@latest add https://boldkit.dev/r/vue/${componentRegistryName}.json`
-  const svelteCliCommand = `npx shadcn-svelte@latest add https://boldkit.dev/r/svelte/${componentRegistryName}.json`
+  const reactCliCommand = installCommand || `npx shadcn@latest add @boldkit/${componentRegistryName}`
+  const vueCliCommand = `npx shadcn-vue@latest add @boldkit/${componentRegistryName}`
+  const svelteCliCommand = `npx shadcn-svelte@latest add @boldkit/${componentRegistryName}`
   const svelteRegistrySourceCode = svelteRegistryItem?.files?.map((file) => file.content).filter(Boolean).join('\n\n') || ''
   const defaultSvelteUsageCode = `<script lang="ts">
   import { ${name.replace(/\s+/g, '')} } from "$lib/components/ui/${componentRegistryName}"
@@ -370,7 +376,7 @@ export function ComponentDoc({
           <CardTitle>Preview</CardTitle>
           <OpenInV0Button name={componentRegistryName} />
         </CardHeader>
-        <CardContent className="relative pt-8 pb-8 overflow-hidden">
+        <CardContent className={cn('relative pt-8 pb-8 overflow-hidden', previewClassName)}>
           <div className="grid-pattern absolute inset-0 opacity-30" />
           <div className="relative">
             {children}

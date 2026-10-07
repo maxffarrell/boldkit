@@ -1,13 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "button",
+  "title": "Button",
   "description": "Displays a button with neubrutalism styling and press-down animation",
   "dependencies": [
     "@radix-ui/react-slot",
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

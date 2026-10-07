@@ -8,18 +8,18 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/toggle"
   ],
   "files": [
     {
-      "path": "registry/default/ui/ToggleGroup.vue",
-      "type": "registry:ui",
-      "target": "components/ui/ToggleGroup.vue"
+      "path": "components/ui/ToggleGroup.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/ToggleGroupItem.vue",
-      "type": "registry:ui",
-      "target": "components/ui/ToggleGroupItem.vue"
+      "path": "components/ui/ToggleGroupItem.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Toggle Group"
 }

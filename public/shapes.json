@@ -1,10 +1,12 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "shapes",
+  "title": "Shapes",
   "description": "55 neubrutalist SVG shapes organized by category for badges, decorations, and visual accents",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/motion"
   ],
   "files": [
     {

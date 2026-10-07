@@ -49,6 +49,12 @@ onMounted(() => {
     timeRemaining.value = getCountdown(props.launchDate)
     countdownInterval = setInterval(() => {
       timeRemaining.value = getCountdown(props.launchDate!)
+      // Expired — the "We're live!" branch takes over, so stop ticking rather
+      // than recomputing null once a second for the life of the page.
+      if (timeRemaining.value === null && countdownInterval) {
+        clearInterval(countdownInterval)
+        countdownInterval = null
+      }
     }, 1000)
   }
 })
@@ -261,6 +267,12 @@ const content = {
           <div class="text-3xl font-black tabular-nums">{{ String(unit.value).padStart(2, '0') }}</div>
           <div class="text-xs font-bold uppercase tracking-wide text-muted-foreground">{{ unit.label }}</div>
         </div>
+      </div>
+      <div
+        v-else-if="props.launchDate"
+        class="inline-block border-3 border-foreground bg-primary px-6 py-3 shadow-[4px_4px_0px_hsl(var(--shadow-color))]"
+      >
+        <span class="font-black uppercase text-primary-foreground">We're live!</span>
       </div>
 
       <!-- Email capture -->

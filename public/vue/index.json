@@ -99,6 +99,56 @@
       "registryUrl": "https://boldkit.dev/r/vue/dropdown-menu.json"
     },
     {
+      "name": "context-menu",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/context-menu.json"
+    },
+    {
+      "name": "menubar",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/menubar.json"
+    },
+    {
+      "name": "navigation-menu",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/navigation-menu.json"
+    },
+    {
+      "name": "resizable",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/resizable.json"
+    },
+    {
+      "name": "button-group",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/button-group.json"
+    },
+    {
+      "name": "input-group",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/input-group.json"
+    },
+    {
+      "name": "field",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/field.json"
+    },
+    {
+      "name": "multi-step-form",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/multi-step-form.json"
+    },
+    {
+      "name": "native-select",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/native-select.json"
+    },
+    {
+      "name": "date-picker",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/date-picker.json"
+    },
+    {
       "name": "alert-dialog",
       "type": "registry:ui",
       "registryUrl": "https://boldkit.dev/r/vue/alert-dialog.json"
@@ -239,6 +289,16 @@
       "registryUrl": "https://boldkit.dev/r/vue/shapes.json"
     },
     {
+      "name": "error-boundary",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/error-boundary.json"
+    },
+    {
+      "name": "ascii-shapes",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/ascii-shapes.json"
+    },
+    {
       "name": "carousel",
       "type": "registry:ui",
       "registryUrl": "https://boldkit.dev/r/vue/carousel.json"
@@ -317,6 +377,96 @@
       "name": "stepper",
       "type": "registry:ui",
       "registryUrl": "https://boldkit.dev/r/vue/stepper.json"
+    },
+    {
+      "name": "combobox",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/combobox.json"
+    },
+    {
+      "name": "donut-chart",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/donut-chart.json"
+    },
+    {
+      "name": "gauge-chart",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/gauge-chart.json"
+    },
+    {
+      "name": "radar-chart",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/radar-chart.json"
+    },
+    {
+      "name": "radial-bar-chart",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/radial-bar-chart.json"
+    },
+    {
+      "name": "sparkline",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/sparkline.json"
+    },
+    {
+      "name": "use-theme",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/use-theme.json"
+    },
+    {
+      "name": "math-curves",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/math-curves.json"
+    },
+    {
+      "name": "math-curve-loader",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/math-curve-loader.json"
+    },
+    {
+      "name": "math-curve-progress",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/math-curve-progress.json"
+    },
+    {
+      "name": "math-curve-background",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/math-curve-background.json"
+    },
+    {
+      "name": "motion-core",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/motion-core.json"
+    },
+    {
+      "name": "use-motion",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/use-motion.json"
+    },
+    {
+      "name": "canvas-effect-core",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/canvas-effect-core.json"
+    },
+    {
+      "name": "use-canvas-effect",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/use-canvas-effect.json"
+    },
+    {
+      "name": "motion",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/motion.json"
+    },
+    {
+      "name": "chart-export",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/chart-export.json"
+    },
+    {
+      "name": "chart-toolbar",
+      "type": "registry:ui",
+      "registryUrl": "https://boldkit.dev/r/vue/chart-toolbar.json"
     }
   ]
 }

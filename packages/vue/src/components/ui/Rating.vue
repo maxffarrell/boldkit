@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { Star, Heart, Circle } from 'lucide-vue-next'
@@ -62,6 +62,9 @@ const displayValue = computed(() => hoverValue.value ?? currentValue.value)
 
 const IconComponent = computed(() => iconMap[props.icon])
 
+const iconNoun = computed(() => (props.icon === 'heart' ? 'hearts' : props.icon === 'circle' ? 'circles' : 'stars'))
+const valueText = computed(() => `${currentValue.value} out of ${props.max} ${iconNoun.value}`)
+
 // Sync internal value when modelValue changes
 watch(() => props.modelValue, (newValue) => {
   if (newValue !== undefined) {
@@ -99,6 +102,16 @@ const handleMouseLeave = () => {
   emit('hoverChange', null)
 }
 
+const groupEl = ref<HTMLElement | null>(null)
+
+/** Move DOM focus onto whichever star now holds the roving tabindex. */
+function focusActiveStar(next: number) {
+  const index = Math.min(Math.max(Math.ceil(next), 1), props.max)
+  nextTick(() => {
+    groupEl.value?.querySelectorAll<HTMLButtonElement>('button')[index - 1]?.focus()
+  })
+}
+
 const handleKeyDown = (e: KeyboardEvent) => {
   if (props.readOnly || props.disabled) return
 
@@ -131,6 +144,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
     internalValue.value = newValue
   }
   emit('update:modelValue', newValue)
+  // The roving tabindex moves with the value; DOM focus has to follow it, or
+  // the focus ring stops tracking and Tab-ing back re-enters at a different
+  // star than the one that looks focused.
+  focusActiveStar(newValue)
 }
 
 const handleIconClick = (e: MouseEvent, index: number) => {
@@ -152,13 +169,25 @@ const getFillState = (index: number) => {
 const getClipPath = (isHalfFilled: boolean) => {
   return isHalfFilled ? { clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' } : undefined
 }
+
+// Roving tabindex: exactly one icon must be tabbable. Clamp first — an
+// out-of-range value would match no icon and make the whole group unreachable
+// by keyboard.
+const activeIndex = computed(() =>
+  Math.min(Math.max(Math.ceil(currentValue.value), 1), props.max)
+)
 </script>
 
 <template>
+  <!-- role="group" of toggle buttons (roving tabindex), not role="slider": a
+       focusable slider wrapping focusable buttons is a nested-interactive
+       violation (axe). Arrow keys still work — keydown bubbles from the stars. -->
   <div
-    role="radiogroup"
-    :aria-label="`Rating: ${currentValue} out of ${max} ${icon === 'star' ? 'stars' : icon === 'heart' ? 'hearts' : 'circles'}`"
-    :tabindex="readOnly || disabled ? -1 : 0"
+    ref="groupEl"
+    role="group"
+    :aria-label="`Rating: ${valueText}`"
+    :aria-readonly="readOnly || undefined"
+    :aria-disabled="disabled || undefined"
     :class="cn(
       ratingVariants({ size }),
       disabled && 'opacity-50 pointer-events-none',
@@ -172,11 +201,11 @@ const getClipPath = (isHalfFilled: boolean) => {
       v-for="index in max"
       :key="index - 1"
       type="button"
-      role="radio"
-      :aria-checked="index - 1 < currentValue"
       :aria-label="`${index} ${icon === 'star' ? 'star' : icon === 'heart' ? 'heart' : 'circle'}${index !== 1 ? 's' : ''}`"
-      :tabindex="-1"
-      :disabled="disabled || readOnly"
+      :aria-pressed="index <= currentValue"
+      :tabindex="!readOnly && !disabled && index === activeIndex ? 0 : -1"
+      :disabled="disabled"
+      :aria-readonly="readOnly || undefined"
       :class="cn(
         'relative transition-transform duration-150 focus:outline-none',
         !readOnly && !disabled && 'hover:scale-110'

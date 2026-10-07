@@ -1,7 +1,13 @@
+<script lang="ts">
+export const CAROUSEL_INJECTION_KEY = Symbol('carousel')
+
+</script>
+
 <script setup lang="ts">
-import { provide, ref, computed, onMounted, onUnmounted, watch, readonly } from 'vue'
+import { provide, ref, computed, onUnmounted, watch, readonly } from 'vue'
 import emblaCarouselVue from 'embla-carousel-vue'
 import type { EmblaCarouselType, EmblaOptionsType, EmblaPluginType } from 'embla-carousel'
+import type { MaybeRef } from 'vue'
 import { cn } from '@/lib/utils'
 
 export type CarouselApi = EmblaCarouselType | undefined
@@ -20,8 +26,6 @@ export interface CarouselContext {
   scrollTo: (index: number) => void
   orientation: 'horizontal' | 'vertical'
 }
-
-export const CAROUSEL_INJECTION_KEY = Symbol('carousel')
 
 interface CarouselProps {
   opts?: CarouselOptions
@@ -43,7 +47,10 @@ const carouselOptions = computed<EmblaOptionsType>(() => ({
   axis: props.orientation === 'horizontal' ? 'x' : 'y',
 }))
 
-const [emblaRef, emblaApi] = emblaCarouselVue(carouselOptions, props.plugins ? () => props.plugins! : undefined)
+const [emblaRef, emblaApi] = emblaCarouselVue(
+  carouselOptions as unknown as MaybeRef<EmblaOptionsType>,
+  props.plugins as MaybeRef<EmblaPluginType[]> | undefined
+)
 
 const canScrollPrev = ref(false)
 const canScrollNext = ref(false)
@@ -78,18 +85,18 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 }
 
-watch(emblaApi, (api) => {
-  if (!api) return
+watch(emblaApi, (_api: EmblaCarouselType | undefined) => {
+  if (!_api) return
 
   if (props.setApi) {
-    props.setApi(api)
+    props.setApi(_api)
   }
 
-  scrollSnaps.value = api.scrollSnapList()
-  onSelect(api)
+  scrollSnaps.value = _api.scrollSnapList()
+  onSelect(_api)
 
-  api.on('reInit', onSelect)
-  api.on('select', onSelect)
+  _api.on('reInit', onSelect)
+  _api.on('select', onSelect)
 })
 
 onUnmounted(() => {

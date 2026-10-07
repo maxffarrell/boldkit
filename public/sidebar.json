@@ -1,16 +1,17 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "sidebar",
+  "title": "Sidebar",
   "description": "Collapsible sidebar with mobile drawer, tooltips, and keyboard shortcut",
   "dependencies": [
     "class-variance-authority",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils",
-    "button",
-    "sheet",
-    "tooltip"
+    "@boldkit/utils",
+    "@boldkit/button",
+    "@boldkit/sheet",
+    "@boldkit/tooltip"
   ],
   "files": [
     {

@@ -1,12 +1,13 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "tabs",
+  "title": "Tabs",
   "description": "A tabbed interface component with neubrutalism styling",
   "dependencies": [
     "@radix-ui/react-tabs"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

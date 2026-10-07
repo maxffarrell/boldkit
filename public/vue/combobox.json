@@ -8,20 +8,19 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils",
-    "popover",
-    "command"
+    "@boldkit/utils",
+    "@boldkit/popover",
+    "@boldkit/command"
   ],
   "files": [
     {
-      "path": "registry/default/ui/ComboboxTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/ComboboxTrigger.vue"
+      "path": "components/ui/ComboboxTrigger.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/ComboboxMultiTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/ComboboxMultiTrigger.vue"
+      "path": "components/ui/ComboboxMultiTrigger.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Combobox"
 }

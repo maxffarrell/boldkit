@@ -5,18 +5,17 @@
   "description": "Keyboard shortcut display component",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Kbd.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Kbd.vue"
+      "path": "components/ui/Kbd.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/KbdCombo.vue",
-      "type": "registry:ui",
-      "target": "components/ui/KbdCombo.vue"
+      "path": "components/ui/KbdCombo.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Kbd"
 }

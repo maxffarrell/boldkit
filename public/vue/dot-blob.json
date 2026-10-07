@@ -3,13 +3,15 @@
   "name": "dot-blob",
   "description": "Halftone wave field — Gaussian envelope drives halftone dot sizes with traveling wave",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@boldkit/use-canvas-effect"
+  ],
   "files": [
     {
-      "path": "registry/default/ui/canvas-effects/DotBlob.vue",
-      "type": "registry:ui",
-      "target": "components/ui/canvas-effects/DotBlob.vue"
+      "path": "components/ui/canvas-effects/DotBlob.vue",
+      "type": "registry:ui"
     }
   ],
-  "type": "registry:ui"
+  "type": "registry:ui",
+  "title": "Dot Blob"
 }

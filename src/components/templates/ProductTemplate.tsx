@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -174,17 +174,24 @@ export function ProductTemplate() {
   const [quantity, setQuantity] = useState(1)
   const { resolvedTheme, setTheme } = useTheme()
   const [isThemeAnimating, setIsThemeAnimating] = useState(false)
+  const isTogglingRef = useRef(false)
+  const themeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (themeTimerRef.current) clearTimeout(themeTimerRef.current)
+  }, [])
 
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
 
   const handleThemeToggle = () => {
+    if (isTogglingRef.current) return
+    isTogglingRef.current = true
     setIsThemeAnimating(true)
-    setTimeout(() => {
-      setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-      setTimeout(() => {
-        setIsThemeAnimating(false)
-      }, 200)
-    }, 200)
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+    themeTimerRef.current = setTimeout(() => {
+      setIsThemeAnimating(false)
+      isTogglingRef.current = false
+    }, 400)
   }
 
   return (
@@ -199,7 +206,7 @@ export function ProductTemplate() {
       {/* Floating Theme Toggle */}
       <button
         onClick={handleThemeToggle}
-        className="fixed bottom-24 right-6 z-[9999] h-14 w-14 rounded-full border-4 border-foreground bg-background shadow-[4px_4px_0px_hsl(var(--foreground))] flex items-center justify-center hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] transition-all lg:bottom-6"
+        className="fixed bottom-24 right-6 z-[9999] h-14 w-14 rounded-full border-4 border-foreground bg-background shadow-[4px_4px_0px_hsl(var(--foreground))] flex items-center justify-center hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] transition lg:bottom-6"
         aria-label="Toggle theme"
       >
         {resolvedTheme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -231,10 +238,10 @@ export function ProductTemplate() {
             <a href="#" className="font-bold hover:text-primary transition-colors">New</a>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="Add to wishlist">
               <Heart className="h-5 w-5" />
             </Button>
-            <Button variant="outline" size="icon" className="relative">
+            <Button variant="outline" size="icon" aria-label="Cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center border-2 border-foreground">
                 2
@@ -311,7 +318,7 @@ export function ProductTemplate() {
                       i === selectedImage ? 'border-primary' : 'border-foreground'
                     } overflow-hidden bg-muted`}
                   >
-                    <img src={image} alt="" className="w-full h-full object-cover" />
+                    <img src={image} alt={`${product.name} thumbnail ${i + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -373,6 +380,9 @@ export function ProductTemplate() {
                         {selectedColor === color.name && (
                           <Check className={`h-5 w-5 ${color.value === '#000000' || color.value === '#3B82F6' ? 'text-white' : 'text-foreground'}`} />
                         )}
+                        {/* The label's only other content is an aria-hidden
+                            icon, so without this the radio has no name. */}
+                        <span className="sr-only">{color.name}</span>
                       </Label>
                     </div>
                   ))}
@@ -440,10 +450,10 @@ export function ProductTemplate() {
                   <ShoppingCart className="h-5 w-5" />
                   Add to Cart
                 </Button>
-                <Button variant="outline" size="lg" className="gap-2">
+                <Button variant="outline" size="lg" aria-label="Add to wishlist" className="gap-2">
                   <Heart className="h-5 w-5" />
                 </Button>
-                <Button variant="outline" size="lg" className="gap-2">
+                <Button variant="outline" size="lg" aria-label="Share" className="gap-2">
                   <Share2 className="h-5 w-5" />
                 </Button>
               </div>
@@ -590,7 +600,7 @@ export function ProductTemplate() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {relatedProducts.map((item) => (
-              <Card key={item.name} className="group overflow-hidden hover:translate-y-[-4px] hover:shadow-[6px_6px_0px_hsl(var(--shadow-color))] transition-all">
+              <Card key={item.name} className="group overflow-hidden hover:translate-y-[-4px] hover:shadow-[6px_6px_0px_hsl(var(--shadow-color))] transition">
                 <AspectRatio ratio={1} className="bg-muted overflow-hidden">
                   <img
                     src={item.image}

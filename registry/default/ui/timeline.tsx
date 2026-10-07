@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -42,22 +43,11 @@ const Timeline = React.forwardRef<HTMLDivElement, TimelineProps>(
 Timeline.displayName = 'Timeline'
 
 // Timeline Item
-const timelineItemVariants = cva('relative flex', {
-  variants: {
-    status: {
-      completed: '',
-      current: '',
-      upcoming: '',
-    },
-  },
-  defaultVariants: {
-    status: 'upcoming',
-  },
-})
+const timelineItemVariants = cva('relative flex')
 
-export interface TimelineItemProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof timelineItemVariants> {}
+export interface TimelineItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  status?: 'completed' | 'current' | 'upcoming'
+}
 
 const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
   ({ status, className, children, ...props }, ref) => {
@@ -68,7 +58,7 @@ const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
         ref={ref}
         data-status={status}
         className={cn(
-          timelineItemVariants({ status }),
+          timelineItemVariants(),
           orientation === 'vertical' ? 'flex-row gap-4' : 'flex-col gap-4 items-center',
           className
         )}
@@ -83,7 +73,7 @@ TimelineItem.displayName = 'TimelineItem'
 
 // Timeline Dot
 const timelineDotVariants = cva(
-  'relative z-10 flex items-center justify-center border-3 border-foreground transition-all duration-200',
+  'relative z-10 flex items-center justify-center border-3 border-foreground transition duration-200',
   {
     variants: {
       status: {
@@ -126,7 +116,7 @@ const TimelineDot = React.forwardRef<HTMLDivElement, TimelineDotProps>(
 TimelineDot.displayName = 'TimelineDot'
 
 // Timeline Connector
-const timelineConnectorVariants = cva('transition-all duration-200', {
+const timelineConnectorVariants = cva('transition duration-200', {
   variants: {
     status: {
       completed: 'bg-foreground',

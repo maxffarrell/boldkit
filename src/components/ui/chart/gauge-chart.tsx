@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -25,7 +26,9 @@ const gaugeChartVariants = cva(
 )
 
 export interface GaugeChartZone {
+  /** Lower bound, in the same units as `value` (i.e. between `min` and `max`). */
   from: number
+  /** Upper bound, in the same units as `value`. */
   to: number
   color: string
   label?: string
@@ -51,15 +54,15 @@ const DEFAULT_ZONES: GaugeChartZone[] = [
 ]
 
 /**
- * Variant arc configs:
- *   semicircle — 180° sweep, arc from left (-90°) to right (+90°), open at bottom
- *   full       — 360° sweep (330° drawn with a gap at the bottom to show min/max)
- *   meter      — same 180° sweep as semicircle but with denser tick marks (every 10%)
+ * Variant arc configs (angles in SVG space: 0°=east, increasing = clockwise, y points down):
+ *   semicircle — 180° sweep, arc from left (180°) over the top (270°) to right (360°), open at bottom
+ *   full       — 360° sweep (full ring) starting at the top
+ *   meter      — same top semicircle as semicircle but with denser tick marks (every 10%)
  */
 const VARIANT_ARC_CONFIG = {
-  semicircle: { arcStartDeg: -90, sweepDeg: 180 },
+  semicircle: { arcStartDeg: 180, sweepDeg: 180 },
   full:       { arcStartDeg: -90, sweepDeg: 360 }, // full 360° sweep
-  meter:      { arcStartDeg: -90, sweepDeg: 180 },
+  meter:      { arcStartDeg: 180, sweepDeg: 180 },
 } as const
 
 type Variant = 'semicircle' | 'full' | 'meter'
@@ -86,7 +89,17 @@ const GaugeChart = React.forwardRef<HTMLDivElement, GaugeChartProps>(
     const arcConfig = VARIANT_ARC_CONFIG[resolvedVariant]
 
     const normalizedValue = Math.max(min, Math.min(max, value))
-    const percentage = max === min ? 0 : ((normalizedValue - min) / (max - min)) * 100
+    const toPercent = (v: number) => (max === min ? 0 : ((v - min) / (max - min)) * 100)
+    const percentage = toPercent(normalizedValue)
+    // Zone bounds are in data units, so they need the same mapping as `value`.
+    // They used to be fed to a 0–100 dial scale raw, so with min=0 max=200 a
+    // zone of {from: 0, to: 100} painted the first *half of the dial* instead
+    // of the first half of the range, and picked the wrong current colour.
+    const zonesPct = zones.map((z) => ({
+      ...z,
+      fromPct: toPercent(z.from),
+      toPct: toPercent(z.to),
+    }))
 
     // SVG dimensions — full variant needs a taller canvas to show the bottom arc
     const sizeConfig = {
@@ -168,7 +181,7 @@ const GaugeChart = React.forwardRef<HTMLDivElement, GaugeChartProps>(
     const needleAngle = arcConfig.arcStartDeg + (percentage * arcConfig.sweepDeg) / 100
 
     const currentZoneColor =
-      zones.find((z) => percentage >= z.from && percentage <= z.to)?.color ||
+      zonesPct.find((z) => percentage >= z.fromPct && percentage <= z.toPct)?.color ||
       'hsl(var(--primary))'
 
     // Tick marks: semicircle/full use 5 ticks at 0/25/50/75/100 %
@@ -181,13 +194,21 @@ const GaugeChart = React.forwardRef<HTMLDivElement, GaugeChartProps>(
     return (
       <div
         ref={ref}
+        // A gauge is exactly what role="meter" describes, and every value it
+        // needs is already computed here. Without this the chart shipped as an
+        // unlabelled decorative blob with no value exposed to assistive tech.
+        role="meter"
+        aria-valuenow={normalizedValue}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuetext={valueFormatter(normalizedValue)}
+        aria-label={label ?? 'Gauge'}
         className={cn(gaugeChartVariants({ size, variant }), className)}
         style={{ maxWidth: config.width }}
         {...props}
       >
         <svg
-          width="100%"
-          height="auto"
+          className="h-auto w-full"
           viewBox={`0 0 ${config.width} ${config.height}`}
         >
           {/* Background track */}
@@ -200,15 +221,15 @@ const GaugeChart = React.forwardRef<HTMLDivElement, GaugeChartProps>(
           />
 
           {/* Zone arcs */}
-          {zones.map((zone) => (
+          {zonesPct.map((zone) => (
             <path
               key={`${zone.from}-${zone.to}-${zone.color}`}
-              d={createArcPath(zone.from, zone.to, config.radius)}
+              d={createArcPath(zone.fromPct, zone.toPct, config.radius)}
               fill="none"
               stroke={zone.color}
               strokeWidth={config.strokeWidth}
               strokeLinecap="butt"
-              className="transition-all duration-300"
+              className="transition duration-300"
             />
           ))}
 

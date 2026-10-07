@@ -1,13 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "stepper",
+  "title": "Stepper",
   "description": "Multi-step form wizard with progress indicators, compound components pattern",
   "dependencies": [
     "class-variance-authority",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

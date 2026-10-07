@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -95,6 +96,17 @@ const Carousel = React.forwardRef<
 
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent<HTMLDivElement>) => {
+        // Don't steal Left/Right from a form field inside a slide — caret
+        // movement belongs to the field. (This used to run in the capture
+        // phase, so the input never even saw the key.)
+        const target = event.target as HTMLElement | null
+        if (
+          target &&
+          (target.isContentEditable ||
+            /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+        ) {
+          return
+        }
         if (event.key === 'ArrowLeft') {
           event.preventDefault()
           scrollPrev()
@@ -114,6 +126,9 @@ const Carousel = React.forwardRef<
     React.useEffect(() => {
       if (!api) return
 
+      // Reading the snap list off Embla's imperative API once it exists is
+      // exactly what an effect is for; there is no render-time source.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setScrollSnaps(api.scrollSnapList())
       onSelect(api)
       api.on('reInit', onSelect)
@@ -144,10 +159,11 @@ const Carousel = React.forwardRef<
       >
         <div
           ref={ref}
-          onKeyDownCapture={handleKeyDown}
+          onKeyDown={handleKeyDown}
           className={cn('relative', className)}
           role="region"
           aria-roledescription="carousel"
+          aria-label="Carousel"
           {...props}
         >
           {children}
@@ -284,7 +300,7 @@ const CarouselDots = React.forwardRef<
           type="button"
           onClick={() => scrollTo(index)}
           className={cn(
-            'h-3 w-3 border-2 border-foreground transition-all duration-200',
+            'h-3 w-3 border-2 border-foreground transition duration-200',
             index === selectedIndex
               ? 'bg-primary scale-110 shadow-[2px_2px_0px_hsl(var(--shadow-color))]'
               : 'bg-muted hover:bg-muted/80'

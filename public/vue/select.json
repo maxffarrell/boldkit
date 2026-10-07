@@ -8,48 +8,41 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Select.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Select.vue"
+      "path": "components/ui/Select.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectTrigger.vue"
+      "path": "components/ui/SelectTrigger.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectValue.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectValue.vue"
+      "path": "components/ui/SelectValue.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectContent.vue"
+      "path": "components/ui/SelectContent.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectItem.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectItem.vue"
+      "path": "components/ui/SelectItem.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectGroup.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectGroup.vue"
+      "path": "components/ui/SelectGroup.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectLabel.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectLabel.vue"
+      "path": "components/ui/SelectLabel.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/SelectSeparator.vue",
-      "type": "registry:ui",
-      "target": "components/ui/SelectSeparator.vue"
+      "path": "components/ui/SelectSeparator.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Select"
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
@@ -95,7 +96,7 @@ export function StatsCards({
             <div
               key={`stat-${stat.label}`}
               className={cn(
-                'border-3 border-foreground p-6 shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all',
+                'border-3 border-foreground p-6 shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition',
                 cardColors[index % 4]
               )}
             >

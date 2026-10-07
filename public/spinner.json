@@ -1,12 +1,13 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "spinner",
+  "title": "Spinner",
   "description": "Loading spinner with multiple animation variants - dots, bars, blocks, and brutal shadow spin",
   "dependencies": [
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

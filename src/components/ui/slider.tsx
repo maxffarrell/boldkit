@@ -38,6 +38,8 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
       damping = 28,
       mass = 1,
       className,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledby,
       ...props
     },
     ref
@@ -55,11 +57,21 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
       onUp: (() => void) | null
     }>({ onMove: null, onUp: null })
 
+    // `max === min` made every percentage NaN/Infinity, which flowed straight
+    // into `left: calc(NaN% - 14px)`; `step === 0` made the snap Math.round
+    // produce NaN. Both are reachable from computed props.
+    const safeRange = max - min || Number.EPSILON
+    const safeStep = step > 0 ? step : 1
+    const toPercent = React.useCallback(
+      (v: number) => ((v - min) / safeRange) * 100,
+      [min, safeRange]
+    )
+
     const isControlled = controlledValue !== undefined
     const wasControlled = React.useRef(isControlled)
     React.useEffect(() => {
       if (wasControlled.current !== isControlled) {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === 'development') {
           console.warn('[Slider] Component is changing from ' + (wasControlled.current ? 'controlled' : 'uncontrolled') + ' to ' + (isControlled ? 'controlled' : 'uncontrolled') + '. This is not supported.')
         }
         wasControlled.current = isControlled
@@ -73,13 +85,13 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
     // Spring physics state for each thumb
     const [springs, setSprings] = React.useState<SpringState[]>(() =>
       actualValue.map((v) => ({
-        position: ((v - min) / (max - min)) * 100,
+        position: toPercent(v),
         velocity: 0,
       }))
     )
 
     const [targets, setTargets] = React.useState<number[]>(() =>
-      actualValue.map((v) => ((v - min) / (max - min)) * 100)
+      actualValue.map(toPercent)
     )
     const targetsRef = React.useRef<number[]>(targets)
 
@@ -96,19 +108,19 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
 
     // Update targets when value changes externally
     React.useEffect(() => {
-      const newTargets = actualValue.map((v) => ((v - min) / (max - min)) * 100)
+      const newTargets = actualValue.map(toPercent)
       setTargets(newTargets)
       targetsRef.current = newTargets
 
       // Ensure springs array matches value array length
       if (springs.length !== actualValue.length) {
         setSprings(actualValue.map((v) => ({
-          position: ((v - min) / (max - min)) * 100,
+          position: toPercent(v),
           velocity: 0,
         })))
         setSquishes(actualValue.map(() => ({ scaleX: 1, scaleY: 1 })))
       }
-    }, [actualValue, min, max, springs.length])
+    }, [actualValue, min, max, springs.length, toPercent])
 
     // Spring physics simulation — only runs while dragging
     const startSpringLoop = React.useCallback(() => {
@@ -128,6 +140,11 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
 
         const deltaTime = Math.min((timestamp - lastTimeRef.current) / 1000, 0.064)
         lastTimeRef.current = timestamp
+
+        // Computed outside the updater: a state updater must be pure, and
+        // React StrictMode double-invokes it — calling setSquishes in there
+        // fired it twice per frame.
+        const pendingSquishes: { scaleX: number; scaleY: number }[] = []
 
         setSprings((prev) => {
           const newSprings: SpringState[] = []
@@ -162,9 +179,11 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             }
           }
 
-          setSquishes(newSquishes)
+          pendingSquishes.length = 0
+          pendingSquishes.push(...newSquishes)
           return newSprings
         })
+        setSquishes(pendingSquishes)
 
         animationRef.current = requestAnimationFrame(simulate)
       }
@@ -209,8 +228,8 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
         percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
       }
 
-      const rawValue = min + percent * (max - min)
-      const steppedValue = Math.round(rawValue / step) * step
+      const rawValue = min + percent * safeRange
+      const steppedValue = Math.round(rawValue / safeStep) * safeStep
       return Math.max(min, Math.min(max, steppedValue))
     }
 
@@ -363,7 +382,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
       if (disabled) return
 
       let newValue = actualValue[index]
-      const largeStep = (max - min) / 10
+      const largeStep = safeRange / 10
 
       switch (e.key) {
         case 'ArrowRight':
@@ -491,6 +510,8 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             aria-valuetext={`${actualValue[index]} of ${max}`}
             aria-disabled={disabled}
             aria-orientation={orientation}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledby}
             onKeyDown={handleKeyDown(index)}
             onPointerDown={handleThumbPointerDown(index)}
             onMouseEnter={() => setHoveringThumb(index)}

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import type { CSSProperties } from 'react'
+import { copyToClipboard } from '@/lib/clipboard'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Layout } from '@/components/layout'
-import { Copy, Check, Terminal, Wand2, ArrowRight } from 'lucide-react'
+import { Copy, Check, Terminal, Wand2, ArrowRight, Search, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { SEO, pageSEO } from '@/components/SEO'
 import { FrameworkToggle, frameworkCliNames, frameworkLabels, frameworkRegistryPaths, useFramework } from '@/hooks/use-framework'
@@ -155,7 +156,7 @@ function ShapeCard({
   name, Component, code, vueCode, isNew,
 }: {
   name: string
-  Component: React.ComponentType<any>
+  Component: React.ComponentType<Record<string, unknown>>
   code: string
   vueCode: string
   isNew?: boolean
@@ -168,21 +169,21 @@ function ShapeCard({
 
   const currentCode = framework === 'vue' ? vueCode : code
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(currentCode)
+  const copyCode = async () => {
+    if (!(await copyToClipboard(currentCode))) return
     setCopiedCode(true)
     toast.success('Code copied!')
     setTimeout(() => setCopiedCode(false), 2000)
   }
-  const copyCli = () => {
-    navigator.clipboard.writeText(cliCommand)
+  const copyCli = async () => {
+    if (!(await copyToClipboard(cliCommand))) return
     setCopiedCli(true)
     toast.success('CLI command copied!')
     setTimeout(() => setCopiedCli(false), 2000)
   }
 
   return (
-    <div className="group relative border-3 border-foreground bg-background transition-all duration-150 hover:translate-x-[-3px] hover:translate-y-[-3px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] cursor-default">
+    <div className="group relative border-3 border-foreground bg-background transition duration-150 hover:translate-x-[-3px] hover:translate-y-[-3px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] cursor-default">
       {isNew && (
         <span
           className="absolute top-2 right-2 z-10 bg-accent border-2 border-foreground text-[9px] font-black uppercase px-1.5 py-0.5 leading-none"
@@ -235,14 +236,31 @@ function ShapeCard({
 
 export function Shapes() {
   const [copiedInstall, setCopiedInstall] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { framework } = useFramework()
 
   const cliCommand = `npx ${frameworkCliNames[framework]}@latest add https://boldkit.dev${frameworkRegistryPaths[framework]}/shapes.json`
 
   const totalShapes = shapeCategories.reduce((acc, cat) => acc + cat.shapes.length, 0)
 
-  const copyInstall = () => {
-    navigator.clipboard.writeText(cliCommand)
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return shapeCategories
+    const q = searchQuery.toLowerCase().trim()
+    return shapeCategories
+      .map((category) => ({
+        ...category,
+        shapes: category.shapes.filter((shape) =>
+          shape.name.toLowerCase().includes(q) ||
+          category.name.toLowerCase().includes(q)
+        ),
+      }))
+      .filter((category) => category.shapes.length > 0)
+  }, [searchQuery])
+
+  const filteredTotal = filteredCategories.reduce((acc, cat) => acc + cat.shapes.length, 0)
+
+  const copyInstall = async () => {
+    if (!(await copyToClipboard(cliCommand))) return
     setCopiedInstall(true)
     toast.success('CLI command copied!')
     setTimeout(() => setCopiedInstall(false), 2000)
@@ -401,7 +419,7 @@ export function Shapes() {
                         { prop: framework === 'vue' ? 'stroke-width' : 'strokeWidth', type: 'number', def: '3' },
                         { prop: 'filled',    type: 'boolean', def: 'true' },
                         { prop: 'color',     type: 'string',  def: 'currentColor' },
-                        { prop: 'animation', type: "'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'", def: "'none'" },
+                        { prop: 'animation', type: "'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch' | 'spin-step' | 'pulse-hard' | 'marquee-stamp'", def: "'none'" },
                         { prop: 'speed',     type: "'slow' | 'normal' | 'fast'", def: "'normal'" },
                         { prop: framework === 'react' ? 'className' : 'class', type: 'string', def: '—' },
                       ].map((row, i, arr) => (
@@ -451,13 +469,13 @@ export function Shapes() {
                 </h2>
               </div>
               <span className="bg-accent border-3 border-foreground px-2 py-1 text-[10px] font-black uppercase tracking-wide shrink-0" style={MONO}>
-                New in v3.0
+                Stepped presets new in v3.5
               </span>
             </div>
 
             {/* Filmstrip */}
             <div className="overflow-x-auto -mx-4 sm:mx-0 pb-2">
-              <div className="flex border-3 border-foreground min-w-[560px] sm:min-w-0 mx-4 sm:mx-0">
+              <div className="flex border-3 border-foreground min-w-[840px] sm:min-w-0 mx-4 sm:mx-0">
                 {([
                   { anim: 'spin',   label: 'Spin',   bg: 'bg-primary'     },
                   { anim: 'pulse',  label: 'Pulse',  bg: 'bg-secondary'   },
@@ -465,10 +483,14 @@ export function Shapes() {
                   { anim: 'wiggle', label: 'Wiggle', bg: 'bg-success'     },
                   { anim: 'bounce', label: 'Bounce', bg: 'bg-info'        },
                   { anim: 'glitch', label: 'Glitch', bg: 'bg-warning'     },
-                ] as const).map(({ anim, label, bg }, i) => (
+                  // Stepped presets — hard, non-interpolated motion (v3.5)
+                  { anim: 'spin-step',     label: 'Spin Step',  bg: 'bg-primary'   },
+                  { anim: 'pulse-hard',    label: 'Pulse Hard', bg: 'bg-secondary' },
+                  { anim: 'marquee-stamp', label: 'Stamp',      bg: 'bg-accent'    },
+                ] as const).map(({ anim, label, bg }, i, arr) => (
                   <div
                     key={anim}
-                    className={`${bg} flex-1 flex flex-col items-center justify-center gap-3 py-8 px-3 ${i < 5 ? 'border-r-3 border-foreground' : ''}`}
+                    className={`${bg} flex-1 flex flex-col items-center justify-center gap-3 py-8 px-3 ${i < arr.length - 1 ? 'border-r-3 border-foreground' : ''}`}
                   >
                     <Star5Shape size={48} animation={anim} />
                     <span
@@ -486,8 +508,8 @@ export function Shapes() {
             <div className="mt-5 md:mt-6">
               <pre className="border-3 border-foreground bg-muted p-3 md:p-4 text-xs sm:text-sm overflow-x-auto bk-shadow">
                 <code style={MONO}>{framework === 'react'
-                  ? `<Star5Shape animation="spin" />\n<BurstShape  animation="pulse" speed="slow" />\n<HeartShape  animation="float" />\n<LightningShape animation="wiggle" speed="fast" />\n<HexagonShape   animation="bounce" />\n<DiamondBadge   animation="glitch" />`
-                  : `<Star5Shape animation="spin" />\n<BurstShape  animation="pulse" speed="slow" />\n<HeartShape  animation="float" />\n<LightningShape animation="wiggle" speed="fast" />`
+                  ? `<Star5Shape animation="spin" />\n<BurstShape  animation="pulse" speed="slow" />\n<HeartShape  animation="float" />\n<LightningShape animation="wiggle" speed="fast" />\n<HexagonShape   animation="bounce" />\n<DiamondBadge   animation="glitch" />\n\n// Stepped presets — hard, non-interpolated (v3.5)\n<GearShape   animation="spin-step" />\n<BurstShape  animation="pulse-hard" speed="fast" />\n<FlagShape   animation="marquee-stamp" />`
+                  : `<Star5Shape animation="spin" />\n<BurstShape  animation="pulse" speed="slow" />\n<HeartShape  animation="float" />\n<LightningShape animation="wiggle" speed="fast" />\n\n<!-- Stepped presets — hard, non-interpolated (v3.5) -->\n<GearShape   animation="spin-step" />\n<BurstShape  animation="pulse-hard" speed="fast" />\n<FlagShape   animation="marquee-stamp" />`
                 }</code>
               </pre>
             </div>
@@ -499,21 +521,58 @@ export function Shapes() {
           <div className="grid-pattern absolute inset-0 opacity-10 pointer-events-none" />
           <div className="container relative mx-auto px-4 sm:px-6">
 
-            {/* Section title */}
+            {/* Section title + search */}
             <div className="mb-10 md:mb-14">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1" style={MONO}>
                 {totalShapes} shapes — {shapeCategories.length} categories
               </p>
-              <h2
-                className="text-4xl md:text-6xl font-black uppercase leading-none"
-                style={DISPLAY}
-              >
-                Shape Library
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                <h2
+                  className="text-4xl md:text-6xl font-black uppercase leading-none"
+                  style={DISPLAY}
+                >
+                  Shape Library
+                </h2>
+                <div className="relative w-full sm:w-72 shrink-0">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search shapes..."
+                    className="w-full border-3 border-foreground bg-background px-9 py-2 text-sm font-bold uppercase tracking-wide placeholder:text-muted-foreground/60 placeholder:font-normal placeholder:normal-case focus:outline-none focus:shadow-[4px_4px_0px_hsl(var(--shadow-color))] transition-shadow"
+                    style={MONO}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {searchQuery && (
+                <p className="text-xs text-muted-foreground mt-3" style={MONO}>
+                  {filteredTotal} {filteredTotal === 1 ? 'shape' : 'shapes'} found
+                  {filteredCategories.length > 0 && ` across ${filteredCategories.length} ${filteredCategories.length === 1 ? 'category' : 'categories'}`}
+                </p>
+              )}
             </div>
 
+            {searchQuery && filteredCategories.length === 0 && (
+              <div className="border-3 border-foreground bg-muted p-8 md:p-12 text-center">
+                <Search className="w-10 h-10 mx-auto text-muted-foreground/40 mb-4" />
+                <p className="text-lg font-black uppercase" style={DISPLAY}>No shapes found</p>
+                <p className="text-sm text-muted-foreground mt-2" style={MONO}>
+                  Try a different search term like "star", "heart", or "badge"
+                </p>
+              </div>
+            )}
+
             <div className="space-y-16 md:space-y-20">
-              {shapeCategories.map((category) => (
+              {filteredCategories.map((category) => (
                 <div key={category.name}>
 
                   {/* Category header */}

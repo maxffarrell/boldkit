@@ -9,7 +9,7 @@ import SheetContent from './SheetContent.vue'
 const SIDEBAR_WIDTH_MOBILE = '18rem'
 
 const sidebarVariants = cva(
-  'relative flex h-full flex-col border-r-3 border-foreground bg-background transition-all duration-300 ease-out',
+  'relative flex h-full flex-col border-r-3 border-foreground bg-background transition duration-300 ease-out',
   {
     variants: {
       collapsible: {
@@ -61,8 +61,8 @@ const handleMobileOpenChange = (value: boolean) => {
 <template>
   <!-- Mobile: Sheet drawer -->
   <Sheet
-    v-if="isMobile.value"
-    :open="openMobile.value"
+    v-if="isMobile"
+    :open="openMobile"
     @update:open="handleMobileOpenChange"
   >
     <SheetContent
@@ -79,7 +79,7 @@ const handleMobileOpenChange = (value: boolean) => {
   <!-- Desktop: Regular sidebar -->
   <div
     v-else
-    :data-state="state.value"
+    :data-state="state"
     :data-collapsible="collapsible"
     class="group/sidebar hidden md:block"
   >

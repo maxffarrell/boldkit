@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge'
+import { copyToClipboard } from '@/lib/clipboard'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useState } from 'react'
-import { Check, Terminal } from 'lucide-react'
+import { Check, Terminal, Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
@@ -32,6 +33,7 @@ const allComponents = [
   { name: 'dropdown-menu', description: 'Context menus' },
   { name: 'dropzone', description: 'File drag-and-drop upload' },
   { name: 'empty-state', description: 'Empty content placeholders' },
+  { name: 'error-boundary', description: 'Catch errors in child components' },
   { name: 'hover-card', description: 'Hover-triggered cards' },
   { name: 'input', description: 'Text input fields' },
   { name: 'input-otp', description: 'One-time password input' },
@@ -73,19 +75,17 @@ const allComponents = [
 
 function ComponentRow({ name, description, framework }: { name: string; description: string; framework: Framework }) {
   const [copied, setCopied] = useState(false)
+  // Use the scoped @boldkit/<name> form so cross-component dependencies
+  // resolve against BoldKit's registry instead of the default shadcn one.
+  // Requires the `@boldkit` alias to be configured in components.json (Step 1).
   const getCommand = () => {
-    const registryPath = framework === 'vue'
-      ? `/r/vue/${name}.json`
-      : framework === 'svelte'
-        ? `/r/svelte/${name}.json`
-        : `/r/${name}.json`
     const cli = framework === 'vue' ? 'shadcn-vue' : framework === 'svelte' ? 'shadcn-svelte' : 'shadcn'
-    return `npx ${cli}@latest add https://boldkit.dev${registryPath}`
+    return `npx ${cli}@latest add @boldkit/${name}`
   }
   const command = getCommand()
 
-  const copyCommand = () => {
-    navigator.clipboard.writeText(command)
+  const copyCommand = async () => {
+    if (!(await copyToClipboard(command))) return
     setCopied(true)
     toast.success(`Copied ${name} install command!`)
     setTimeout(() => setCopied(false), 2000)
@@ -172,6 +172,45 @@ export function Installation() {
     "@boldkit": "https://boldkit.dev${registryPath}"
   }
 }`} language="json" />
+              <div className="mt-3 border-3 border-warning bg-warning/10 p-3 text-sm">
+                <p className="font-bold uppercase tracking-wide mb-1">Why the alias matters</p>
+                <p className="text-muted-foreground">
+                  BoldKit components reference each other via scoped names like{' '}
+                  <code className="bg-muted px-1 border">@boldkit/utils</code>.
+                  Without the <code className="bg-muted px-1 border">@boldkit</code> alias above, the CLI
+                  resolves these against shadcn's default registry — which doesn't ship them — and the install fails.
+                  <strong> This step is required.</strong>
+                </p>
+              </div>
+              {framework === 'vue' && (
+                <div className="mt-3 border-3 border-foreground bg-muted p-3 text-sm">
+                  <p className="font-bold uppercase tracking-wide mb-1">Using Nuxt?</p>
+                  <p className="text-muted-foreground">
+                    Add the{' '}
+                    <a href="https://www.shadcn-vue.com/docs/installation/nuxt" target="_blank" rel="noreferrer" className="underline font-bold">shadcn-nuxt</a>{' '}
+                    module and make sure your <code className="bg-background px-1 border">components.json</code> aliases
+                    (<code className="bg-background px-1 border">ui</code>, <code className="bg-background px-1 border">lib</code>)
+                    point at the same directory your <code className="bg-background px-1 border">@/</code> alias resolves to.
+                    Nuxt 4 aliases <code className="bg-background px-1 border">@/</code> to <code className="bg-background px-1 border">app/</code>, so
+                    components install into <code className="bg-background px-1 border">app/components/ui</code>. BoldKit ships
+                    its files without hardcoded paths, so they follow whatever your aliases resolve to — no more{' '}
+                    <code className="bg-background px-1 border">cannot find module @/components/ui</code>.
+                  </p>
+                  <p className="text-muted-foreground mt-2">
+                    Import each component from its own file (BoldKit ships individual{' '}
+                    <code className="bg-background px-1 border">.vue</code> files, not a barrel):
+                  </p>
+                  <pre className="mt-2 text-xs bg-background p-2 border-3 border-foreground overflow-x-auto"><code>{`// ✓  import Button from '@/components/ui/Button.vue'
+// ✗  import { Button } from '@/components/ui'`}</code></pre>
+                  <p className="text-muted-foreground mt-3">
+                    <strong>Nuxt 4 auto-import:</strong> point the shadcn-nuxt module at the{' '}
+                    <code className="bg-background px-1 border">app/</code> directory too, or you'll see{' '}
+                    <code className="bg-background px-1 border">Component directory does not exist</code>:
+                  </p>
+                  <pre className="mt-2 text-xs bg-background p-2 border-3 border-foreground overflow-x-auto"><code>{`// nuxt.config.ts
+shadcn: { prefix: '', componentDir: './app/components/ui' }`}</code></pre>
+                </div>
+              )}
             </div>
 
             <div>
@@ -207,6 +246,58 @@ export function Installation() {
             </div>
           </CardContent>
         </Card>
+
+        {/* GitHub Registry Method (React only) */}
+        {framework === 'react' && (
+          <Card className="border-foreground">
+            <CardHeader className="bg-foreground text-background">
+              <CardTitle className="flex items-center gap-2">
+                <Github className="h-5 w-5" />
+                Install from GitHub (zero config)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              <p className="text-muted-foreground">
+                BoldKit's repository is also a shadcn <strong>GitHub registry</strong>. Install any React
+                component straight from the repo — no <code className="bg-muted px-1 border">components.json</code> alias
+                and no setup. Scoped cross-references like <code className="bg-muted px-1 border">@boldkit/utils</code> resolve
+                automatically.
+              </p>
+
+              <div>
+                <h3 className="font-bold uppercase tracking-wide mb-2">Add a component</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Use the <code className="bg-muted px-1 border">owner/repo/item</code> address:
+                </p>
+                <CodeBlock code="npx shadcn@latest add ANIBIT14/boldkit/button" />
+              </div>
+
+              <div>
+                <h3 className="font-bold uppercase tracking-wide mb-2">Multiple, or pin to a version</h3>
+                <CodeBlock code={`# Several at once
+npx shadcn@latest add ANIBIT14/boldkit/button ANIBIT14/boldkit/card
+
+# Pin to a tag, branch, or commit SHA for reproducible installs
+npx shadcn@latest add ANIBIT14/boldkit/button#main`} />
+              </div>
+
+              <div>
+                <h3 className="font-bold uppercase tracking-wide mb-2">Browse &amp; preview first</h3>
+                <CodeBlock code={`npx shadcn@latest list ANIBIT14/boldkit
+npx shadcn@latest view ANIBIT14/boldkit/button
+npx shadcn@latest add ANIBIT14/boldkit/button --dry-run`} />
+              </div>
+
+              <div className="border-3 border-foreground bg-muted p-3 text-sm">
+                <p className="font-bold uppercase tracking-wide mb-1">Good to know</p>
+                <p className="text-muted-foreground">
+                  GitHub install covers the React registry (components, blocks, theme, utils, shapes).
+                  Vue 3 / Nuxt and the canvas effects install via the hosted registry URLs above.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Manual Installation */}
         <section>

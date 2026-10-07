@@ -1,14 +1,15 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "combobox",
+  "title": "Combobox",
   "description": "Searchable dropdown built by composing Popover and Command with neubrutalism styling",
   "dependencies": [
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils",
-    "popover",
-    "command"
+    "@boldkit/utils",
+    "@boldkit/popover",
+    "@boldkit/command"
   ],
   "files": [
     {

@@ -23,7 +23,7 @@ const componentMeta = {
   label: { deps: ['reka-ui'], desc: 'Renders an accessible label' },
   badge: { deps: ['class-variance-authority'], desc: 'Displays a badge or tag' },
   separator: { deps: ['reka-ui'], desc: 'Visually separates content' },
-  skeleton: { deps: [], desc: 'Displays a loading placeholder' },
+  skeleton: { deps: [], desc: 'Displays a loading placeholder with brutalist motion variants', siblingFiles: [{ src: 'styles/motion.css', target: 'styles/motion.css' }] },
   textarea: { deps: [], desc: 'Displays a multi-line text input' },
 
   // Card
@@ -39,46 +39,109 @@ const componentMeta = {
   tabs: { deps: ['reka-ui'], desc: 'A set of layered sections of content', files: ['Tabs', 'TabsList', 'TabsTrigger', 'TabsContent'] },
   tooltip: { deps: ['reka-ui'], desc: 'A popup that displays information on hover', files: ['Tooltip', 'TooltipTrigger', 'TooltipContent', 'TooltipProvider'] },
   popover: { deps: ['reka-ui'], desc: 'Displays rich content in a portal', files: ['Popover', 'PopoverTrigger', 'PopoverContent'] },
-  progress: { deps: ['reka-ui'], desc: 'Displays an indicator showing completion progress' },
+  progress: { deps: ['reka-ui'], desc: 'Displays an indicator showing completion progress', siblingFiles: [{ src: 'styles/motion.css', target: 'styles/motion.css' }] },
 
   // Extended
-  'dropdown-menu': { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Displays a menu to the user', files: ['DropdownMenu', 'DropdownMenuTrigger', 'DropdownMenuContent', 'DropdownMenuItem', 'DropdownMenuCheckboxItem', 'DropdownMenuRadioItem', 'DropdownMenuLabel', 'DropdownMenuSeparator', 'DropdownMenuGroup', 'DropdownMenuRadioGroup'] },
-  'alert-dialog': { deps: ['reka-ui'], desc: 'A modal dialog that interrupts the user', files: ['AlertDialog', 'AlertDialogTrigger', 'AlertDialogContent', 'AlertDialogHeader', 'AlertDialogFooter', 'AlertDialogTitle', 'AlertDialogDescription', 'AlertDialogAction', 'AlertDialogCancel'] },
+  'dropdown-menu': { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Displays a menu to the user', files: ['DropdownMenu', 'DropdownMenuTrigger', 'DropdownMenuContent', 'DropdownMenuItem', 'DropdownMenuCheckboxItem', 'DropdownMenuRadioItem', 'DropdownMenuLabel', 'DropdownMenuSeparator', 'DropdownMenuShortcut', 'DropdownMenuRadioGroup'] },
+  'context-menu': { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Displays a menu triggered by right-click', files: ['ContextMenu', 'ContextMenuTrigger', 'ContextMenuContent', 'ContextMenuItem', 'ContextMenuCheckboxItem', 'ContextMenuRadioGroup', 'ContextMenuRadioItem', 'ContextMenuLabel', 'ContextMenuSeparator', 'ContextMenuShortcut', 'ContextMenuSub', 'ContextMenuSubTrigger', 'ContextMenuSubContent'] },
+  menubar: { deps: ['reka-ui', 'lucide-vue-next'], desc: 'A horizontal bar of desktop-style dropdown menus', files: ['Menubar', 'MenubarMenu', 'MenubarTrigger', 'MenubarContent', 'MenubarItem', 'MenubarCheckboxItem', 'MenubarRadioGroup', 'MenubarRadioItem', 'MenubarLabel', 'MenubarSeparator', 'MenubarShortcut', 'MenubarSub', 'MenubarSubTrigger', 'MenubarSubContent'] },
+  'navigation-menu': { deps: ['reka-ui', 'lucide-vue-next', 'class-variance-authority'], desc: 'A collection of links and dropdown panels for site navigation', files: ['NavigationMenu', 'NavigationMenuList', 'NavigationMenuItem', 'NavigationMenuTrigger', 'NavigationMenuContent', 'NavigationMenuLink', 'NavigationMenuIndicator'], extraFiles: ['navigation-menu-variants.ts'] },
+  resizable: { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Resizable panel groups and handles', files: ['ResizablePanelGroup', 'ResizablePanel', 'ResizableHandle'] },
+  'button-group': { deps: [], registryDeps: ['button'], desc: 'Visually joins a row or column of buttons into one bordered unit', files: ['ButtonGroup'] },
+  'input-group': { deps: ['lucide-vue-next'], desc: 'An input joined with leading/trailing addons', files: ['InputGroup', 'InputGroupInput', 'InputGroupAddon'] },
+  field: { deps: [], registryDeps: ['label'], desc: 'Form field composition: label, control, description and error', files: ['Field', 'FieldGroup', 'FieldLabel', 'FieldDescription', 'FieldError'] },
+  'multi-step-form': { deps: [], registryDeps: ['stepper', 'button', 'input', 'label'], desc: 'Dependency-free multi-step form state layer with per-step validation, composes with Stepper', files: ['MultiStepForm'], extraFiles: ['useMultiStepForm.ts'] },
+  'native-select': { deps: ['lucide-vue-next'], desc: 'A styled wrapper around the native select element', files: ['NativeSelect'] },
+  'date-picker': { deps: ['lucide-vue-next'], registryDeps: ['button', 'calendar', 'popover'], desc: 'A single-date picker that opens a calendar popover', files: ['DatePicker'] },
+  'alert-dialog': { deps: ['reka-ui'], registryDeps: ['button'], desc: 'A modal dialog that interrupts the user', files: ['AlertDialog', 'AlertDialogTrigger', 'AlertDialogContent', 'AlertDialogHeader', 'AlertDialogFooter', 'AlertDialogTitle', 'AlertDialogDescription', 'AlertDialogAction', 'AlertDialogCancel'] },
   sheet: { deps: ['reka-ui', 'lucide-vue-next', 'class-variance-authority'], desc: 'A side panel that slides in', files: ['Sheet', 'SheetTrigger', 'SheetContent', 'SheetHeader', 'SheetFooter', 'SheetTitle', 'SheetDescription', 'SheetClose'] },
   'hover-card': { deps: ['reka-ui'], desc: 'For sighted users to preview content', files: ['HoverCard', 'HoverCardTrigger', 'HoverCardContent'] },
   collapsible: { deps: ['reka-ui'], desc: 'An interactive component that expands/collapses', files: ['Collapsible', 'CollapsibleTrigger', 'CollapsibleContent'] },
   slider: { deps: ['reka-ui'], desc: 'An input for selecting a value within a range' },
   toggle: { deps: ['reka-ui', 'class-variance-authority'], desc: 'A two-state button' },
-  'toggle-group': { deps: ['reka-ui', 'class-variance-authority'], desc: 'A set of two-state buttons', files: ['ToggleGroup', 'ToggleGroupItem'] },
+  'toggle-group': { deps: ['reka-ui', 'class-variance-authority'], registryDeps: ['toggle'], desc: 'A set of two-state buttons', files: ['ToggleGroup', 'ToggleGroupItem'] },
   'scroll-area': { deps: ['reka-ui'], desc: 'Augments native scroll functionality', files: ['ScrollArea', 'ScrollBar'] },
   table: { deps: [], desc: 'A responsive table component', files: ['Table', 'TableHeader', 'TableBody', 'TableFooter', 'TableHead', 'TableRow', 'TableCell', 'TableCaption'] },
   alert: { deps: ['class-variance-authority'], desc: 'Displays a callout for user attention', files: ['Alert', 'AlertTitle', 'AlertDescription'] },
 
   // Specialized
-  pagination: { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Navigation for paged content', files: ['Pagination', 'PaginationList', 'PaginationListItem', 'PaginationEllipsis', 'PaginationFirst', 'PaginationLast', 'PaginationPrev', 'PaginationNext'] },
+  pagination: { deps: ['reka-ui', 'lucide-vue-next'], registryDeps: ['button'], desc: 'Navigation for paged content', files: ['Pagination', 'PaginationContent', 'PaginationItem', 'PaginationLink', 'PaginationEllipsis', 'PaginationPrevious', 'PaginationNext'] },
   breadcrumb: { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Displays the path to the current resource', files: ['Breadcrumb', 'BreadcrumbList', 'BreadcrumbItem', 'BreadcrumbLink', 'BreadcrumbPage', 'BreadcrumbSeparator', 'BreadcrumbEllipsis'] },
   drawer: { deps: ['vaul-vue'], desc: 'A drawer component for Vue', files: ['Drawer', 'DrawerTrigger', 'DrawerContent', 'DrawerHeader', 'DrawerFooter', 'DrawerTitle', 'DrawerDescription', 'DrawerClose'] },
-  sonner: { deps: ['vue-sonner'], desc: 'An opinionated toast component' },
-  calendar: { deps: ['reka-ui', 'lucide-vue-next'], desc: 'A date picker calendar component' },
+  sonner: { deps: ['vue-sonner'], registryDeps: ['use-theme'], desc: 'An opinionated toast component' },
+  calendar: { deps: ['reka-ui', 'lucide-vue-next'], registryDeps: ['button'], desc: 'A date picker calendar component' },
   'input-otp': { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Accessible one-time password input', files: ['InputOTP', 'InputOTPGroup', 'InputOTPSlot', 'InputOTPSeparator'] },
-  command: { deps: ['reka-ui', 'lucide-vue-next'], desc: 'Fast, composable command menu', files: ['Command', 'CommandDialog', 'CommandInput', 'CommandList', 'CommandEmpty', 'CommandGroup', 'CommandItem', 'CommandSeparator', 'CommandShortcut'] },
+  command: { deps: ['reka-ui', 'lucide-vue-next'], registryDeps: ['dialog'], desc: 'Fast, composable command menu', files: ['Command', 'CommandDialog', 'CommandInput', 'CommandList', 'CommandEmpty', 'CommandGroup', 'CommandItem', 'CommandSeparator', 'CommandShortcut'] },
 
   // BoldKit unique
   marquee: { deps: [], desc: 'A scrolling marquee component', files: ['Marquee', 'MarqueeItem', 'MarqueeSeparator'] },
   sticker: { deps: ['class-variance-authority'], desc: 'Decorative sticker and stamp components', files: ['Sticker', 'Stamp', 'StickyNote'] },
-  'layered-card': { deps: ['class-variance-authority'], desc: 'A card with stacked layer effects', files: ['LayeredCard', 'LayeredCardHeader', 'LayeredCardTitle', 'LayeredCardDescription', 'LayeredCardContent', 'LayeredCardFooter'] },
+  'layered-card': { deps: ['class-variance-authority'], desc: 'A card with stacked layer effects', files: ['LayeredCard', 'LayeredCardHeader', 'LayeredCardTitle', 'LayeredCardDescription', 'LayeredCardContent', 'LayeredCardFooter'], extraFiles: ['layered-card-variants.ts'] },
   'aspect-ratio': { deps: ['reka-ui'], desc: 'Displays content within a desired aspect ratio' },
   avatar: { deps: ['reka-ui'], desc: 'An image element with fallback', files: ['Avatar', 'AvatarImage', 'AvatarFallback'] },
 
-  // Charts
-  chart: { deps: ['vue-echarts', 'echarts', 'class-variance-authority'], desc: 'Chart components with neubrutalism styling', files: ['ChartContainer', 'DonutChart', 'GaugeChart', 'RadarChart', 'RadialBarChart', 'SparklineChart'], extraFiles: ['chart-utils.ts', 'chart-variants.ts'] },
-  'funnel-chart': { deps: ['vue-echarts', 'echarts'], registryDeps: ['chart-utils'], desc: 'Funnel chart for conversion flows and pipeline stages', files: ['FunnelChart'] },
-  'treemap-chart': { deps: ['vue-echarts', 'echarts'], registryDeps: ['chart-utils'], desc: 'Treemap for hierarchical data visualization with proportional rectangles', files: ['TreemapChart'] },
-  'heatmap-chart': { deps: ['vue-echarts', 'echarts'], registryDeps: ['chart-utils'], desc: 'Heatmap grid for correlation and intensity data', files: ['HeatmapChart'] },
-  'sankey-chart': { deps: ['vue-echarts', 'echarts'], registryDeps: ['chart-utils'], desc: 'Sankey flow diagram for proportional flows between nodes', files: ['SankeyChart'] },
+  // Charts — every chart SFC imports ChartEmpty. The 4 specialty charts
+  // (funnel/treemap/heatmap/sankey) additionally import types from
+  // chart-types.ts. Bundle these so consumer installs don't break.
+  chart: {
+    deps: ['vue-echarts', 'echarts', 'class-variance-authority'],
+    desc: 'Chart components with neubrutalism styling',
+    files: ['ChartContainer', 'ChartEmpty', 'ChartLoading', 'DonutChart', 'GaugeChart', 'RadarChart', 'RadialBarChart', 'SparklineChart'],
+    extraFiles: ['chart-utils.ts', 'chart-variants.ts'],
+    // ChartLoading uses .bk-skeleton-stamp from the motion stylesheet.
+    siblingFiles: [{ src: 'styles/motion.css', target: 'styles/motion.css' }],
+  },
+  'funnel-chart': {
+    deps: ['vue-echarts', 'echarts'],
+    registryDeps: ['chart-utils'],
+    desc: 'Funnel chart for conversion flows and pipeline stages',
+    files: ['FunnelChart', 'ChartEmpty'],
+    extraFiles: ['chart-types.ts'],
+  },
+  'treemap-chart': {
+    deps: ['vue-echarts', 'echarts'],
+    registryDeps: ['chart-utils'],
+    desc: 'Treemap for hierarchical data visualization with proportional rectangles',
+    files: ['TreemapChart', 'ChartEmpty'],
+    extraFiles: ['chart-types.ts'],
+  },
+  'heatmap-chart': {
+    deps: ['vue-echarts', 'echarts'],
+    registryDeps: ['chart-utils'],
+    desc: 'Heatmap grid for correlation and intensity data',
+    files: ['HeatmapChart', 'ChartEmpty'],
+    extraFiles: ['chart-types.ts'],
+  },
+  'sankey-chart': {
+    deps: ['vue-echarts', 'echarts'],
+    registryDeps: ['chart-utils'],
+    desc: 'Sankey flow diagram for proportional flows between nodes',
+    files: ['SankeyChart', 'ChartEmpty'],
+    extraFiles: ['chart-types.ts'],
+  },
 
   // Shapes (all 35)
-  shapes: { deps: [], desc: 'SVG shape components for decorative elements', isShapes: true },
+  shapes: { deps: [], desc: 'SVG shape components for decorative elements', isShapes: true, siblingFiles: [{ src: 'styles/motion.css', target: 'styles/motion.css' }] },
+
+  // ErrorBoundary — Vue equivalent of the React class component using
+  // `onErrorCaptured`. Returns the fallback UI when any descendant
+  // throws, otherwise renders the default slot.
+  'error-boundary': {
+    deps: ['lucide-vue-next'],
+    registryDeps: ['button', 'card'],
+    desc: 'Catches errors in child components using onErrorCaptured and displays a neubrutalism fallback UI with reload and home actions',
+    files: ['ErrorBoundary'],
+  },
+
+  // ASCII Shapes — 17 animated ASCII components living in a subdirectory.
+  // Uses the generic `subDir` codepath that walks the folder and ships
+  // every .vue + every .ts helper alongside, mapping each into
+  // components/ui/ascii-shapes/ in the consumer project.
+  'ascii-shapes': {
+    deps: [],
+    desc: '17 animated ASCII art components (Spiral, Rose, Wave, Vortex, Pulse, Matrix, Grid, Torus, Sphere, Cube, Helix, Donut, Trefoil Knot, Geodesic Dome, Saturn, Hyperboloid, DNA) with 5 character sets, 4 sizes, and SSR-safe static mode',
+    subDir: 'ascii-shapes',
+  },
 
   // v2.7.0 - Data & Forms
   carousel: {
@@ -144,13 +207,15 @@ const componentMeta = {
   // v2.5.0 components - missing from registry
   dropzone: {
     deps: ['lucide-vue-next'],
+    registryDeps: ['progress', 'spinner'],
     desc: 'Drag-and-drop file upload with preview and validation',
     files: ['Dropzone', 'FileList']
   },
   'empty-state': {
     deps: ['lucide-vue-next', 'class-variance-authority'],
     desc: 'Empty state placeholders with 14 presets, horizontal/vertical layouts, animations, and illustration support',
-    files: ['EmptyState', 'EmptyStateActions', 'EmptyStateDescription', 'EmptyStateIcon', 'EmptyStateIllustration', 'EmptyStatePreset', 'EmptyStateTitle']
+    files: ['EmptyState', 'EmptyStateActions', 'EmptyStateDescription', 'EmptyStateIcon', 'EmptyStateIllustration', 'EmptyStatePreset', 'EmptyStateTitle'],
+    extraFiles: ['empty-state-variants.ts']
   },
   kbd: {
     deps: [],
@@ -164,6 +229,7 @@ const componentMeta = {
   },
   'stat-card': {
     deps: ['lucide-vue-next'],
+    registryDeps: ['card', 'progress'],
     desc: 'Statistics card for dashboards',
     files: ['StatCard']
   },
@@ -172,23 +238,211 @@ const componentMeta = {
     desc: 'Multi-step wizard/stepper component',
     files: ['Stepper', 'StepperContent', 'StepperItem', 'StepperList', 'StepperSeparator', 'StepperTrigger']
   },
+
+  // ──────────────────────────────────────────────────────────────────
+  // Migrated from hand-written public/r/vue/*.json (2026-05-26).
+  // Previously bypassed this script entirely, which meant they were
+  // vulnerable to manual edits that bypassed the @boldkit scoping helper.
+  // ──────────────────────────────────────────────────────────────────
+
+  // Combobox — Popover + Command composition
+  combobox: {
+    deps: ['reka-ui', 'lucide-vue-next'],
+    registryDeps: ['popover', 'command'],
+    desc: 'Searchable dropdown built by composing Popover and Command with neubrutalism styling. Includes single-select (ComboboxTrigger) and multi-select with removable chips (ComboboxMultiTrigger).',
+    files: ['ComboboxTrigger', 'ComboboxMultiTrigger'],
+  },
+
+  // Standalone charts (the parent `chart` entry above ships the chart
+  // family bundle; these are single-chart installs with their helpers)
+  'donut-chart': {
+    deps: ['vue-echarts', 'echarts', 'class-variance-authority'],
+    registryDeps: ['chart-utils'],
+    desc: 'A donut/pie chart component with neubrutalism styling and center content slot',
+    files: ['DonutChart', 'ChartEmpty'],
+    extraFiles: ['chart-utils.ts', 'chart-variants.ts'],
+  },
+  'gauge-chart': {
+    deps: ['class-variance-authority'],
+    desc: 'A gauge/speedometer chart component with customizable zones and neubrutalism styling',
+    files: ['GaugeChart'],
+  },
+  'radar-chart': {
+    deps: ['vue-echarts', 'echarts', 'class-variance-authority'],
+    registryDeps: ['chart-utils'],
+    desc: 'A radar/spider chart component with neubrutalism styling for multi-dimensional data visualization',
+    files: ['RadarChart', 'ChartEmpty'],
+    extraFiles: ['chart-utils.ts', 'chart-variants.ts'],
+  },
+  'radial-bar-chart': {
+    deps: ['vue-echarts', 'echarts', 'class-variance-authority'],
+    registryDeps: ['chart-utils'],
+    desc: 'A radial bar chart component with neubrutalism styling for progress-style data visualization',
+    files: ['RadialBarChart', 'ChartEmpty'],
+    extraFiles: ['chart-utils.ts', 'chart-variants.ts'],
+  },
+  sparkline: {
+    deps: ['vue-echarts', 'echarts', 'class-variance-authority'],
+    // Uses `extent()` from chart-utils — Math.min(...values) blows the call
+    // stack on the large series sparklines are typically fed.
+    registryDeps: ['chart-utils'],
+    desc: 'A compact sparkline chart component for inline data visualization with line, area, and bar variants',
+    files: ['SparklineChart'],
+    extraFiles: ['chart-utils.ts'],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  // Cross-folder helpers consumed by UI components.
+  // Without these entries, installing a component that imports them
+  // produces "Cannot find module" errors in the consumer's project.
+  // ──────────────────────────────────────────────────────────────────
+
+  // useTheme — Vue composable. Imported by Sonner.vue.
+  'use-theme': {
+    deps: [],
+    desc: 'Theme provider composable with light/dark/system support. Used by Sonner toast for theme-aware rendering.',
+    files: [],
+    siblingFiles: [
+      { src: 'composables/useTheme.ts', target: 'composables/useTheme.ts' },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  // Math Curve family — previously not published to the Vue registry
+  // (source files existed on disk but no shadcn-vue install path).
+  // Registered 2026-05-26 to close that gap.
+  // ──────────────────────────────────────────────────────────────────
+
+  // The vanilla math engine. Lives in src/lib/, so we use siblingFiles.
+  // Listed under registry:ui type (no native registry:lib for shadcn-vue).
+  'math-curves': {
+    deps: [],
+    desc: 'Framework-agnostic math engine for parametric curve animations (rose, lissajous, butterfly, spiral, heart, and 14 more). Shared by MathCurveLoader, MathCurveProgress, and MathCurveBackground.',
+    files: [], // No .vue file — only the lib
+    siblingFiles: [
+      { src: 'lib/math-curves.ts', target: 'lib/math-curves.ts' },
+    ],
+  },
+
+  'math-curve-loader': {
+    deps: ['class-variance-authority'],
+    registryDeps: ['math-curves'],
+    desc: 'Animated mathematical curve loader with neubrutalism aesthetics — 17 curve variants including rose, lissajous, butterfly, spiral, and heart. A point traces the curve while leaving a fading trail.',
+    files: ['MathCurveLoader'],
+  },
+
+  'math-curve-progress': {
+    deps: ['class-variance-authority'],
+    registryDeps: ['math-curves'],
+    desc: 'Progress indicator that traces a mathematical curve — value-driven head moves along the curve, fill segments behind. 9 curve variants.',
+    files: ['MathCurveProgress'],
+  },
+
+  'math-curve-background': {
+    deps: [],
+    registryDeps: ['math-curves'],
+    desc: 'Ambient animated mathematical curve background layer with neubrutalism aesthetics — wraps any content with a continuously drawn parametric curve.',
+    files: ['MathCurveBackground'],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  // Motion System — Vue adapter. Mirrors the React motion-core / motion-react
+  // split. `motion-core` is the framework-agnostic engine (lib); `motion`
+  // is the Vue L3 adapter (SFCs + composables + CSS recipes) that depends
+  // on it. Consumers add `motion`; the CLI pulls `motion-core` transitively.
+  // ──────────────────────────────────────────────────────────────────
+  'motion-core': {
+    deps: [],
+    desc: 'Framework-agnostic motion engine — reduced-motion detection, IntersectionObserver reveal, child stagger, imperative animation trigger, and a View Transitions wrapper. Shared by the Motion adapter.',
+    files: [], // No .vue file — only the lib
+    siblingFiles: [
+      { src: 'lib/motion-core.ts', target: 'lib/motion-core.ts' },
+    ],
+  },
+
+  // useMotion — Vue composable. Its own item (not mixed into `motion`) so the
+  // CLI's findCommonRoot doesn't collapse to the registry root and mis-nest it.
+  'use-motion': {
+    deps: [],
+    registryDeps: ['motion-core'],
+    desc: 'Motion composables (useShake, useViewTransition) backing the <Motion> primitives. Reduced-motion aware.',
+    files: [],
+    siblingFiles: [
+      { src: 'composables/useMotion.ts', target: 'composables/useMotion.ts' },
+    ],
+  },
+
+  // Canvas Effect lifecycle — same core/adapter split as motion. Every
+  // CanvasEffect item declares `use-canvas-effect` as a registry dep, which
+  // pulls `canvas-effect-core` (and motion-core, for reduced-motion)
+  // transitively.
+  'canvas-effect-core': {
+    deps: [],
+    registryDeps: ['motion-core'],
+    desc: 'Framework-agnostic canvas lifecycle shared by every CanvasEffect — DPR-aware sizing with a pixel-count cap, pausing when off-screen or in a background tab, and prefers-reduced-motion support.',
+    files: [], // No .vue file — only the lib
+    siblingFiles: [
+      { src: 'lib/canvas-effect-core.ts', target: 'lib/canvas-effect-core.ts' },
+    ],
+  },
+
+  // useCanvasEffect — Vue composable. Its own item for the same findCommonRoot
+  // reason as use-motion.
+  'use-canvas-effect': {
+    deps: [],
+    registryDeps: ['canvas-effect-core'],
+    desc: 'Vue composable that mounts an animated 2D canvas effect with a managed lifecycle — sizing, off-screen/background pausing, and reduced motion — so a component only describes how to paint one frame.',
+    files: [],
+    siblingFiles: [
+      { src: 'composables/useCanvasEffect.ts', target: 'composables/useCanvasEffect.ts' },
+    ],
+  },
+
+  motion: {
+    deps: [],
+    registryDeps: ['motion-core', 'use-motion'],
+    desc: 'Neubrutalism motion primitives — <Motion>, <Reveal>, <Stagger> plus useShake/useViewTransition composables. Stepped, hard-edged animations with automatic reduced-motion fallbacks. Import styles/motion.css into your globals.',
+    files: ['Motion', 'Reveal', 'Stagger'],
+    siblingFiles: [
+      { src: 'styles/motion.css', target: 'styles/motion.css' },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  // Chart export toolbar — mirrors the React chart-export / chart-toolbar
+  // split. `chart-export` is the framework-agnostic engine (CSV/PNG/SVG/
+  // fullscreen); `chart-toolbar` is the Vue overlay that depends on it.
+  // ──────────────────────────────────────────────────────────────────
+  'chart-export': {
+    deps: [],
+    desc: 'Framework-agnostic chart export engine — CSV / PNG / SVG download and fullscreen toggle. Works with any chart rendering an <svg> (Recharts) or <canvas> (ECharts).',
+    files: [], // No .vue file — only the lib
+    siblingFiles: [
+      { src: 'lib/chart-export.ts', target: 'lib/chart-export.ts' },
+    ],
+  },
+
+  'chart-toolbar': {
+    deps: ['lucide-vue-next'],
+    registryDeps: ['chart-export', 'button'],
+    desc: 'Brutalist chart toolbar overlay — export the wrapped chart as PNG or SVG, download its data as CSV, and toggle fullscreen.',
+    files: ['ChartToolbar'],
+  },
 }
 
 const SHAPES_DIR = path.join(UI_DIR, 'shapes')
 const STYLES_DIR = path.join(__dirname, '../src/styles')
 const LIB_DIR = path.join(__dirname, '../src/lib')
 
-// All shape component names
-const SHAPE_FILES = [
-  'BurstShape', 'BlobShape', 'ArrowBadge', 'ZigzagBanner', 'ScribbleCircle',
-  'TicketShape', 'SplatShape', 'SpeechBubble', 'DiamondBadge', 'HexagonShape',
-  'CrossShape', 'LightningShape', 'HeartShape', 'Star4Shape', 'ShieldShape',
-  'RibbonShape', 'WaveShape', 'OctagonShape', 'CloudShape', 'TagShape',
-  'Star5Shape', 'PentagonShape', 'TrapezoidShape', 'ParallelogramShape',
-  'CursorShape', 'BookmarkShape', 'FlagShape', 'PillShape', 'EyeShape',
-  'TriangleShape', 'PaperTearShape', 'ScribbleUnderline', 'PriceTagShape',
-  'ExplosionShape', 'CouponShape'
-]
+// Shape component names — auto-discovered from disk so new shapes get
+// shipped automatically. The previous hand-maintained list drifted out of
+// sync 20 shapes deep before the registry audit caught it.
+const SHAPE_FILES = fs.existsSync(SHAPES_DIR)
+  ? fs.readdirSync(SHAPES_DIR)
+      .filter((f) => f.endsWith('.vue'))
+      .map((f) => f.replace(/\.vue$/, ''))
+      .sort()
+  : []
 
 function readFile(filePath) {
   try {
@@ -204,8 +458,24 @@ function createRegistryJson(name, meta) {
     return createShapesRegistry()
   }
 
+  // Handle nested-subdirectory components (e.g. ascii-shapes): ship every
+  // .vue and .ts file in the directory verbatim, preserving the folder
+  // layout in the consumer's components/ui/<subDir>/ tree.
+  if (meta.subDir) {
+    return createSubDirRegistry(name, meta)
+  }
+
   const files = meta.files || [name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')]
   const registryFiles = []
+
+  // NOTE (issue #10 — Nuxt "cannot find module @/components/ui"): registry:ui/lib
+  // files intentionally ship WITHOUT an explicit `target`. A hardcoded target like
+  // `components/ui/Button.vue` is resolved by the CLI relative to the project ROOT,
+  // which breaks any project whose `@` alias isn't the root — notably Nuxt 4
+  // (srcDir `app/`). With no target the CLI places files under the consumer's
+  // configured `ui`/`lib` aliases, which honor srcDir. The subpath after `ui/` in
+  // `path` is preserved, so subdirectories still work. This mirrors the official
+  // shadcn-vue registry (e.g. its button/utils items ship `target: ""`).
 
   for (const file of files) {
     const vuePath = path.join(UI_DIR, `${file}.vue`)
@@ -214,20 +484,18 @@ function createRegistryJson(name, meta) {
     const vueContent = readFile(vuePath)
     if (vueContent) {
       registryFiles.push({
-        path: `registry/default/ui/${file}.vue`,
+        path: `components/ui/${file}.vue`,
         content: vueContent,
         type: 'registry:ui',
-        target: `components/ui/${file}.vue`
       })
     }
 
     const tsContent = readFile(tsPath)
     if (tsContent) {
       registryFiles.push({
-        path: `registry/default/ui/${file.toLowerCase()}-variants.ts`,
+        path: `components/ui/${file.toLowerCase()}-variants.ts`,
         content: tsContent,
         type: 'registry:ui',
-        target: `components/ui/${file.toLowerCase()}-variants.ts`
       })
     }
   }
@@ -239,11 +507,39 @@ function createRegistryJson(name, meta) {
       const extraContent = readFile(extraPath)
       if (extraContent) {
         registryFiles.push({
-          path: `registry/default/ui/${extraFile}`,
+          path: `components/ui/${extraFile}`,
           content: extraContent,
           type: 'registry:ui',
-          target: `components/ui/${extraFile}`
         })
+      }
+    }
+  }
+
+  // Handle sibling files outside UI_DIR (e.g. lib/, composables/).
+  // Each entry: { src: '<rel-to-vue-src>', target: '<consumer-target>' }
+  // Used by entries like `math-curves` that bundle a vanilla lib helper
+  // living in src/lib/ rather than src/components/ui/.
+  if (meta.siblingFiles) {
+    const VUE_SRC = path.join(__dirname, '../src')
+    for (const { src, target } of meta.siblingFiles) {
+      const srcPath = path.join(VUE_SRC, src)
+      const content = readFile(srcPath)
+      if (content) {
+        // No target → the shadcn-vue CLI places by TYPE under the consumer's
+        // srcDir-aware alias (issue #10). lib/* → resolvedPaths.lib,
+        // composables/* → resolvedPaths.composables (registry:composable). A
+        // sibling file MUST live in a single-directory item, else findCommonRoot
+        // collapses to the registry root and mis-nests it — so composables ship
+        // as their own items (use-theme, use-motion), never mixed with UI files.
+        // styles/* (motion.css) is a manually-imported CSS file, not an `@/`
+        // module, so root-relative target placement is fine and kept.
+        if (src.startsWith('lib/')) {
+          registryFiles.push({ path: `${src}`, content, type: 'registry:lib' })
+        } else if (src.startsWith('composables/')) {
+          registryFiles.push({ path: `${src}`, content, type: 'registry:composable' })
+        } else {
+          registryFiles.push({ path: `${src}`, content, type: 'registry:ui', target })
+        }
       }
     }
   }
@@ -253,14 +549,58 @@ function createRegistryJson(name, meta) {
     return null
   }
 
+  // Scope all BoldKit-owned cross-references with the @boldkit/ namespace.
+  // Without this, shadcn CLI resolves bare names against the default registry
+  // (ui.shadcn.com) instead of BoldKit's, breaking installs. Bare names that
+  // look like a full URL are passed through unchanged for completeness.
+  const scopeBk = (d) =>
+    d.startsWith('@') || d.startsWith('http://') || d.startsWith('https://')
+      ? d
+      : `@boldkit/${d}`
+
   return {
     $schema: 'https://ui.shadcn.com/schema/registry-item.json',
     name,
     type: 'registry:ui',
     description: meta.desc,
     dependencies: meta.deps || [],
-    registryDependencies: ['utils', ...(meta.registryDeps || [])],
+    registryDependencies: ['utils', ...(meta.registryDeps || [])].map(scopeBk),
     files: registryFiles
+  }
+}
+
+function createSubDirRegistry(name, meta) {
+  const dir = path.join(UI_DIR, meta.subDir)
+  if (!fs.existsSync(dir)) {
+    console.warn(`Sub-dir not found for ${name}: ${dir}`)
+    return null
+  }
+
+  const registryFiles = []
+  for (const entry of fs.readdirSync(dir)) {
+    if (!entry.endsWith('.vue') && !entry.endsWith('.ts')) continue
+    const content = readFile(path.join(dir, entry))
+    if (!content) continue
+    registryFiles.push({
+      path: `components/ui/${meta.subDir}/${entry}`,
+      content,
+      type: 'registry:ui',
+    })
+  }
+
+  if (registryFiles.length === 0) {
+    console.warn(`No files found in sub-dir for ${name}`)
+    return null
+  }
+
+  return {
+    $schema: 'https://ui.shadcn.com/schema/registry-item.json',
+    name,
+    type: 'registry:ui',
+    description: meta.desc,
+    dependencies: meta.deps || [],
+    registryDependencies: ['@boldkit/utils', ...(meta.registryDeps || []).map(d => `@boldkit/${d}`)],
+    files: registryFiles,
   }
 }
 
@@ -272,10 +612,9 @@ function createShapesRegistry() {
     const vueContent = readFile(vuePath)
     if (vueContent) {
       registryFiles.push({
-        path: `registry/default/ui/shapes/${shape}.vue`,
+        path: `components/ui/shapes/${shape}.vue`,
         content: vueContent,
         type: 'registry:ui',
-        target: `components/ui/shapes/${shape}.vue`
       })
     }
   }
@@ -285,10 +624,21 @@ function createShapesRegistry() {
   const indexContent = readFile(indexPath)
   if (indexContent) {
     registryFiles.push({
-      path: 'registry/default/ui/shapes/index.ts',
+      path: 'components/ui/shapes/index.ts',
       content: indexContent,
       type: 'registry:ui',
-      target: 'components/ui/shapes/index.ts'
+    })
+  }
+
+  // The `animation` prop resolves to .shape-animate-* classes that live in the
+  // motion stylesheet — ship it alongside or every animated shape is inert.
+  const motionCss = readFile(path.join(STYLES_DIR, 'motion.css'))
+  if (motionCss) {
+    registryFiles.push({
+      path: 'styles/motion.css',
+      content: motionCss,
+      type: 'registry:style',
+      target: 'styles/motion.css',
     })
   }
 
@@ -298,18 +648,46 @@ function createShapesRegistry() {
     type: 'registry:ui',
     description: 'SVG shape components for decorative elements',
     dependencies: [],
-    registryDependencies: ['utils'],
+    registryDependencies: ['@boldkit/utils'],
     files: registryFiles
   }
 }
 
 function createStylesRegistry() {
   const cssPath = path.join(STYLES_DIR, 'globals.css')
-  const cssContent = readFile(cssPath)
+  const rawCss = readFile(cssPath)
 
-  if (!cssContent) {
+  if (!rawCss) {
     console.warn('globals.css not found')
     return null
+  }
+
+  // globals.css pulls the motion layer in via `@import './motion.css'` — the L1
+  // keyframes and L2 recipes (.bk-press, .bk-reveal, .bk-stamp-in, …) live ONLY
+  // there, they are not inlined further down. So this item has to ship both
+  // files: globals.css alone leaves `animation: bk-stamp-in` dangling and every
+  // motion recipe matching nothing.
+  const motionCss = readFile(path.join(STYLES_DIR, 'motion.css'))
+  if (!motionCss) {
+    throw new Error('createStylesRegistry: motion.css not found — globals.css imports it')
+  }
+
+  const files = [
+    { path: 'styles/globals.css', content: rawCss, type: 'registry:style', target: 'styles/globals.css' },
+    { path: 'styles/motion.css', content: motionCss, type: 'registry:style', target: 'styles/motion.css' },
+  ]
+
+  // Invariant: nothing this item ships may point at a sibling file it doesn't ship.
+  const shipped = new Set(files.map(f => path.basename(f.target)))
+  for (const file of files) {
+    for (const spec of file.content.match(/^@import\s+['"]\.[^'"]*['"]/gm) ?? []) {
+      const name = path.basename(spec.replace(/^@import\s+['"]/, '').replace(/['"]$/, ''))
+      if (!shipped.has(name)) {
+        throw new Error(
+          `createStylesRegistry: ${file.target} imports "${name}", which this item does not ship`
+        )
+      }
+    }
   }
 
   return {
@@ -317,12 +695,7 @@ function createStylesRegistry() {
     name: 'styles',
     type: 'registry:style',
     description: 'BoldKit neubrutalism CSS variables and utilities',
-    files: [{
-      path: 'registry/default/styles/globals.css',
-      content: cssContent,
-      type: 'registry:style',
-      target: 'styles/globals.css'
-    }]
+    files
   }
 }
 
@@ -344,6 +717,11 @@ if (!fs.existsSync(REGISTRY_DIR)) {
   fs.mkdirSync(REGISTRY_DIR, { recursive: true })
 }
 
+// Human-readable title for shadcn CLI `view` / MCP display.
+const TITLE_OVERRIDES = { 'input-otp': 'Input OTP', 'ascii-shapes': 'ASCII Shapes' }
+const toTitle = (n) =>
+  TITLE_OVERRIDES[n] || n.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
+
 // Generate registry files
 let count = 0
 const componentNames = []
@@ -351,6 +729,7 @@ const componentNames = []
 for (const [name, meta] of Object.entries(componentMeta)) {
   const registry = createRegistryJson(name, meta)
   if (registry) {
+    if (!registry.title) registry.title = toTitle(name)
     const outPath = path.join(REGISTRY_DIR, `${name}.json`)
     fs.writeFileSync(outPath, JSON.stringify(registry, null, 2))
     count++
@@ -362,6 +741,7 @@ for (const [name, meta] of Object.entries(componentMeta)) {
 // Generate styles.json
 const stylesRegistry = createStylesRegistry()
 if (stylesRegistry) {
+  if (!stylesRegistry.title) stylesRegistry.title = toTitle(stylesRegistry.name)
   const stylesPath = path.join(REGISTRY_DIR, 'styles.json')
   fs.writeFileSync(stylesPath, JSON.stringify(stylesRegistry, null, 2))
   count++
@@ -373,5 +753,18 @@ const indexRegistry = createIndexRegistry(componentNames)
 const indexPath = path.join(REGISTRY_DIR, 'index.json')
 fs.writeFileSync(indexPath, JSON.stringify(indexRegistry, null, 2))
 console.log('Generated: index.json')
+
+// Backfill titles on any item written outside the componentMeta loop
+// (theme, utils, chart-utils, etc). Canvas effects are titled by their own
+// script; leave those untouched here.
+for (const file of fs.readdirSync(REGISTRY_DIR)) {
+  if (!file.endsWith('.json') || file === 'index.json') continue
+  const p = path.join(REGISTRY_DIR, file)
+  const item = JSON.parse(fs.readFileSync(p, 'utf-8'))
+  if (!item.type || item.title) continue
+  if ((item.files || []).some((f) => typeof f.path === 'string' && f.path.includes('/canvas-effects/'))) continue
+  item.title = toTitle(item.name)
+  fs.writeFileSync(p, JSON.stringify(item, null, 2))
+}
 
 console.log(`\nGenerated ${count} registry files + index.json`)

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "motion-core",
+  "type": "registry:ui",
+  "description": "Framework-agnostic motion engine — reduced-motion detection, IntersectionObserver reveal, child stagger, imperative animation trigger, and a View Transitions wrapper. Shared by the Motion adapter.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@boldkit/utils"
+  ],
+  "files": [
+    {
+      "path": "lib/motion-core.ts",
+      "type": "registry:lib"
+    }
+  ],
+  "title": "Motion Core"
+}

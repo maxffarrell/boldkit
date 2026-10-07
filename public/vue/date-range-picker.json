@@ -8,16 +8,16 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils",
-    "button",
-    "calendar",
-    "popover"
+    "@boldkit/utils",
+    "@boldkit/button",
+    "@boldkit/calendar",
+    "@boldkit/popover"
   ],
   "files": [
     {
-      "path": "registry/default/ui/DateRangePicker.vue",
-      "type": "registry:ui",
-      "target": "components/ui/DateRangePicker.vue"
+      "path": "components/ui/DateRangePicker.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Date Range Picker"
 }

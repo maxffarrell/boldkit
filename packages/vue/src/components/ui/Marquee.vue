@@ -25,9 +25,11 @@ const speedClasses = {
   fast: 'animate-marquee-fast',
 }
 
-const animationClass = computed(() =>
-  props.direction === 'right' ? 'animate-marquee-reverse' : speedClasses[props.speed]
-)
+// Always use the speed-based class so `speed` is honored in both directions;
+// the `right` direction is handled purely by the inline animation-direction
+// below (the old fixed-duration `animate-marquee-reverse` ignored speed and
+// double-reversed against the inline style).
+const animationClass = computed(() => speedClasses[props.speed])
 
 const animationDirection = computed(() =>
   props.direction === 'right' ? 'reverse' : 'normal'
@@ -55,7 +57,7 @@ const animationDirection = computed(() =>
       "
       :style="{ animationDirection }"
     >
-      <slot v-for="_n in repeat" :key="_n" />
+      <template v-for="_n in repeat" :key="_n"><slot /></template>
     </div>
     <div
       :class="
@@ -68,7 +70,7 @@ const animationDirection = computed(() =>
       :style="{ animationDirection }"
       aria-hidden="true"
     >
-      <slot v-for="_m in repeat" :key="`dup-${_m}`" />
+      <template v-for="_m in repeat" :key="`dup-${_m}`"><slot /></template>
     </div>
   </div>
 </template>

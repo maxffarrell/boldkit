@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { format, subDays, startOfMonth, endOfMonth, subMonths, isSameDay } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
@@ -16,7 +17,8 @@ export interface DateRangePickerPreset {
   value: DateRange
 }
 
-export interface DateRangePickerProps {
+export interface DateRangePickerProps
+  extends Omit<React.ComponentPropsWithoutRef<typeof Button>, 'onChange' | 'value' | 'defaultValue'> {
   value?: DateRange
   defaultValue?: DateRange
   onChange?: (range: DateRange | undefined) => void
@@ -60,8 +62,15 @@ const getDefaultPresets = (): DateRangePickerPreset[] => {
 }
 
 const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps>(
-  (
-    {
+  (allProps, ref) => {
+    // Controlled-ness is decided by whether the `value` PROP IS PRESENT,
+    // latched on first render — not by whether it is defined. `undefined` is a
+    // legal controlled value for an optional range, so the ordinary
+    // `useState<DateRange>()` + `value` pattern used to start uncontrolled and
+    // silently flip on the first pick.
+    const isControlled = React.useRef('value' in allProps).current
+
+    const {
       value: controlledValue,
       defaultValue,
       onChange,
@@ -74,13 +83,21 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
       placeholder = 'Pick a date range',
       align = 'start',
       className,
-    },
-    ref
-  ) => {
+      ...props
+    } = allProps
+
+    if (process.env.NODE_ENV !== 'production') {
+      if (isControlled !== ('value' in allProps)) {
+        console.warn(
+          '[DateRangePicker] Switching between controlled and uncontrolled is not supported. ' +
+            'Pass `defaultValue` for uncontrolled use.'
+        )
+      }
+    }
+
     const [open, setOpen] = React.useState(false)
     const [uncontrolledValue, setUncontrolledValue] = React.useState<DateRange | undefined>(defaultValue)
 
-    const isControlled = controlledValue !== undefined
     const selectedRange = isControlled ? controlledValue : uncontrolledValue
 
     const resolvedPresets = presets ?? getDefaultPresets()
@@ -133,6 +150,7 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
             ref={ref}
             variant="outline"
             disabled={disabled}
+            {...props}
             className={cn(
               'w-full justify-start text-left font-normal',
               !selectedRange && 'text-muted-foreground',
@@ -149,7 +167,7 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
           className={cn(
             'w-auto p-0 overflow-hidden',
             'shadow-[8px_8px_0px_hsl(var(--shadow-color))]',
-            'animate-in fade-in-0 zoom-in-95 duration-200',
+            'ease-out animate-in fade-in-0 zoom-in-95 duration-200',
             'max-w-[calc(100vw-2rem)]',
             'max-h-[calc(100vh-4rem)] overflow-auto'
           )}
@@ -164,36 +182,43 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
             {/* Presets sidebar/header */}
             {showPresets && resolvedPresets.length > 0 && (
               <div className={cn(
-                'p-3 bg-muted/30',
+                'p-3 bg-muted',
                 isMobile
                   ? 'border-b-3 border-foreground'
-                  : 'min-w-[130px] border-r-3 border-foreground'
+                  : 'min-w-[160px] border-r-3 border-foreground'
               )}>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-muted-foreground">
                   Presets
                 </p>
                 <div className={cn(
                   isMobile
-                    ? 'flex flex-wrap gap-1'
-                    : 'space-y-1'
+                    ? 'flex flex-wrap gap-2'
+                    : 'space-y-2'
                 )}>
-                  {resolvedPresets.map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => handlePresetClick(preset)}
-                      className={cn(
-                        'text-left text-sm transition-all duration-150',
-                        'hover:bg-muted',
-                        isMobile
-                          ? 'px-2 py-1 border-2 border-foreground text-xs'
-                          : 'w-full px-3 py-2',
-                        isPresetSelected(preset) && 'bg-accent font-medium shadow-[2px_2px_0px_hsl(var(--shadow-color))]'
-                      )}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
+                  {resolvedPresets.map((preset) => {
+                    const selected = isPresetSelected(preset)
+                    return (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => handlePresetClick(preset)}
+                        className={cn(
+                          'text-left text-sm font-bold border-3 border-foreground bg-background transition duration-150',
+                          isMobile
+                            ? 'px-2 py-1 text-xs shadow-[2px_2px_0px_hsl(var(--shadow-color))]'
+                            : 'w-full px-3 py-2 shadow-[3px_3px_0px_hsl(var(--shadow-color))]',
+                          // press-in on hover/focus
+                          isMobile
+                            ? 'hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] focus-visible:shadow-none'
+                            : 'hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none focus-visible:translate-x-[3px] focus-visible:translate-y-[3px] focus-visible:shadow-none',
+                          'focus-visible:outline-none',
+                          selected && 'bg-accent text-accent-foreground shadow-none ' + (isMobile ? 'translate-x-[2px] translate-y-[2px]' : 'translate-x-[3px] translate-y-[3px]')
+                        )}
+                      >
+                        {preset.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}

@@ -7,58 +7,49 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Timeline.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Timeline.vue"
+      "path": "components/ui/Timeline.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineCard.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineCard.vue"
+      "path": "components/ui/TimelineCard.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineConnector.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineConnector.vue"
+      "path": "components/ui/TimelineConnector.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineContent.vue"
+      "path": "components/ui/TimelineContent.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineDescription.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineDescription.vue"
+      "path": "components/ui/TimelineDescription.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineDot.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineDot.vue"
+      "path": "components/ui/TimelineDot.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineHeader.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineHeader.vue"
+      "path": "components/ui/TimelineHeader.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineItem.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineItem.vue"
+      "path": "components/ui/TimelineItem.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineTime.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineTime.vue"
+      "path": "components/ui/TimelineTime.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TimelineTitle.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TimelineTitle.vue"
+      "path": "components/ui/TimelineTitle.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Timeline"
 }

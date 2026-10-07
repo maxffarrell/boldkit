@@ -1,15 +1,16 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "time-picker",
+  "title": "Time Picker",
   "description": "Popover-based time picker with 12h/24h format and scrollable columns",
   "dependencies": [
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils",
-    "button",
-    "popover",
-    "scroll-area"
+    "@boldkit/utils",
+    "@boldkit/button",
+    "@boldkit/popover",
+    "@boldkit/scroll-area"
   ],
   "files": [
     {

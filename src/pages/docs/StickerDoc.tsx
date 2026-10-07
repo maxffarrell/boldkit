@@ -1,71 +1,8 @@
 import { Sticker, Stamp, StickyNote } from '@/components/ui/sticker'
 import { ComponentDoc, ExampleSection } from '@/components/docs/ComponentDoc'
+import sourceCode from '@/components/ui/sticker.tsx?raw'
+import vueSourceCode from '@vue-ui/Sticker.vue?raw'
 
-const sourceCode = `import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-
-const stickerVariants = cva(
-  'relative inline-flex items-center justify-center border-3 border-foreground font-bold uppercase tracking-wide transition-transform',
-  {
-    variants: {
-      variant: {
-        default: 'bg-accent text-accent-foreground',
-        primary: 'bg-primary text-primary-foreground',
-        secondary: 'bg-secondary text-secondary-foreground',
-        destructive: 'bg-destructive text-destructive-foreground',
-        outline: 'bg-background text-foreground',
-      },
-      size: {
-        sm: 'px-2 py-1 text-xs',
-        default: 'px-3 py-1.5 text-sm',
-        lg: 'px-4 py-2 text-base',
-        xl: 'px-6 py-3 text-lg',
-      },
-      rotation: {
-        none: 'rotate-0',
-        slight: '-rotate-2',
-        medium: '-rotate-6',
-        heavy: '-rotate-12',
-        'slight-right': 'rotate-2',
-        'medium-right': 'rotate-6',
-        'heavy-right': 'rotate-12',
-      },
-      shadow: {
-        none: '',
-        default: 'shadow-[4px_4px_0px_hsl(var(--shadow-color))]',
-        colored: 'shadow-[4px_4px_0px_hsl(var(--primary))]',
-        double: 'shadow-[3px_3px_0px_hsl(var(--primary)),6px_6px_0px_hsl(var(--shadow-color))]',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-      rotation: 'slight',
-      shadow: 'default',
-    },
-  }
-)
-
-const Sticker = React.forwardRef<HTMLDivElement, StickerProps>(
-  ({ className, variant, size, rotation, shadow, dashed, tape, interactive, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        stickerVariants({ variant, size, rotation, shadow }),
-        dashed && 'before:absolute before:inset-[-6px] before:border-2 before:border-dashed before:border-foreground/50',
-        tape && 'after:absolute after:left-1/2 after:top-[-8px] after:-translate-x-1/2 after:rotate-[-2deg] after:w-[50px] after:h-[16px] after:bg-accent/80 after:border-2 after:border-foreground',
-        interactive && 'cursor-pointer hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  )
-)
-
-export { Sticker, stickerVariants }`
 
 const usageCode = `import { Sticker, Stamp } from '@/components/ui/sticker'
 
@@ -78,82 +15,10 @@ export default function Example() {
   )
 }`
 
-const vueSourceCode = `<script setup lang="ts">
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-
-const stickerVariants = cva(
-  'relative inline-flex items-center justify-center border-3 border-foreground font-bold uppercase tracking-wide transition-transform',
-  {
-    variants: {
-      variant: {
-        default: 'bg-accent text-accent-foreground',
-        primary: 'bg-primary text-primary-foreground',
-        secondary: 'bg-secondary text-secondary-foreground',
-        destructive: 'bg-destructive text-destructive-foreground',
-        outline: 'bg-background text-foreground',
-      },
-      size: {
-        sm: 'px-2 py-1 text-xs',
-        default: 'px-3 py-1.5 text-sm',
-        lg: 'px-4 py-2 text-base',
-        xl: 'px-6 py-3 text-lg',
-      },
-      rotation: {
-        none: 'rotate-0',
-        slight: '-rotate-2',
-        medium: '-rotate-6',
-        heavy: '-rotate-12',
-        'slight-right': 'rotate-2',
-        'medium-right': 'rotate-6',
-        'heavy-right': 'rotate-12',
-      },
-      shadow: {
-        none: '',
-        default: 'shadow-[4px_4px_0px_hsl(var(--shadow-color))]',
-        colored: 'shadow-[4px_4px_0px_hsl(var(--primary))]',
-        double: 'shadow-[3px_3px_0px_hsl(var(--primary)),6px_6px_0px_hsl(var(--shadow-color))]',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-      rotation: 'slight',
-      shadow: 'default',
-    },
-  }
-)
-
-type StickerVariants = VariantProps<typeof stickerVariants>
-
-defineProps<{
-  class?: string
-  variant?: StickerVariants['variant']
-  size?: StickerVariants['size']
-  rotation?: StickerVariants['rotation']
-  shadow?: StickerVariants['shadow']
-  dashed?: boolean
-  tape?: boolean
-  interactive?: boolean
-}>()
-</script>
-
-<template>
-  <div
-    :class="cn(
-      stickerVariants({ variant, size, rotation, shadow }),
-      dashed && 'before:absolute before:inset-[-6px] before:border-2 before:border-dashed before:border-foreground/50',
-      tape && 'after:absolute after:left-1/2 after:top-[-8px] after:-translate-x-1/2 after:rotate-[-2deg] after:w-[50px] after:h-[16px] after:bg-accent/80 after:border-2 after:border-foreground',
-      interactive && 'cursor-pointer hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none',
-      props.class
-    )"
-  >
-    <slot />
-  </div>
-</template>`
 
 const vueUsageCode = `<script setup lang="ts">
-import { Sticker, Stamp } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
+import Stamp from '@/components/ui/Stamp.vue'
 </script>
 
 <template>
@@ -194,7 +59,7 @@ export function StickerDoc() {
 <Sticker variant="destructive">Destructive</Sticker>
 <Sticker variant="outline">Outline</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -225,7 +90,7 @@ import { Sticker } from '@/components/ui'
 <Sticker size="lg">Large</Sticker>
 <Sticker size="xl">Extra Large</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -256,7 +121,7 @@ import { Sticker } from '@/components/ui'
 <Sticker rotation="slight-right">Right</Sticker>
 <Sticker rotation="heavy-right">Heavy Right</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -289,7 +154,7 @@ import { Sticker } from '@/components/ui'
 <Sticker shadow="colored">Colored</Sticker>
 <Sticker shadow="double">Double</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -317,7 +182,7 @@ import { Sticker } from '@/components/ui'
 <Sticker dashed variant="primary">Limited</Sticker>
 <Sticker dashed variant="destructive">Urgent</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -343,7 +208,7 @@ import { Sticker } from '@/components/ui'
 <Sticker tape variant="outline">Remember</Sticker>
 <Sticker tape variant="primary" rotation="medium-right">Important</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -368,7 +233,7 @@ import { Sticker } from '@/components/ui'
         code={`<Sticker interactive>Click Me</Sticker>
 <Sticker interactive variant="primary">Press</Sticker>`}
         vueCode={`<script setup>
-import { Sticker } from '@/components/ui'
+import Sticker from '@/components/ui/Sticker.vue'
 </script>
 
 <template>
@@ -393,7 +258,7 @@ import { Sticker } from '@/components/ui'
 <Stamp variant="accent">100%</Stamp>
 <Stamp variant="destructive" rotation="medium">Rejected</Stamp>`}
         vueCode={`<script setup>
-import { Stamp } from '@/components/ui'
+import Stamp from '@/components/ui/Stamp.vue'
 </script>
 
 <template>
@@ -422,7 +287,7 @@ import { Stamp } from '@/components/ui'
 <Stamp size="lg">Large</Stamp>
 <Stamp size="xl">Extra Large</Stamp>`}
         vueCode={`<script setup>
-import { Stamp } from '@/components/ui'
+import Stamp from '@/components/ui/Stamp.vue'
 </script>
 
 <template>
@@ -449,7 +314,7 @@ import { Stamp } from '@/components/ui'
         code={`<Stamp doubleRing>Certified</Stamp>
 <Stamp doubleRing variant="secondary">Approved</Stamp>`}
         vueCode={`<script setup>
-import { Stamp } from '@/components/ui'
+import Stamp from '@/components/ui/Stamp.vue'
 </script>
 
 <template>
@@ -473,7 +338,7 @@ import { Stamp } from '@/components/ui'
 <StickyNote variant="pink">Important meeting at 3pm</StickyNote>
 <StickyNote variant="blue" pin>Don't forget!</StickyNote>`}
         vueCode={`<script setup>
-import { StickyNote } from '@/components/ui'
+import StickyNote from '@/components/ui/StickyNote.vue'
 </script>
 
 <template>
@@ -501,7 +366,7 @@ import { StickyNote } from '@/components/ui'
 <StickyNote variant="green">Green</StickyNote>
 <StickyNote variant="purple">Purple</StickyNote>`}
         vueCode={`<script setup>
-import { StickyNote } from '@/components/ui'
+import StickyNote from '@/components/ui/StickyNote.vue'
 </script>
 
 <template>
@@ -530,7 +395,7 @@ import { StickyNote } from '@/components/ui'
         code={`<StickyNote pin>Pinned to board</StickyNote>
 <StickyNote pin variant="pink" rotation="right">Todo list</StickyNote>`}
         vueCode={`<script setup>
-import { StickyNote } from '@/components/ui'
+import StickyNote from '@/components/ui/StickyNote.vue'
 </script>
 
 <template>
@@ -556,7 +421,7 @@ import { StickyNote } from '@/components/ui'
 <StickyNote size="default">Default size note</StickyNote>
 <StickyNote size="lg">Large note with more space</StickyNote>`}
         vueCode={`<script setup>
-import { StickyNote } from '@/components/ui'
+import StickyNote from '@/components/ui/StickyNote.vue'
 </script>
 
 <template>

@@ -1,13 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "input-otp",
+  "title": "Input OTP",
   "description": "One-time password input with neubrutalism styling",
   "dependencies": [
     "input-otp",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

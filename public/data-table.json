@@ -1,19 +1,20 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "data-table",
+  "title": "Data Table",
   "description": "Powerful data table with sorting, filtering, pagination, and row selection",
   "dependencies": [
     "@tanstack/react-table",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils",
-    "button",
-    "checkbox",
-    "dropdown-menu",
-    "input",
-    "select",
-    "table"
+    "@boldkit/utils",
+    "@boldkit/button",
+    "@boldkit/checkbox",
+    "@boldkit/dropdown-menu",
+    "@boldkit/input",
+    "@boldkit/select",
+    "@boldkit/table"
   ],
   "files": [
     {

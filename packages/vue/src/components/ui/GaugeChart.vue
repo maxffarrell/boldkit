@@ -1,3 +1,21 @@
+<script lang="ts">
+// Module-scope so `withDefaults` (hoisted out of setup) can reference DEFAULT_ZONES.
+export interface GaugeChartZone {
+  /** Lower bound, in the same units as `value` (i.e. between `min` and `max`). */
+  from: number
+  /** Upper bound, in the same units as `value`. */
+  to: number
+  color: string
+  label?: string
+}
+
+const DEFAULT_ZONES: GaugeChartZone[] = [
+  { from: 0, to: 33, color: 'hsl(var(--destructive))', label: 'Low' },
+  { from: 33, to: 66, color: 'hsl(var(--warning))', label: 'Medium' },
+  { from: 66, to: 100, color: 'hsl(var(--success))', label: 'High' },
+]
+</script>
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
@@ -19,13 +37,6 @@ const gaugeChartVariants = cva(
   }
 )
 
-export interface GaugeChartZone {
-  from: number
-  to: number
-  color: string
-  label?: string
-}
-
 type GaugeVariants = VariantProps<typeof gaugeChartVariants>
 
 interface GaugeChartProps {
@@ -42,12 +53,6 @@ interface GaugeChartProps {
   class?: string
 }
 
-const DEFAULT_ZONES: GaugeChartZone[] = [
-  { from: 0, to: 33, color: 'hsl(var(--destructive))', label: 'Low' },
-  { from: 33, to: 66, color: 'hsl(var(--warning))', label: 'Medium' },
-  { from: 66, to: 100, color: 'hsl(var(--success))', label: 'High' },
-]
-
 const props = withDefaults(defineProps<GaugeChartProps>(), {
   min: 0,
   max: 100,
@@ -60,12 +65,27 @@ const props = withDefaults(defineProps<GaugeChartProps>(), {
 })
 
 const normalizedValue = computed(() => Math.max(props.min, Math.min(props.max, props.value)))
-const percentage = computed(() => props.max === props.min ? 50 : ((normalizedValue.value - props.min) / (props.max - props.min)) * 100)
+function toPercent(v: number) {
+  return props.max === props.min ? 0 : ((v - props.min) / (props.max - props.min)) * 100
+}
+const percentage = computed(() => toPercent(normalizedValue.value))
+// Zone bounds are in data units, so they need the same mapping as `value`.
+// Fed raw to a 0–100 dial scale, a {from: 0, to: 100} zone on a min=0 max=200
+// gauge painted the first half of the *dial* instead of the first half of the
+// range, and picked the wrong current colour.
+const zonesPct = computed(() =>
+  props.zones.map(z => ({ ...z, fromPct: toPercent(z.from), toPct: toPercent(z.to) }))
+)
 
 // Whether this variant uses a 360° full circle or a 180° semicircle sweep
 const isFull = computed(() => props.variant === 'full')
 // Whether this variant uses a filled progress bar instead of a needle
 const isMeter = computed(() => props.variant === 'meter')
+
+// Arc start angle in SVG space (0°=east, increasing = clockwise, y points down):
+//   semicircle/meter — 180° (left) sweeping over the top (270°) to right (360°)
+//   full             — -90° (top) sweeping a full 360° ring
+const arcStartDeg = computed(() => (isFull.value ? -90 : 180))
 
 const sizeConfigSemi = {
   sm: { width: 140, height: 90,  radius: 45, strokeWidth: 10, fontSize: 14, labelSize: 9  },
@@ -93,11 +113,9 @@ const centerY = computed(() =>
 
 const needleLength = computed(() => config.value.radius - 8)
 
-// Needle rotation angle: -90° is top; semicircle sweeps 180°, full sweeps 360°
+// Needle rotation angle: semicircle starts at 180° (left), full starts at -90° (top)
 const needleAngle = computed(() =>
-  isFull.value
-    ? -90 + (percentage.value * 360) / 100
-    : -90 + (percentage.value * 180) / 100
+  arcStartDeg.value + (percentage.value * (isFull.value ? 360 : 180)) / 100
 )
 
 /**
@@ -106,13 +124,13 @@ const needleAngle = computed(() =>
  * @param endPercent    0–100 position along the gauge sweep
  * @param radius        arc radius
  *
- * For semicircle/meter the sweep spans -90° → +90° (180° total).
+ * For semicircle/meter the sweep spans 180° → 360° (180° total, over the top).
  * For full the sweep spans -90° → 270° (360° total).
  */
 function createArcPath(startPercent: number, endPercent: number, radius: number): string {
   const sweepDeg = isFull.value ? 360 : 180
-  const startAngle = (-90 + (startPercent * sweepDeg) / 100) * (Math.PI / 180)
-  const endAngle   = (-90 + (endPercent   * sweepDeg) / 100) * (Math.PI / 180)
+  const startAngle = (arcStartDeg.value + (startPercent * sweepDeg) / 100) * (Math.PI / 180)
+  const endAngle   = (arcStartDeg.value + (endPercent   * sweepDeg) / 100) * (Math.PI / 180)
 
   const startX = centerX.value + radius * Math.cos(startAngle)
   const startY = centerY.value + radius * Math.sin(startAngle)
@@ -128,9 +146,10 @@ function createArcPath(startPercent: number, endPercent: number, radius: number)
   }
 
   const spanPercent = endPercent - startPercent
-  const largeArcFlag = isFull.value
-    ? (spanPercent > 50 ? 1 : 0)
-    : (spanPercent > 50 ? 1 : 0)
+  // Pick the major arc by the actual swept angle, not raw percent. On a
+  // semicircle (180° sweep) a zone wider than 50% spans <180°, so the percent
+  // test wrongly drew the major arc. (Matches the React gauge-chart.tsx logic.)
+  const largeArcFlag = (spanPercent / 100) * sweepDeg > 180 ? 1 : 0
 
   return `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`
 }
@@ -139,15 +158,18 @@ function createArcPath(startPercent: number, endPercent: number, radius: number)
  * Find the zone color for the current percentage (used by meter variant).
  */
 const currentZoneColor = computed(() => {
-  const z = props.zones.find(zone => percentage.value >= zone.from && percentage.value <= zone.to)
+  const z = zonesPct.value.find(zone => percentage.value >= zone.fromPct && percentage.value <= zone.toPct)
   return z ? z.color : 'hsl(var(--primary))'
 })
 
-const tickPositions = [0, 25, 50, 75, 100]
+// Meter variant gets denser ticks (every 10%), matching the React gauge.
+const tickPositions = computed(() =>
+  isMeter.value ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] : [0, 25, 50, 75, 100]
+)
 
 function getTickCoords(tick: number) {
   const sweepDeg = isFull.value ? 360 : 180
-  const angle = (-90 + (tick * sweepDeg) / 100) * (Math.PI / 180)
+  const angle = (arcStartDeg.value + (tick * sweepDeg) / 100) * (Math.PI / 180)
   const innerR = config.value.radius - config.value.strokeWidth / 2 - 6
   const outerR = config.value.radius + config.value.strokeWidth / 2 + 6
   return {
@@ -160,10 +182,21 @@ function getTickCoords(tick: number) {
 </script>
 
 <template>
-  <div :class="cn(gaugeChartVariants({ size }), props.class)" :style="{ maxWidth: `${config.width}px` }">
+  <!-- A gauge is exactly what role="meter" describes, and every value it needs
+       is already computed here. Without this the chart shipped as an unlabelled
+       decorative blob with no value exposed to assistive tech. -->
+  <div
+    role="meter"
+    :aria-valuenow="normalizedValue"
+    :aria-valuemin="min"
+    :aria-valuemax="max"
+    :aria-valuetext="valueFormatter(normalizedValue)"
+    :aria-label="label ?? 'Gauge'"
+    :class="cn(gaugeChartVariants({ size }), props.class)"
+    :style="{ maxWidth: `${config.width}px` }"
+  >
     <svg
-      width="100%"
-      height="auto"
+      class="h-auto w-full"
       :viewBox="`0 0 ${config.width} ${config.height}`"
     >
       <!-- Background track -->
@@ -177,14 +210,14 @@ function getTickCoords(tick: number) {
 
       <!-- Zone arcs -->
       <path
-        v-for="(zone, index) in zones"
+        v-for="(zone, index) in zonesPct"
         :key="index"
-        :d="createArcPath(zone.from, zone.to, config.radius)"
+        :d="createArcPath(zone.fromPct, zone.toPct, config.radius)"
         fill="none"
         :stroke="zone.color"
         :stroke-width="config.strokeWidth"
         stroke-linecap="butt"
-        class="transition-all duration-300"
+        class="transition duration-300"
       />
 
       <!-- Outer border -->

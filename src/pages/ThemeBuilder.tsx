@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { copyToClipboard } from '@/lib/clipboard'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,7 +11,8 @@ import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Copy, Check, AlertCircle, Palette, Sun, Moon } from 'lucide-react'
+import { Copy, Check, AlertCircle, Palette, Sun, Moon, Download } from 'lucide-react'
+import { themePresets, neutralPalette, type ThemePreset } from '@/config/theme-presets'
 import { Layout } from '@/components/layout'
 import { ReactIcon, SvelteIcon, VueIcon } from '@/hooks/use-framework'
 import { SEO, pageSEO } from '@/components/SEO'
@@ -141,25 +143,6 @@ function ColorPicker({
   )
 }
 
-const presetThemes = [
-  // — Original 9 —
-  { name: 'Coral',    tag: 'warm & bold',       primary: '0 84% 71%',    secondary: '174 62% 56%', accent: '49 100% 71%' },
-  { name: 'Purple',   tag: 'vivid & dramatic',  primary: '271 76% 53%',  secondary: '326 78% 60%', accent: '199 89% 48%' },
-  { name: 'Forest',   tag: 'earthy & fresh',    primary: '152 69% 45%',  secondary: '82 68% 55%',  accent: '49 100% 60%' },
-  { name: 'Ocean',    tag: 'cool & serene',     primary: '199 89% 48%',  secondary: '174 62% 56%', accent: '152 69% 69%' },
-  { name: 'Sunset',   tag: 'fiery & expressive',primary: '14 100% 57%',  secondary: '326 78% 60%', accent: '49 100% 60%' },
-  { name: 'Mono',     tag: 'clean & minimal',   primary: '0 0% 90%',     secondary: '0 0% 75%',    accent: '49 100% 65%' },
-  { name: 'Neon',     tag: 'electric & raw',    primary: '318 100% 50%', secondary: '180 100% 50%',accent: '60 100% 50%' },
-  { name: 'Electric', tag: 'punchy & vibrant',  primary: '258 100% 65%', secondary: '166 100% 50%',accent: '45 100% 55%' },
-  { name: 'Candy',    tag: 'sweet & playful',   primary: '340 82% 65%',  secondary: '280 70% 60%', accent: '190 100% 60%' },
-  // — New v3.0 Presets —
-  { name: 'Cyberpunk',tag: 'toxic & dystopian', primary: '112 100% 54%', secondary: '342 100% 59%',accent: '193 100% 50%' },
-  { name: 'Retro',    tag: 'vintage & gritty',  primary: '22 91% 48%',   secondary: '173 43% 51%', accent: '45 90% 61%' },
-  { name: 'Pastel',   tag: 'soft & kawaii',     primary: '344 100% 82%', secondary: '154 56% 78%', accent: '260 53% 80%' },
-  { name: 'Gold',     tag: 'luxury & refined',  primary: '45 87% 55%',   secondary: '221 42% 30%', accent: '38 82% 52%' },
-  { name: 'Cherry',   tag: 'bold & japanese',   primary: '5 66% 46%',    secondary: '151 37% 22%', accent: '37 90% 51%' },
-]
-
 const THEME_STORAGE_KEY = 'boldkit-theme-builder-colors'
 
 const defaultColors = {
@@ -204,6 +187,19 @@ interface ThemeBuilderProps {
 export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
   const [copied, setCopied] = useState(false)
   const [colors, setColors] = useState(loadSavedColors)
+  // Track the active color scheme so the live-preview overrides push the
+  // matching (light vs dark) neutral values — otherwise the inline light
+  // values would override the .dark class and break dark mode on this page.
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  )
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      setIsDark(document.documentElement.classList.contains('dark'))
+    )
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
 
   // Save colors to localStorage whenever they change
   useEffect(() => {
@@ -214,26 +210,71 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
   useEffect(() => {
     const lightFg = '0 0% 100%'
     const darkFg = '240 10% 10%'
+    const root = document.documentElement.style
+    // Push the color set that matches the active scheme so inline overrides
+    // never fight the .dark class.
+    const primary = isDark ? colors.darkPrimary : colors.primary
+    const secondary = isDark ? colors.darkSecondary : colors.secondary
+    const accent = isDark ? colors.darkAccent : colors.accent
 
-    document.documentElement.style.setProperty('--primary', colors.primary)
-    document.documentElement.style.setProperty('--primary-foreground', getContrastForeground(colors.primary, lightFg, darkFg))
-    document.documentElement.style.setProperty('--secondary', colors.secondary)
-    document.documentElement.style.setProperty('--secondary-foreground', getContrastForeground(colors.secondary, lightFg, darkFg))
-    document.documentElement.style.setProperty('--accent', colors.accent)
-    document.documentElement.style.setProperty('--accent-foreground', getContrastForeground(colors.accent, lightFg, darkFg))
-    document.documentElement.style.setProperty('--shadow-offset', `${colors.shadowOffset}px`)
-    document.documentElement.style.setProperty('--border-width', `${colors.borderWidth}px`)
-  }, [colors])
+    root.setProperty('--primary', primary)
+    root.setProperty('--primary-foreground', getContrastForeground(primary, lightFg, darkFg))
+    root.setProperty('--secondary', secondary)
+    root.setProperty('--secondary-foreground', getContrastForeground(secondary, lightFg, darkFg))
+    root.setProperty('--accent', accent)
+    root.setProperty('--accent-foreground', getContrastForeground(accent, lightFg, darkFg))
+    // Neutral palette — mode-matched so presets preview their tinted surfaces
+    // without overriding dark mode.
+    root.setProperty('--background', isDark ? colors.darkBackground : colors.background)
+    root.setProperty('--foreground', isDark ? colors.darkForeground : colors.foreground)
+    root.setProperty('--muted', isDark ? colors.darkMuted : colors.muted)
+    root.setProperty('--muted-foreground', isDark ? colors.darkMutedForeground : colors.mutedForeground)
+    root.setProperty('--shadow-offset', `${colors.shadowOffset}px`)
+    root.setProperty('--border-width', `${colors.borderWidth}px`)
+  }, [colors, isDark])
 
-  const applyPreset = (preset: typeof presetThemes[0]) => {
+  // Remove the live-preview overrides when leaving the builder so the chosen
+  // colors / offsets don't bleed onto every other route for the session.
+  useEffect(() => {
+    return () => {
+      const root = document.documentElement.style
+      ;[
+        '--primary',
+        '--primary-foreground',
+        '--secondary',
+        '--secondary-foreground',
+        '--accent',
+        '--accent-foreground',
+        '--background',
+        '--foreground',
+        '--muted',
+        '--muted-foreground',
+        '--shadow-offset',
+        '--border-width',
+      ].forEach((prop) => root.removeProperty(prop))
+    }
+  }, [])
+
+  const applyPreset = (preset: ThemePreset) => {
+    // Apply the brand hues AND the preset's derived neutral palette so the
+    // live preview matches the shipped preset stylesheet.
+    const n = neutralPalette(preset)
     setColors({
       ...colors,
       primary: preset.primary,
       secondary: preset.secondary,
       accent: preset.accent,
+      background: n.light.background,
+      foreground: n.light.foreground,
+      muted: n.light.muted,
+      mutedForeground: n.light.mutedForeground,
       darkPrimary: preset.primary,
       darkSecondary: preset.secondary,
       darkAccent: preset.accent,
+      darkBackground: n.dark.background,
+      darkForeground: n.dark.foreground,
+      darkMuted: n.dark.muted,
+      darkMutedForeground: n.dark.mutedForeground,
     })
   }
 
@@ -254,7 +295,58 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
     const darkSecondaryFg = getContrastForeground(colors.darkSecondary, lightFg, darkFg)
     const darkAccentFg = getContrastForeground(colors.darkAccent, lightFg, darkFg)
 
-    return `/* BoldKit Theme - Light & Dark Mode */
+    return `/* BoldKit Theme — Light & Dark Mode */
+/* Works with Tailwind v4 + shadcn. Drop this into your globals.css. */
+
+/* Tailwind v4 bridge: maps utility colors (bg-background, text-foreground, …)
+   to the HSL channel variables below. Required — without it, classes like
+   bg-background resolve to raw "60 9% 98%" and produce invalid CSS. */
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-neon-pink: hsl(var(--neon-pink));
+  --color-neon-green: hsl(var(--neon-green));
+  --color-neon-blue: hsl(var(--neon-blue));
+  --color-neon-orange: hsl(var(--neon-orange));
+  --color-neon-purple: hsl(var(--neon-purple));
+  --color-clash-1: hsl(var(--clash-1));
+  --color-clash-2: hsl(var(--clash-2));
+  --color-clash-3: hsl(var(--clash-3));
+  --color-clash-4: hsl(var(--clash-4));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
 :root {
   /* Base Colors */
   --background: ${colors.background};
@@ -286,6 +378,14 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
+  /* Status — success / warning / info */
+  --success: 152 69% 69%;
+  --success-foreground: 240 10% 10%;
+  --warning: 49 100% 60%;
+  --warning-foreground: 240 10% 10%;
+  --info: 212 100% 73%;
+  --info-foreground: 240 10% 10%;
+
   /* Border & Input */
   --border: ${colors.foreground};
   --input: ${colors.foreground};
@@ -298,6 +398,26 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
   --shadow-color: ${colors.foreground};
   --shadow-offset: ${colors.shadowOffset}px;
   --border-width: ${colors.borderWidth}px;
+
+  /* Chart colors */
+  --chart-1: 0 84% 71%;
+  --chart-2: 174 62% 56%;
+  --chart-3: 49 100% 71%;
+  --chart-4: 271 76% 53%;
+  --chart-5: 326 78% 60%;
+
+  /* Neon colors */
+  --neon-pink: 330 100% 65%;
+  --neon-green: 120 100% 50%;
+  --neon-blue: 195 100% 50%;
+  --neon-orange: 25 100% 55%;
+  --neon-purple: 280 100% 60%;
+
+  /* Clash colors */
+  --clash-1: 15 85% 60%;
+  --clash-2: 280 70% 50%;
+  --clash-3: 165 80% 45%;
+  --clash-4: 45 95% 55%;
 }
 
 .dark {
@@ -331,6 +451,14 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
+  /* Status — success / warning / info */
+  --success: 152 69% 69%;
+  --success-foreground: 240 10% 10%;
+  --warning: 49 100% 60%;
+  --warning-foreground: 240 10% 10%;
+  --info: 212 100% 73%;
+  --info-foreground: 240 10% 10%;
+
   /* Border & Input */
   --border: ${colors.darkForeground};
   --input: ${colors.darkForeground};
@@ -338,11 +466,24 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
 
   /* Shadow */
   --shadow-color: 0 0% 0%;
+
+  /* Neon colors */
+  --neon-pink: 330 100% 70%;
+  --neon-green: 120 100% 55%;
+  --neon-blue: 195 100% 55%;
+  --neon-orange: 25 100% 60%;
+  --neon-purple: 280 100% 65%;
+
+  /* Clash colors */
+  --clash-1: 15 85% 65%;
+  --clash-2: 280 70% 55%;
+  --clash-3: 165 80% 50%;
+  --clash-4: 45 95% 60%;
 }`
   }
 
-  const copyCSS = () => {
-    navigator.clipboard.writeText(generateCSS())
+  const copyCSS = async () => {
+    if (!(await copyToClipboard(generateCSS()))) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -483,24 +624,39 @@ export function ThemeBuilder({ embedded = false }: ThemeBuilderProps) {
               </CardHeader>
               <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
                 <div className="grid grid-cols-2 gap-2">
-                  {presetThemes.map((preset) => (
-                    <button
-                      key={preset.name}
-                      onClick={() => applyPreset(preset)}
-                      className="group flex flex-col border-2 border-foreground hover:shadow-[3px_3px_0px_hsl(var(--foreground))] hover:-translate-x-[1px] hover:-translate-y-[1px] transition-all duration-100 text-left overflow-hidden"
+                  {themePresets.map((preset) => (
+                    <div
+                      key={preset.slug}
+                      className="group relative flex flex-col border-2 border-foreground hover:shadow-[3px_3px_0px_hsl(var(--foreground))] hover:-translate-x-[1px] hover:-translate-y-[1px] transition duration-100 overflow-hidden"
                     >
-                      {/* Color strip */}
-                      <div className="flex w-full h-5">
-                        <div className="flex-1" style={{ backgroundColor: `hsl(${preset.primary})` }} />
-                        <div className="flex-1" style={{ backgroundColor: `hsl(${preset.secondary})` }} />
-                        <div className="flex-1" style={{ backgroundColor: `hsl(${preset.accent})` }} />
-                      </div>
-                      {/* Label */}
-                      <div className="px-2 py-1.5">
-                        <p className="text-[11px] font-black uppercase tracking-wide leading-none">{preset.name}</p>
-                        <p className="text-[9px] text-muted-foreground mt-0.5 leading-none">{preset.tag}</p>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => applyPreset(preset)}
+                        className="flex flex-col text-left"
+                      >
+                        {/* Color strip */}
+                        <div className="flex w-full h-5">
+                          <div className="flex-1" style={{ backgroundColor: `hsl(${preset.primary})` }} />
+                          <div className="flex-1" style={{ backgroundColor: `hsl(${preset.secondary})` }} />
+                          <div className="flex-1" style={{ backgroundColor: `hsl(${preset.accent})` }} />
+                        </div>
+                        {/* Label */}
+                        <div className="px-2 py-1.5">
+                          <p className="text-[11px] font-black uppercase tracking-wide leading-none">{preset.name}</p>
+                          <p className="text-[9px] text-muted-foreground mt-0.5 leading-none">{preset.tag}</p>
+                        </div>
+                      </button>
+                      {/* Download the standalone CSS-vars swap for this preset */}
+                      <a
+                        href={`/themes/${preset.slug}.css`}
+                        download={`boldkit-${preset.slug}.css`}
+                        onClick={(e) => e.stopPropagation()}
+                        title={`Download ${preset.name} theme CSS`}
+                        className="absolute top-0 right-0 bg-background/90 border-l-2 border-b-2 border-foreground p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent"
+                        aria-label={`Download ${preset.name} theme CSS`}
+                      >
+                        <Download className="h-3 w-3" />
+                      </a>
+                    </div>
                   ))}
                 </div>
               </CardContent>

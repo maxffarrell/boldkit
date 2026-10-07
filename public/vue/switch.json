@@ -7,13 +7,13 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Switch.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Switch.vue"
+      "path": "components/ui/Switch.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Switch"
 }

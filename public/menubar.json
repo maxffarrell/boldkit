@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "menubar",
+  "title": "Menubar",
+  "description": "A horizontal menu bar of desktop-style dropdown menus with neubrutalism styling",
+  "dependencies": [
+    "@radix-ui/react-menubar",
+    "lucide-react"
+  ],
+  "registryDependencies": [
+    "@boldkit/utils"
+  ],
+  "files": [
+    {
+      "path": "registry/default/ui/menubar.tsx",
+      "type": "registry:ui",
+      "target": "components/ui/menubar.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -16,11 +17,12 @@ export interface DropzoneState {
   isDisabled: boolean
   acceptedFiles: File[]
   rejectedFiles: FileRejection[]
+  reset: () => void
 }
 
 // Variants
 const dropzoneVariants = cva(
-  'relative flex flex-col items-center justify-center border-3 border-dashed border-foreground transition-all duration-200 cursor-pointer',
+  'relative flex flex-col items-center justify-center border-3 border-dashed border-foreground transition duration-200 cursor-pointer',
   {
     variants: {
       state: {
@@ -71,15 +73,23 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     ref
   ) => {
     const [isDragging, setIsDragging] = React.useState(false)
+    const [isFocused, setIsFocused] = React.useState(false)
     const [acceptedFiles, setAcceptedFiles] = React.useState<File[]>([])
     const [rejectedFiles, setRejectedFiles] = React.useState<FileRejection[]>([])
     const inputRef = React.useRef<HTMLInputElement>(null)
+
+    const reset = React.useCallback(() => {
+      setAcceptedFiles([])
+      setRejectedFiles([])
+      if (inputRef.current) inputRef.current.value = ''
+    }, [])
 
     const state: DropzoneState = {
       isDragging,
       isDisabled: disabled,
       acceptedFiles,
       rejectedFiles,
+      reset,
     }
 
     const stateVariant = disabled ? 'disabled' : isDragging ? 'dragging' : 'idle'
@@ -130,21 +140,26 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     const processFiles = (fileList: FileList | null) => {
       if (!fileList || disabled) return
 
-      const files = Array.from(fileList).slice(0, maxFiles)
+      const allFiles = Array.from(fileList)
       const accepted: File[] = []
       const rejected: FileRejection[] = []
 
-      files.forEach((file) => {
+      allFiles.forEach((file) => {
         const rejection = validateFile(file)
         if (rejection) {
           rejected.push(rejection)
+        } else if (accepted.length >= maxFiles) {
+          rejected.push({
+            file,
+            errors: [{ code: 'too-many-files', message: `Too many files. Maximum is ${maxFiles}.` }],
+          })
         } else {
           accepted.push(file)
         }
       })
 
-      setAcceptedFiles((prev) => [...prev, ...accepted])
-      setRejectedFiles((prev) => [...prev, ...rejected])
+      setAcceptedFiles(accepted)
+      setRejectedFiles(rejected)
 
       if (accepted.length > 0) {
         onFilesAccepted(accepted)
@@ -166,6 +181,11 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     const handleDragLeave = (e: React.DragEvent) => {
       e.preventDefault()
       e.stopPropagation()
+      // dragleave also fires when the cursor moves onto a child element; only
+      // clear the highlight when the pointer actually leaves the dropzone.
+      if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as Node)) {
+        return
+      }
       setIsDragging(false)
     }
 
@@ -187,6 +207,16 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
       }
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault()
+        inputRef.current?.click()
+      }
+    }
+
+    const handleFocus = () => setIsFocused(true)
+    const handleBlur = () => setIsFocused(false)
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       processFiles(e.target.files)
       e.target.value = ''
@@ -202,15 +232,23 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     return (
       <div
         ref={ref}
-        className={cn(dropzoneVariants({ state: stateVariant, variant }), className)}
+        className={cn(
+          dropzoneVariants({ state: stateVariant, variant }),
+          isFocused && !disabled && 'outline outline-2 outline-offset-2 outline-primary',
+          className
+        )}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
+        aria-label="File upload area"
         {...props}
       >
         <input
@@ -223,7 +261,11 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           className="hidden"
         />
 
+        {/* `state` is built entirely from useState values (isDragging,
+            acceptedFiles, rejectedFiles) plus a useCallback — no ref is
+            involved; the rule mis-flags the render-prop call. */}
         {typeof children === 'function' ? (
+          // eslint-disable-next-line react-hooks/refs
           children(state)
         ) : children ? (
           children
@@ -248,13 +290,13 @@ function DefaultDropzoneContent({
     <div className="flex flex-col items-center gap-3 text-center">
       <div
         className={cn(
-          'flex items-center justify-center w-16 h-16 border-3 border-foreground bg-muted transition-all duration-200',
+          'flex items-center justify-center w-16 h-16 border-3 border-foreground bg-muted transition duration-200',
           isDragging && 'bg-primary border-primary shadow-[4px_4px_0px_hsl(var(--foreground))] -translate-x-1 -translate-y-1'
         )}
       >
         <Upload
           className={cn(
-            'h-8 w-8 transition-all duration-200',
+            'h-8 w-8 transition duration-200',
             isDragging ? 'text-primary-foreground animate-bounce' : 'text-foreground'
           )}
         />
@@ -330,6 +372,9 @@ function FileListItem({ file, progress, error, uploading, onRemove }: FileListIt
       )}
     >
       <div className="flex items-center justify-center w-10 h-10 bg-muted border-3 border-foreground">
+        {/* getFileIcon is a lookup returning one of seven module-level lucide
+            icons, not a factory — no component is created here. */}
+        {/* eslint-disable-next-line react-hooks/static-components */}
         <Icon className="h-5 w-5" />
       </div>
 
@@ -345,13 +390,16 @@ function FileListItem({ file, progress, error, uploading, onRemove }: FileListIt
       {uploading ? (
         <Spinner size="sm" />
       ) : onRemove ? (
+        // Icon-only, so it needs a name that says WHICH file: with N files
+        // there would otherwise be N identically anonymous "button"s.
         <button
           type="button"
+          aria-label={`Remove ${file.name}`}
           onClick={(e) => {
             e.stopPropagation()
             onRemove()
           }}
-          className="flex items-center justify-center w-8 h-8 border-3 border-foreground bg-background hover:bg-destructive hover:text-destructive-foreground hover:shadow-[2px_2px_0px_hsl(var(--foreground))] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+          className="flex items-center justify-center w-8 h-8 border-3 border-foreground bg-background hover:bg-destructive hover:text-destructive-foreground hover:shadow-[2px_2px_0px_hsl(var(--foreground))] hover:-translate-x-0.5 hover:-translate-y-0.5 transition"
         >
           <X className="h-4 w-4" />
         </button>
@@ -364,8 +412,8 @@ function FileListItem({ file, progress, error, uploading, onRemove }: FileListIt
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1)
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 

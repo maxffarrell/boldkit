@@ -8,14 +8,22 @@
     "echarts"
   ],
   "registryDependencies": [
-    "utils",
-    "chart-utils"
+    "@boldkit/utils",
+    "@boldkit/chart-utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/TreemapChart.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TreemapChart.vue"
+      "path": "components/ui/TreemapChart.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ChartEmpty.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/chart-types.ts",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Treemap Chart"
 }

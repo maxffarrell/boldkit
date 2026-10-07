@@ -7,18 +7,17 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/ScrollArea.vue",
-      "type": "registry:ui",
-      "target": "components/ui/ScrollArea.vue"
+      "path": "components/ui/ScrollArea.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/ScrollBar.vue",
-      "type": "registry:ui",
-      "target": "components/ui/ScrollBar.vue"
+      "path": "components/ui/ScrollBar.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Scroll Area"
 }

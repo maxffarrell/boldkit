@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart } from 'echarts/charts'
 import { TooltipComponent, LegendComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { cn } from '@/lib/utils'
-import { neubrutalismTheme, type ChartConfig, CHART_PALETTES } from './chart-utils'
+import { type ChartConfig, CHART_PALETTES, useResolvedChart } from './chart-utils'
 import { chartContainerVariants } from './chart-variants'
+import ChartEmpty from './ChartEmpty.vue'
 import type { VariantProps } from 'class-variance-authority'
 
 // Register ECharts components
@@ -32,9 +33,17 @@ interface RadialBarChartProps {
   height?: string
   variant?: ChartVariants['variant']
   class?: string
+  emptyMessage?: string
+  /** React calls this `emptyState`. Accepted here so the same prop name works
+   *  in both frameworks; `emptyMessage` stays supported. */
+  emptyState?: string
+  /** Accessible name. React exposes this on every chart; without it the
+   *  chart ships with no name at all. */
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<RadialBarChartProps>(), {
+  ariaLabel: 'Radial bar chart',
   innerRadius: '30%',
   outerRadius: '90%',
   showLabel: true,
@@ -43,7 +52,23 @@ const props = withDefaults(defineProps<RadialBarChartProps>(), {
   variant: 'default',
 })
 
-const maxVal = computed(() => props.maxValue || (props.data.length > 0 ? Math.max(...props.data.map(d => d.value)) * 1.2 : 1))
+// Prefer the React-compatible name when both are given.
+const resolvedEmptyMessage = computed(() => props.emptyState ?? props.emptyMessage)
+
+// ECharts draws to a canvas, which has no CSS cascade: an
+// `hsl(var(--primary))` string assigned to fillStyle is silently dropped.
+// Resolve the option and theme against this element before they reach VChart.
+const rootEl = ref<HTMLElement | null>(null)
+const { theme: resolvedTheme, resolve } = useResolvedChart(rootEl)
+const resolvedOption = computed(() => resolve(option.value))
+
+const isEmpty = computed(() => !props.data || props.data.length === 0)
+
+// Nullish coalescing (not ||) so an explicit maxValue of 0 is honored rather than
+// silently replaced by the computed default.
+// reduce (not spread) avoids a RangeError on very large datasets; the `|| 1`
+// floor keeps the domain positive for empty/all-negative data.
+const maxVal = computed(() => props.maxValue ?? (props.data.reduce((m, d) => Math.max(m, d.value), 0) * 1.2 || 1))
 
 // Create stacked rings for radial bar effect
 const seriesData = computed(() => {
@@ -55,7 +80,9 @@ const seriesData = computed(() => {
 
   return props.data.map((item, index) => {
     const innerR = innerPct + (index * radiusStep)
-    const outerR = innerR + radiusStep - 2 // Small gap between rings
+    // Small gap between rings, but never let the ring collapse/invert when there
+    // are many items (radiusStep <= 2).
+    const outerR = Math.max(innerR + 1, innerR + radiusStep - 2)
 
     return {
       type: 'pie',
@@ -85,7 +112,7 @@ const seriesData = computed(() => {
         },
         props.showBackground ? {
           name: 'background',
-          value: maxVal.value - item.value,
+          value: Math.max(0, maxVal.value - item.value),
           itemStyle: {
             color: 'hsl(var(--muted))',
             borderWidth: 0,
@@ -104,6 +131,12 @@ const option = computed(() => ({
       if (params.name === 'background') return ''
       return `${params.name}: ${params.value}`
     },
+    backgroundColor: 'hsl(var(--background))',
+    borderColor: 'hsl(var(--foreground))',
+    borderWidth: 3,
+    padding: [6, 10],
+    textStyle: { color: 'hsl(var(--foreground))', fontFamily: "'DM Mono', monospace", fontSize: 12 },
+    extraCssText: 'border-radius: 0; box-shadow: 4px 4px 0px hsl(var(--foreground));',
   },
   series: seriesData.value,
 }))
@@ -111,13 +144,17 @@ const option = computed(() => ({
 
 <template>
   <div
+    ref="rootEl"
+    role="img"
+    :aria-label="ariaLabel"
     data-slot="chart"
     :class="cn(chartContainerVariants({ variant }), props.class)"
   >
-    <div class="relative" :style="{ height }">
+    <ChartEmpty v-if="isEmpty" :message="resolvedEmptyMessage" />
+    <div v-else class="relative" :style="{ height }">
       <VChart
-        :option="option"
-        :theme="neubrutalismTheme"
+        :option="resolvedOption"
+        :theme="resolvedTheme"
         :autoresize="true"
         style="width: 100%; height: 100%"
       />

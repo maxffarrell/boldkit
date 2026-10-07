@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { ChartEmpty } from './chart'
 
 export interface SankeyNode {
   id: string
@@ -19,6 +20,9 @@ export interface SankeyChartProps extends React.HTMLAttributes<HTMLDivElement> {
   height?: number
   showTooltip?: boolean
   showLabels?: boolean
+  /** Accessible label for screen readers (default: "Sankey chart") */
+  ariaLabel?: string
+  emptyState?: React.ReactNode
 }
 
 const NODE_COLORS = [
@@ -91,7 +95,7 @@ function computeLayout(
   }
 
   // Warn about nodes dropped due to cycles (nodes not reachable from any source)
-  if (import.meta.env.DEV) {
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
     const droppedNodes = nodes.filter(n => !depth.has(n.id))
     if (droppedNodes.length > 0) {
       console.warn(
@@ -100,14 +104,19 @@ function computeLayout(
     }
   }
 
-  const maxDepth = Math.max(...Array.from(depth.values()))
+  // Guard against an empty depth map (e.g. a fully-cyclic graph with no source
+  // node) — Math.max(...[]) returns -Infinity, which would corrupt colWidth and
+  // produce NaN/Infinity node x positions.
+  const depthValues = Array.from(depth.values())
+  const maxDepth = depthValues.length ? Math.max(...depthValues) : 0
   const colWidth = maxDepth === 0 ? 0 : (width - padding.left - padding.right - nodeWidth) / maxDepth
 
   // Group nodes by column
   const cols = new Map<number, string[]>()
   depth.forEach((d, id) => {
     if (!cols.has(d)) cols.set(d, [])
-    cols.get(d)!.push(id)
+    const col = cols.get(d)
+    if (col) col.push(id)
   })
 
   // Node values = sum of in-links (or out-links for sources)
@@ -118,14 +127,18 @@ function computeLayout(
     nodeValue.set(n.id, Math.max(inVal, outVal, 1))
   })
 
-  const totalVal = Math.max(...Array.from(nodeValue.values()))
   const innerHeight = height - padding.top - padding.bottom
 
   // Compute node heights and y positions per column
   const computedNodes = new Map<string, ComputedNode>()
   cols.forEach((ids, col) => {
     const colTotal = ids.reduce((s, id) => s + (nodeValue.get(id) || 1), 0)
-    const totalNodeHeight = innerHeight - nodePadding * (ids.length - 1)
+    const gaps = Math.max(0, ids.length - 1)
+    // When a column is crowded, the fixed padding would consume the whole column
+    // (or more), driving totalNodeHeight negative and overflowing the SVG. Cap
+    // the combined padding to half the column so nodes always have room.
+    const effectivePadding = gaps > 0 ? Math.min(nodePadding, (innerHeight * 0.5) / gaps) : 0
+    const totalNodeHeight = innerHeight - effectivePadding * gaps
     let yOffset = padding.top
 
     ids.forEach((id) => {
@@ -142,7 +155,7 @@ function computeLayout(
         height: h,
         value: val,
       })
-      yOffset += h + nodePadding
+      yOffset += h + effectivePadding
     })
   })
 
@@ -154,8 +167,6 @@ function computeLayout(
     targetOffsets.set(id, n.y)
   })
 
-  void totalVal
-
   const computedLinks: ComputedLink[] = links.map(link => {
     const src = computedNodes.get(link.source)
     const tgt = computedNodes.get(link.target)
@@ -163,10 +174,12 @@ function computeLayout(
 
     const srcTotal = (outLinks.get(link.source) || []).reduce((s, l) => s + l.value, 0)
     const tgtTotal = (inLinks.get(link.target) || []).reduce((s, l) => s + l.value, 0)
-    const thickness = Math.max(2, (link.value / Math.max(srcTotal, tgtTotal)) * src.height)
+    // Math.max(..., 1) guards the denominator so all-zero link values can't
+    // produce 0/0 = NaN, which would emit an invalid SVG path.
+    const thickness = Math.max(2, (link.value / Math.max(srcTotal, tgtTotal, 1)) * src.height)
 
-    const sY = sourceOffsets.get(link.source)!
-    const tY = targetOffsets.get(link.target)!
+    const sY = sourceOffsets.get(link.source) ?? 0
+    const tY = targetOffsets.get(link.target) ?? 0
     sourceOffsets.set(link.source, sY + thickness)
     targetOffsets.set(link.target, tY + thickness)
 
@@ -194,28 +207,44 @@ function computeLayout(
 const SankeyChart = React.forwardRef<HTMLDivElement, SankeyChartProps>(
   (
     {
-      nodes,
-      links,
+      // Defaulted at the destructure: computeLayout() runs *above* the empty
+      // guard, so `undefined` (the shape a still-loading fetch passes) would
+      // throw before the guard could render <ChartEmpty>.
+      nodes = [],
+      links = [],
       height = 320,
       showTooltip = true,
       showLabels = true,
+      ariaLabel = 'Sankey chart',
+      emptyState,
       className,
       ...props
     },
     ref
   ) => {
+    const isEmpty = !nodes || nodes.length === 0 || !links || links.length === 0
     const containerRef = React.useRef<HTMLDivElement>(null)
     const [width, setWidth] = React.useState(600)
     const [tooltip, setTooltip] = React.useState<{ x: number; y: number; label: string; value: number } | null>(null)
 
-    React.useEffect(() => {
+    // useLayoutEffect fires before paint, preventing the initial layout flash
+    // that would occur with useEffect + the 600px placeholder width.
+    // SankeyChart is client-only (ResizeObserver), so useLayoutEffect is safe here.
+    const mountedRef = React.useRef(true)
+    React.useLayoutEffect(() => {
+      mountedRef.current = true
       if (!containerRef.current) return
       const ro = new ResizeObserver(entries => {
-        setWidth(entries[0].contentRect.width)
+        if (mountedRef.current) {
+          setWidth(entries[0].contentRect.width)
+        }
       })
       ro.observe(containerRef.current)
       setWidth(containerRef.current.offsetWidth)
-      return () => ro.disconnect()
+      return () => {
+        mountedRef.current = false
+        ro.disconnect()
+      }
     }, [])
 
     const { computedNodes, computedLinks } = React.useMemo(
@@ -223,13 +252,41 @@ const SankeyChart = React.forwardRef<HTMLDivElement, SankeyChartProps>(
       [nodes, links, width, height]
     )
 
+    if (isEmpty) {
+      return <ChartEmpty ref={ref} message={emptyState} className={className} {...props} />
+    }
+
     return (
       <div
         ref={ref}
+        role="group"
+        aria-label={ariaLabel}
         className={cn('relative w-full', className)}
         {...props}
       >
-        <div ref={containerRef} style={{ height }}>
+        {/* Text alternative. The diagram's only data affordance is a mouse
+            hover tooltip, so without this the flows are unreadable to anyone
+            not using a pointer. Visually hidden, fully announced. */}
+        <table className="sr-only">
+          <caption>{ariaLabel}</caption>
+          <thead>
+            <tr>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+              <th scope="col">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {links.map((link, i) => (
+              <tr key={`${link.source}-${link.target}-${i}`}>
+                <td>{link.source}</td>
+                <td>{link.target}</td>
+                <td>{link.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div ref={containerRef} aria-hidden="true" style={{ height }}>
           <svg width="100%" height={height}>
             {/* Links */}
             {computedLinks.map((link, i) => (

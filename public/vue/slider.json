@@ -7,13 +7,13 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Slider.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Slider.vue"
+      "path": "components/ui/Slider.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Slider"
 }

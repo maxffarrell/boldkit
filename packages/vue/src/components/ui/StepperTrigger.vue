@@ -7,7 +7,7 @@ import { STEPPER_INJECTION_KEY, type StepperContext } from './Stepper.vue'
 import { STEPPER_ITEM_INJECTION_KEY, type StepperItemContext } from './StepperItem.vue'
 
 const stepVariants = cva(
-  'flex items-center justify-center border-3 border-foreground font-bold transition-all duration-200',
+  'flex items-center justify-center border-3 border-foreground font-bold transition duration-200',
   {
     variants: {
       state: {
@@ -49,11 +49,9 @@ if (!stepperContext || !itemContext) {
 }
 
 const state = computed<'completed' | 'active' | 'upcoming'>(() => {
-  const activeStep = typeof stepperContext.activeStep === 'object' && 'value' in stepperContext.activeStep
-    ? stepperContext.activeStep.value
-    : stepperContext.activeStep
-  if (itemContext.index < activeStep) return 'completed'
-  if (itemContext.index === activeStep) return 'active'
+  const active = stepperContext.activeStep.value ?? 0
+  if (itemContext.index < active) return 'completed'
+  if (itemContext.index === active) return 'active'
   return 'upcoming'
 })
 

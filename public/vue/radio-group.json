@@ -7,18 +7,17 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/RadioGroup.vue",
-      "type": "registry:ui",
-      "target": "components/ui/RadioGroup.vue"
+      "path": "components/ui/RadioGroup.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/RadioGroupItem.vue",
-      "type": "registry:ui",
-      "target": "components/ui/RadioGroupItem.vue"
+      "path": "components/ui/RadioGroupItem.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Radio Group"
 }

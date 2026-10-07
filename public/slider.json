@@ -1,10 +1,11 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "slider",
+  "title": "Slider",
   "description": "A jelly slider with spring physics and bouncy animations",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

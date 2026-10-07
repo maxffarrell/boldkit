@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils'
+import { Twitter, Linkedin, Github, Globe } from 'lucide-vue-next'
 import { Card, CardContent } from '@/components/ui'
 import Avatar from '@/components/ui/Avatar.vue'
 import AvatarImage from '@/components/ui/AvatarImage.vue'
@@ -49,6 +50,13 @@ const teamColors = [
   'bg-success text-success-foreground',
   'bg-info text-info-foreground',
 ]
+
+const socialIcons = {
+  twitter: Twitter,
+  linkedin: Linkedin,
+  github: Github,
+  website: Globe,
+} as const
 </script>
 
 <template>
@@ -74,7 +82,7 @@ const teamColors = [
         <Card
           v-for="(member, index) in members"
           :key="`team-${member.name}`"
-          class="group text-center hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all"
+          class="group text-center hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition"
         >
           <CardContent class="pt-6">
             <div class="border-3 border-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))] overflow-hidden mb-4 mx-auto w-32 h-32">
@@ -90,6 +98,18 @@ const teamColors = [
             </div>
             <h3 class="font-black uppercase text-lg">{{ member.name }}</h3>
             <p class="text-sm text-muted-foreground font-medium">{{ member.role }}</p>
+            <div v-if="member.socials?.length" class="flex justify-center gap-2 mt-3">
+              <a
+                v-for="social in member.socials"
+                :key="social.platform"
+                :href="social.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-8 h-8 flex items-center justify-center border-2 border-foreground bg-muted transition hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[2px_2px_0px_hsl(var(--shadow-color))] hover:bg-primary hover:text-primary-foreground"
+              >
+                <component :is="socialIcons[social.platform]" class="h-4 w-4" />
+              </a>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -115,7 +135,7 @@ const teamColors = [
         <Card
           v-for="(member, index) in members"
           :key="`team-${member.name}`"
-          class="hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all"
+          class="hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition"
         >
           <CardContent class="pt-6">
             <div class="flex items-center gap-6">
@@ -129,6 +149,18 @@ const teamColors = [
                 <h3 class="font-black uppercase">{{ member.name }}</h3>
                 <p class="text-sm text-muted-foreground font-medium">{{ member.role }}</p>
                 <p v-if="member.bio" class="text-sm mt-2">{{ member.bio }}</p>
+                <div v-if="member.socials?.length" class="flex gap-2 mt-3">
+                  <a
+                    v-for="social in member.socials"
+                    :key="social.platform"
+                    :href="social.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="w-8 h-8 flex items-center justify-center border-2 border-foreground bg-muted transition hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[2px_2px_0px_hsl(var(--shadow-color))] hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <component :is="socialIcons[social.platform]" class="h-4 w-4" />
+                  </a>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -161,7 +193,7 @@ const teamColors = [
           :key="`team-${member.name}`"
           class="group"
         >
-          <div class="border-3 border-foreground shadow-[6px_6px_0px_hsl(var(--shadow-color))] overflow-hidden mb-4 aspect-[4/5] group-hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] transition-all">
+          <div class="border-3 border-foreground shadow-[6px_6px_0px_hsl(var(--shadow-color))] overflow-hidden mb-4 aspect-[4/5] group-hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] transition">
             <img
               v-if="member.image"
               :src="member.image"
@@ -175,6 +207,18 @@ const teamColors = [
           <h3 class="font-black uppercase text-xl">{{ member.name }}</h3>
           <p class="text-muted-foreground font-medium">{{ member.role }}</p>
           <p v-if="member.bio" class="text-sm mt-2">{{ member.bio }}</p>
+          <div v-if="member.socials?.length" class="flex gap-2 mt-3">
+            <a
+              v-for="social in member.socials"
+              :key="social.platform"
+              :href="social.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-8 h-8 flex items-center justify-center border-2 border-foreground bg-background transition hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[2px_2px_0px_hsl(var(--shadow-color))] hover:bg-primary hover:text-primary-foreground"
+            >
+              <component :is="socialIcons[social.platform]" class="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -199,7 +243,7 @@ const teamColors = [
         <div
           v-for="(member, index) in members"
           :key="`team-${member.name}`"
-          class="flex items-center gap-3 border-3 border-foreground px-4 py-2 shadow-[3px_3px_0px_hsl(var(--shadow-color))] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all bg-card"
+          class="flex items-center gap-3 border-3 border-foreground px-4 py-2 shadow-[3px_3px_0px_hsl(var(--shadow-color))] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition bg-card"
         >
           <Avatar class="h-10 w-10 border-2 border-foreground">
             <AvatarImage v-if="member.image" :src="member.image" :alt="member.name" />

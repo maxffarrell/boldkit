@@ -1,12 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "switch",
+  "title": "Switch",
   "description": "A control that allows the user to toggle between on and off",
   "dependencies": [
     "@radix-ui/react-switch"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/label"
   ],
   "files": [
     {

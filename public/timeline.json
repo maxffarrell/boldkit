@@ -1,12 +1,13 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "timeline",
+  "title": "Timeline",
   "description": "Composable timeline for activity feeds, order tracking, and version history",
   "dependencies": [
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

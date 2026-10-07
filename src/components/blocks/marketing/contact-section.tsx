@@ -1,10 +1,11 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { cn, safeHref } from '@/lib/utils'
 import { Mail, Phone, MapPin, Clock, Send, MessageSquare } from 'lucide-react'
 
 export interface ContactInfo {
@@ -67,7 +68,7 @@ export function ContactSplit({
                     icon={<Mail className="h-5 w-5" />}
                     label="Email"
                     value={contactInfo.email}
-                    href={`mailto:${contactInfo.email}`}
+                    href={safeHref(`mailto:${contactInfo.email}`)}
                   />
                 )}
                 {contactInfo.phone && (
@@ -75,7 +76,7 @@ export function ContactSplit({
                     icon={<Phone className="h-5 w-5" />}
                     label="Phone"
                     value={contactInfo.phone}
-                    href={`tel:${contactInfo.phone}`}
+                    href={safeHref(`tel:${contactInfo.phone}`)}
                   />
                 )}
                 {contactInfo.address && (
@@ -320,7 +321,7 @@ export function ContactWithCards({
             <Card
               key={method.title}
               className={cn(
-                'hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all',
+                'hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition',
                 cardColors[index % 3]
               )}
             >
@@ -331,7 +332,7 @@ export function ContactWithCards({
                 <h3 className="font-black uppercase text-lg">{method.title}</h3>
                 <p className="text-sm text-muted-foreground">{method.description}</p>
                 <Button variant="outline" asChild>
-                  <a href={method.action.href}>{method.action.label}</a>
+                  <a href={safeHref(method.action.href)}>{method.action.label}</a>
                 </Button>
               </CardContent>
             </Card>
@@ -405,7 +406,7 @@ export function ContactWithMap({
                     icon={<Phone className="h-5 w-5" />}
                     label="Phone"
                     value={contactInfo.phone}
-                    href={`tel:${contactInfo.phone}`}
+                    href={safeHref(`tel:${contactInfo.phone}`)}
                   />
                 )}
                 {contactInfo.email && (
@@ -413,7 +414,7 @@ export function ContactWithMap({
                     icon={<Mail className="h-5 w-5" />}
                     label="Email"
                     value={contactInfo.email}
-                    href={`mailto:${contactInfo.email}`}
+                    href={safeHref(`mailto:${contactInfo.email}`)}
                   />
                 )}
                 {contactInfo.hours && (
@@ -501,7 +502,7 @@ function ContactInfoItem({
 
   if (href) {
     return (
-      <a href={href} className="block hover:opacity-80 transition-opacity">
+      <a href={safeHref(href)} className="block hover:opacity-80 transition-opacity">
         {content}
       </a>
     )

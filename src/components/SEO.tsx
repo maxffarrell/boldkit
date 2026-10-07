@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
@@ -109,13 +110,17 @@ export function SEO({
     updateMeta('twitter:creator', defaultMeta.twitterCreator)
 
     const updateJsonLd = (id: string, schema: object) => {
-      const existingScript = document.querySelector(`script[data-schema="${id}"]`)
+      const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '')
+      const existingScript = document.querySelector(`script[data-schema="${safeId}"]`)
       if (existingScript) existingScript.remove()
       try {
+        const serialized = JSON.stringify(schema)
+        // Guard against </script> injection in JSON-LD content
+        const safeContent = serialized.replace(/<\/script/gi, '<\\/script')
         const script = document.createElement('script')
         script.type = 'application/ld+json'
-        script.setAttribute('data-schema', id)
-        script.textContent = JSON.stringify(schema)
+        script.setAttribute('data-schema', safeId)
+        script.textContent = safeContent
         document.head.appendChild(script)
       } catch {
         // skip invalid structured data
@@ -150,6 +155,15 @@ export function SEO({
     if (structuredData) {
       updateJsonLd('custom', structuredData)
     }
+
+    // Remove any JSON-LD this component injected when navigating away or to a
+    // page that doesn't supply that schema — otherwise stale breadcrumb/faq/
+    // custom structured data leaks into the next route for crawlers.
+    return () => {
+      document
+        .querySelectorAll('script[data-schema="breadcrumb"], script[data-schema="faq"], script[data-schema="custom"]')
+        .forEach((el) => el.remove())
+    }
   }, [title, description, keywords, canonical, ogImage, ogType, noIndex, breadcrumbs, faq, structuredData, pathname])
 
   return null
@@ -180,6 +194,16 @@ export const pageSEO = {
       { name: 'Home', url: `${SITE_URL}/` },
       { name: 'Documentation', url: `${SITE_URL}/docs` },
       { name: 'Installation' },
+    ],
+  },
+  mcp: {
+    title: 'MCP Server & CLI',
+    description: 'Install BoldKit neubrutalism components with AI agents via the @boldkit/mcp MCP server, or from the terminal with npx boldkit add. Supports React and Vue 3.',
+    canonical: `${SITE_URL}/docs/mcp`,
+    breadcrumbs: [
+      { name: 'Home', url: `${SITE_URL}/` },
+      { name: 'Documentation', url: `${SITE_URL}/docs` },
+      { name: 'MCP Server & CLI' },
     ],
   },
   asciiShapes: {
@@ -247,10 +271,10 @@ export const pageSEO = {
     ],
   },
   canvasEffects: {
-    title: 'Canvas Effects — 10 Animated Canvas Components',
-    description: 'Free animated canvas components for React, Vue 3, and Nuxt 3. 10 zero-dependency effects: Aurora, Flow Field, Plasma, Metaballs, Matrix Rain, Particle Web, Lissajous Grid, and more. Fully typed with customisable props.',
+    title: 'Canvas Effects — 23 Animated Canvas Components',
+    description: 'Free animated canvas components for React, Vue 3, and Nuxt 3. 23 effects: Mesh Gradient, Swirl, God Rays, Pulsing Border, Dither, Halftone, CRT, Truchet, Aurora, Lightning, Warp Speed, Gravity Wells, Topography, Voronoi, Flow Field, Plasma, Metaballs, and more. Each pauses off-screen and respects prefers-reduced-motion. Fully typed with customisable props.',
     canonical: `${SITE_URL}/canvas-effects`,
-    keywords: 'canvas animation, react canvas, vue canvas, animated background, aurora effect, particle web, flow field, plasma waves, metaballs, matrix rain, neubrutalism',
+    keywords: 'canvas animation, react canvas, vue canvas, animated background, dither effect, bayer dithering, halftone effect, crt effect, scanlines, truchet tiles, aurora effect, lightning effect, warp speed, gravity wells, topography, voronoi, particle web, flow field, plasma waves, metaballs, matrix rain, neubrutalism',
     breadcrumbs: [
       { name: 'Home', url: `${SITE_URL}/` },
       { name: 'Canvas Effects' },

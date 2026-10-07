@@ -3,13 +3,15 @@
   "name": "dot-wave",
   "description": "Sine-field dot grid — dual crossing sine waves modulate dot size and opacity",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@boldkit/use-canvas-effect"
+  ],
   "files": [
     {
-      "path": "registry/default/ui/canvas-effects/DotWave.vue",
-      "type": "registry:ui",
-      "target": "components/ui/canvas-effects/DotWave.vue"
+      "path": "components/ui/canvas-effects/DotWave.vue",
+      "type": "registry:ui"
     }
   ],
-  "type": "registry:ui"
+  "type": "registry:ui",
+  "title": "Dot Wave"
 }

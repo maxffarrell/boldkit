@@ -8,7 +8,7 @@ import TooltipTrigger from './TooltipTrigger.vue'
 import TooltipContent from './TooltipContent.vue'
 
 const sidebarItemVariants = cva(
-  'flex w-full items-center gap-3 px-3 py-2 text-sm transition-all duration-150',
+  'flex w-full items-center gap-3 px-3 py-2 text-sm transition duration-150',
   {
     variants: {
       variant: {
@@ -50,7 +50,7 @@ const buttonClasses = computed(() =>
 
 <template>
   <!-- With Tooltip when collapsed -->
-  <Tooltip v-if="isCollapsed.value && tooltip">
+  <Tooltip v-if="isCollapsed && tooltip">
     <TooltipTrigger>
       <button :class="buttonClasses">
         <span v-if="slots.icon" class="shrink-0">
@@ -68,7 +68,7 @@ const buttonClasses = computed(() =>
     <span v-if="slots.icon" class="shrink-0">
       <slot name="icon" />
     </span>
-    <span v-if="!isCollapsed.value" class="truncate">
+    <span v-if="!isCollapsed" class="truncate">
       <slot />
     </span>
   </button>

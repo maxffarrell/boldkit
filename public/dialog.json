@@ -1,13 +1,15 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "dialog",
+  "title": "Dialog",
   "description": "A window overlaid on the primary window with neubrutalism borders and shadows",
   "dependencies": [
     "@radix-ui/react-dialog",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/button"
   ],
   "files": [
     {

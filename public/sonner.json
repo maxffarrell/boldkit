@@ -1,12 +1,15 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "sonner",
+  "title": "Sonner",
   "description": "An opinionated toast component with neubrutalism styling",
   "dependencies": [
     "sonner"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/use-theme",
+    "@boldkit/button"
   ],
   "files": [
     {

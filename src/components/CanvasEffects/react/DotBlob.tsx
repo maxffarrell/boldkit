@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
+import { useCanvasEffect } from '@/hooks/use-canvas-effect'
 
 export interface DotBlobProps {
   /** Dot fill color */
@@ -48,18 +49,7 @@ export function DotBlob({
   useEffect(() => { speedRef.current     = speed     }, [speed])
   useEffect(() => { thresholdRef.current = threshold }, [threshold])
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const ctx = el.getContext('2d')!
-    let raf = 0
-
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1
-      el.width = el.offsetWidth * dpr
-      el.height = el.offsetHeight * dpr
-    }
-    resize()
+  useCanvasEffect(ref, (ctx, el) => {
 
     const gauss = (px: number, py: number, cx: number, cy: number, rx: number, ry: number) => {
       const dx = (px - cx) / rx, dy = (py - cy) / ry
@@ -67,7 +57,7 @@ export function DotBlob({
     }
 
     let t = 0
-    const draw = () => {
+    return (_dt, frames) => {
       const GAP       = gapRef.current
       const MAX_DOT   = dotSizeRef.current
       const THRESHOLD = thresholdRef.current
@@ -101,15 +91,9 @@ export function DotBlob({
         }
       }
       ctx.globalAlpha = 1
-      t += 0.032 * speedRef.current
-      raf = requestAnimationFrame(draw)
+      t += 0.032 * speedRef.current * frames
     }
-
-    draw()
-    const ro = new ResizeObserver(resize)
-    ro.observe(el)
-    return () => { cancelAnimationFrame(raf); ro.disconnect() }
-  }, [])
+  })
 
   return (
     <canvas

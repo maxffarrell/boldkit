@@ -5,6 +5,730 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [3.5.4] — 2026-09-20 — Audit pass: accessibility, correctness, and real gates
+
+A full audit of the React and Vue sources (UI, charts, shapes, canvas effects, motion)
+and the fixes for everything it found. No intentional breaking changes.
+
+### Fixed — user-visible bugs
+
+- **Vue charts rendered in ECharts' default colours, not BoldKit's.** The palette and the
+  whole `neubrutalismTheme` were `hsl(var(--token))` strings handed to a **canvas**
+  renderer, which has no CSS cascade — an unresolvable colour assigned to `fillStyle` is
+  silently ignored and the previous value persists. Variables are now resolved against the
+  chart's own element (so scoped themes and dark mode work) and re-resolved when the
+  document theme changes.
+- **`Stepper` could never be completed.** `totalSteps` counted `<StepperItem>` among the
+  root's *direct* children, but every documented composition nests them inside
+  `<StepperList>` — so `totalSteps` was 0, `isLast` was permanently false, "Next" ran past
+  the final step into blank panels and `onComplete` never fired. Counting is now
+  depth-first, with an explicit `totalSteps` prop as an override.
+- **The documented `Stepper` snippet threw on paste.** `<StepperSeparator>` required an
+  item context the docs' own markup doesn't provide. It now renders outside an item.
+- **`Tour` fought the user's scroll.** `scrollIntoView` ran inside the capture-phase scroll
+  handler, so it re-triggered itself through its own smooth animation and pinned the page
+  to the spotlight. Scrolling is now part of the step transition; measurement is
+  rAF-coalesced.
+- **`Carousel` swallowed Arrow keys** from any `<input>`/`<textarea>` inside a slide — it
+  preventDefault'd in the capture phase, so the field never saw the key.
+- **Heatmap and Sankey crashed on `undefined` data** — the memos reading `data` ran above
+  the empty guard, making its `!data` branch unreachable. That is the shape a still-loading
+  fetch passes.
+- **`GaugeChart` zone bounds were read as dial percentages, not data units**, so any
+  `min`/`max` other than 0/100 painted the wrong bands and picked the wrong colour.
+- **`TagInput`'s `delimiter` was compiled as a regex in Vue** — `'.'` split on every
+  character, `'('` threw on every keystroke. It now splits on the literal string, as React
+  always did.
+- **Chart exports were unreadable in dark mode** — a hardcoded white backdrop under
+  near-white inlined text. The backdrop now follows the chart's own background.
+- **`Slider`** called `setState` from inside another updater (double-fired under
+  StrictMode) and produced `NaN` in inline styles when `max === min` or `step === 0`.
+- **Shapes ignored `color` when not filled.** `<Shape filled={false} color="red" />` drew a
+  black outline with no way to recolour it. `color` now drives the outline for unfilled
+  shapes, and a `strokeColor` prop overrides it — across all 110 components.
+- **Vue `canvas-effect-core` was stale**, missing the large-canvas clamping fix React got.
+
+### Fixed — accessibility
+
+- The **docs site ignored `prefers-reduced-motion`**: `src/styles/globals.css` was missing
+  the universal reset the other two stylesheets ship, so all 18 smooth shape presets and
+  the marquee ran at full speed for users who asked for no motion.
+- **JS-driven animation now respects reduced motion** — a CSS media query can't stop a loop
+  that mutates attributes. The two MathCurve components and all 34 ASCII shapes (React
+  factory + 17 Vue SFCs) consult it, react to changes mid-session, and additionally pause
+  off-screen and in background tabs. The Vue ASCII shapes were also missing `aria-hidden`.
+- **`TreeView`** rebuilt to the ARIA tree pattern in both frameworks: one tab stop instead
+  of one per node, Up/Down/Home/End navigation, treeitems actually owned by a `tree`/`group`,
+  no interactive controls nested inside a treeitem, and `aria-selected` only where
+  selection exists.
+- **`Tour`** is now a real modal dialog in both frameworks — role, `aria-modal`, accessible
+  name and description, initial focus, a focus trap, Escape to close, and focus restored on
+  close. Previously Tab wandered onto the page hidden behind the scrim.
+- **`TagInput`** exposes proper combobox/listbox semantics with `aria-activedescendant`, and
+  announces validation errors instead of showing them only visually.
+- **`Dropzone` was mouse-only in Vue** — focusable but Enter and Space did nothing, and the
+  drop target had no name. Its remove buttons now say which file they remove.
+- **`ComboboxMultiTrigger`** chips moved out of the trigger button, so removing one is
+  keyboard-reachable and named rather than a bare unfocusable `<svg onClick>`.
+- **`Stepper`** dropped tab roles it never implemented (no arrow keys, tabs not owned by the
+  tablist) for `aria-current="step"`.
+- **`Rating`** moves DOM focus with its roving tabindex, and a read-only rating is exposed as
+  read-only rather than removed from the accessibility tree.
+- **`GaugeChart` is a `meter`** with its value exposed; **sparklines** have a derived
+  accessible name; **heatmaps** no longer hide their own labelled cells behind `role="img"`
+  or put hundreds of nameless cells in the tab order; **Sankey** ships a visually-hidden
+  table alternative to its hover-only tooltip; **every Vue chart** accepts `ariaLabel`.
+- **`Marquee`**'s duplicated track is `inert`, and it pauses on keyboard focus, not just hover.
+
+### Fixed — things the registry shipped broken
+
+- `motion.css` declared `--shadow-color: var(--shadow-color, …)`, which is self-referential
+  and therefore invalid — every `.bk-press` / `.bk-pulse-shadow` shadow resolved to nothing
+  for anyone installing it standalone.
+- The `styles` item shipped `globals.css` without `motion.css` in **both** frameworks, so
+  consumers got a dangling `animation: bk-stamp-in` and none of the six motion recipes.
+- `registry/default/ui/chart.tsx` had drifted: a legend `key` bug src had already fixed,
+  and `useChart` / `ChartContext` / `THEMES` / `getPayloadConfigFromPayload` / the tooltip
+  and legend prop types unexported. The entire chart **annotations** API shipped nowhere at
+  all and is now bundled.
+
+### Fixed — tooling
+
+- **`npm run typecheck` checked zero files.** The root `tsconfig.json` is a solution file
+  (`"files": []` plus references), so `tsc --noEmit` against it was a no-op. It now checks
+  both projects.
+- **ESLint's 1907 warnings were 77% template formatting**, burying the two that mattered.
+  Formatting rules are off (that is Prettier's job); output is down to 1.
+
+### Added — guards, so these can't come back
+
+- `stylesheet-parity.test.ts` enforces the five-stylesheet rule that has now shipped broken
+  three times: token and rule parity across the three `globals.css`, byte identity of the
+  two `motion.css`, every `animation:` resolving to a reachable `@keyframes`, no
+  self-referential custom properties, and a reduced-motion reset in each.
+- The registry sync script asserts the hand-maintained chart bundle exports a superset of
+  the modules it bundles.
+- Tests: 677 → 839 (React), 114 → 313 (Vue), covering every fix above plus the first
+  coverage for shapes, TreeView, Tour, the pickers and the chart a11y surface.
+
+### Changed
+
+- Vue charts accept React's `emptyState` prop name; `emptyMessage` still works.
+- `DatePicker` gained `defaultValue`. It, `TimePicker` and `DateRangePicker` now decide
+  controlled-ness from whether the `value` prop is *present*, latched on first render —
+  `undefined` is a legal controlled value for an optional date, so the ordinary
+  `useState<Date>()` pattern used to start uncontrolled and silently flip on first pick.
+- `Rating`, `DatePicker`, `TimePicker`, `DateRangePicker` and `Sidebar` forward refs and
+  rest props. `Sidebar`'s mobile branch previously dropped `ref`, `className` and `...props`
+  entirely, so the same component honoured different props depending on viewport width.
+
+### Known divergences (not changed — these need a breaking release)
+
+- `variant` means chart *geometry* in React but container *style* in Vue.
+- `RadialBarChart` scales to `max(values)` in React and `max(values) * 1.2` in Vue.
+- `RadarChart`'s `showLegend` defaults `true` in React, `false` in Vue.
+- `height` is a number of pixels in React, a CSS string in Vue.
+
+---
+
+## [3.5.3] — 2026-08-30 — Green CI: 155 lint errors cleared
+
+CI had been failing since May 2026. Because Lint ran first, every typecheck, test and build step
+was skipped — including the Vue CanvasEffects typecheck added in v3.5.2. All 155 errors are now
+fixed and the pipeline runs end to end.
+
+Roughly two thirds turned out to be misconfiguration rather than bad code:
+
+### Fixed — configuration
+
+🩹 **54 false positives from the plain-JS `no-unused-vars` rule running on TypeScript `.vue` files.**
+It read the parameter names inside type annotations — `PropType<(id: string) => void>`,
+`isDateUnavailable?: (date: DateValue) => boolean` — as unused runtime params. Renaming them to
+`_id` would have silenced the rule while making the types less readable; the TS-aware rule is used
+instead.
+
+🩹 **`vue/multi-word-component-names` (49) disabled for the component library.** `Button.vue`,
+`Card.vue` and `Alert.vue` are the public API. The rule guards app components against colliding with
+HTML elements, which doesn't apply to a namespaced kit installed via the shadcn CLI.
+
+🩹 **Underscore-prefixed bindings are now honoured** as the existing "deliberately unused" marker.
+
+🩹 **`no-undef` off for `.vue` files** — they're TypeScript, which already reports undefined
+identifiers and understands bundler-replaced `process.env.NODE_ENV`. This is why the React
+`ErrorBoundary` using the identical expression was never flagged.
+
+🩹 **`.claude/` excluded from linting.** It holds stale git worktrees — whole second copies of the
+repo — that contributed 76 duplicate errors locally.
+
+### Fixed — code
+
+🐛 **Cascading renders removed from six components.** `Header`, `CanvasSettings`, `settings-page` and
+`Tour` synced state from props inside an effect; they now adjust during render, React's documented
+pattern, so no component paints a stale value for a frame first.
+
+🐛 **`useIsMobile` rewritten with `useSyncExternalStore`.** It rendered once with `undefined`, then
+set state in an effect — a cascading render and a frame of desktop layout on a phone.
+
+🐛 **`DotMatrixStudio` shape preview no longer reads a ref during render.** It used a ref plus a tick
+counter rendered into a hidden `<span>` to force updates; the preview is now state, and the hack is
+gone.
+
+🐛 **Latest-ref writes moved out of render** in `AnimationPanel` and `useExport`.
+
+🐛 **`KbdCombo.vue` no longer duplicates Kbd's `cva` block.** Twenty lines of class strings were kept
+alive purely to derive a type and were never applied — a silent drift hazard against the styles
+`Kbd.vue` actually uses.
+
+### Internals
+
+Three genuine false positives in React's new hooks rules (`react-hooks/refs` on a render-prop call
+built from `useState` values, `static-components` on a lucide icon lookup, `set-state-in-effect` on
+Embla's imperative init) carry targeted suppressions with reasons rather than contorted code.
+
+---
+
+## [3.5.2] — 2026-08-29 — Canvas lifecycle & 4 new effects
+
+Every CanvasEffect used to hand-roll the same four concerns — size the backing store, start a rAF
+loop, observe resize, cancel on teardown. None paused when scrolled out of view, none paused in a
+background tab, none capped the pixel count on a 4K display, and none respected
+`prefers-reduced-motion`. That was 19 effects × 2 frameworks each burning a core rendering pixels
+nobody could see. This release moves all of it into one shared lifecycle, and adds four new effects
+on top of it.
+
+### Added
+
+✨ **Four new canvas effects** — React and Vue, inspired by the paper-shaders catalogue:
+- **Mesh Gradient** — drifting colour control points blended per pixel, with a `steps` prop that
+  posterises the field into hard screen-printed bands
+- **Swirl** — colour bands wound into a spiral by radius; razor-sharp by default, `softness` to blend
+- **God Rays** — a fan of volumetric light wedges radiating from a configurable source
+- **Pulsing Border** — light spots orbit a frame and bleed inward, leaving the centre clear for content
+
+✨ **`useCanvasEffect`** (React hook) and **`useCanvasEffect`** (Vue composable) over a new
+framework-agnostic `canvas-effect-core`, mirroring the existing `motion-core` → adapter split. An
+effect now describes how to paint one frame; the lifecycle owns everything else.
+
+✨ **`onReducedMotionChange`** in `motion-core` — `prefersReducedMotion()` is a point-in-time read,
+which is enough for a one-shot animation but not for a long-lived loop that must stop the moment the
+user flips the OS setting.
+
+### Behaviour changes
+
+🩹 **Effects pause when off-screen or backgrounded.** An IntersectionObserver and `visibilitychange`
+cancel the rAF outright rather than looping with a no-op frame, so a paused effect costs nothing.
+
+🩹 **Backing stores are capped at ~4M pixels** and sized from `devicePixelContentBoxSize` where
+available. A full-bleed canvas on a 4K display was allocating ~8.3M pixels per frame of per-pixel JS.
+
+🩹 **Motion is refresh-rate independent.** Effects advanced time per *frame*, so they ran at double
+speed on a 120Hz display. Frame callbacks now receive a normalised delta. Alpha-based trails
+(Matrix Rain, Flow Field, Gravity Wells, Warp Speed) compound over that delta so trail length is
+unchanged between 60Hz and 120Hz.
+
+🩹 **`prefers-reduced-motion` renders one static frame** instead of animating, and reacts live.
+
+### Fixed
+
+🐛 **`Halftone` pointer listeners were unreachable** in both frameworks — registered after the frame
+function returned, so hover interaction never worked.
+
+🐛 **`Truchet` and `Halftone` mis-scaled** their tile size, line width, gap and cursor position; the
+device-pixel ratio they multiplied by was never assigned.
+
+🐛 **`Truchet`'s category badge was invisible** on the docs site — `#0a0a0a` text on its `#111111`
+accent. Badge text colour is now derived from the accent's relative luminance.
+
+🐛 **`FlowField` had drifted out of parity** between React and Vue.
+
+🐛 **`MouseRipple` drew into a quarter of its canvas** at DPR 2 — it draws in CSS pixels, and the
+scale transform is now re-applied by the lifecycle on every resize (assigning `canvas.width` resets it).
+
+### Internals
+
+🔬 **The Vue CanvasEffects had no automated coverage.** They live outside every `tsconfig` and every
+vitest project, so they shipped to consumers unchecked — which is how the parity drift above survived.
+Added `typecheck:vue-canvas` and a 48-test suite covering all 23 Vue effects, plus a matching 48-test
+React suite and 14 lifecycle tests. `bun run test:vue` runs the Vue project.
+
+🔬 **Registry:** `canvas-effect-core` and `use-canvas-effect` ship as their own items in both
+registries; all 38 canvas-effect items declare the dependency, so a `shadcn add` of any effect pulls
+the lifecycle with it.
+
+---
+
+## [3.5.1] — 2026-08-11 — Accessibility sweep, live CTAs & audit fixes
+
+A six-pass audit of everything shipped since v3.4.8, across React and Vue. 30+ bugs fixed, two
+regression guards added. Every fix is non-breaking except where noted under **Behaviour changes**.
+
+### Accessibility
+
+♿ **Icon-only controls given accessible names — 20 of them.** Templates, blocks and UI components had
+interactive controls whose only content was a lucide icon, which lucide marks `aria-hidden`. Screen
+readers announced them as bare "button" — including the blog pagination pair, where previous and next
+were indistinguishable. Now covered by a CI guard (`npm run audit:icon-labels`).
+
+♿ **Data conveyed only by icons now has text equivalents.** `ComparisonTable` (both frameworks) and
+`PricingTemplate` rendered ✓/✗ cells that read as *empty* to assistive tech — the entire payload of a
+comparison table. Added `sr-only` labels, plus `scope="col"`/`scope="row"` so cells are announced with
+their feature and column.
+
+♿ **Selection state exposed, not just styled.** `aria-pressed` on the accent-colour swatches and theme
+buttons, `aria-current="page"` on the dashboard nav. `ProductTemplate`'s colour radios had no accessible
+name at all — their `<Label>` contained only an aria-hidden check.
+
+♿ **`Rating` could become keyboard-unreachable.** Roving tabindex matched `Math.ceil(value)`; an
+out-of-range value matched no star, so every star fell to `tabIndex={-1}` and the group left the tab
+order. Now clamped. React also announced "1 stars"; Vue already singularised.
+
+### Bug fixes
+
+🐛 **`Progress` clamped to 100 regardless of `max`** (React + Vue). `<Progress max={200} value={150} />`
+rendered a full bar while reporting `aria-valuenow=100` against `max=200` — visual and AT disagreeing.
+Vue was a regression from v3.5.0; it also silently dropped `getValueText`.
+
+🐛 **Vue registry shipped a dangling `@import`.** `public/r/vue/styles.json` carried
+`@import './motion.css'` without shipping that file, breaking `shadcn-vue add .../styles.json` on a
+clean project. The rules were already inlined, so the import was redundant. The build now strips it and
+throws on any relative import with no shipped sibling.
+
+🐛 **Vue `DocsTemplate` called `navigator.clipboard` unguarded** — an unhandled rejection on `http://`
+or older browsers, and the button still claimed "COPIED". Now routed through a `copyToClipboard` helper
+mirrored from React. React's copy button gained the timer cleanup Vue already had.
+
+🐛 **MCP server misdescribed its own catalog.** `search_components` and `list_components` advertised
+blocks and templates; the catalog contains neither, so an agent would confidently report they don't
+exist. `get_install_command` also returned a bare `npx shadcn@latest add` with no URLs when nothing
+resolved. Both fixed.
+
+🐛 Misc: `ChartLoading` missing from the Vue barrel; `data-bk-transition` was sticky and bled page
+transitions into the theme toggle (now scoped per navigation via `startViewTransition(cb, recipe)`);
+`use-theme` couldn't heal a root carrying both `light` and `dark`; `ErrorPages.vue`'s countdown ticked
+forever after expiry.
+
+### Behaviour changes
+
+⚠️ **`LogoCloudWithStats` no longer truncates.** It hard-capped at 9 logos, dropping the rest with a
+`console.warn` that fired in production on every render. It now renders all logos; pass `maxLogos` to
+restore a cap.
+
+✨ **Pricing CTAs are live.** `PricingTier` gains `ctaHref` / `onCtaClick` (React) and a `ctaClick` emit
+(Vue); `CheckoutSummary` gains `onCheckout` / `checkoutLabel`. Previously these buttons did nothing.
+Hrefs go through `safeHref`.
+
+✨ **Settings appearance persists.** `SettingsPage` rendered `<AppearanceSettings />` with no props, so
+theme buttons were dead and nothing survived a reload. Now persisted to `localStorage` under
+`boldkit-settings-appearance`, same key and shape in both frameworks, guarded against private mode.
+
+### Documentation
+
+📖 **Blocks and templates are documented as copy-paste only.** They are not registry items in either
+framework — `shadcn add` cannot install one and the MCP catalog cannot surface one. `CLAUDE.md`
+previously claimed otherwise. Making them installable remains open feature work.
+
+### Tooling
+
+✅ React tests 590 → 610, Vue 59 → 66, MCP 12 → 14. New guards: `audit:icon-labels` (fails on any
+unnamed icon-only control, with a vetted-exceptions map) and the Vue registry dangling-import check.
+`src/lib/motion-core.ts` was never in the sync script's `LIB_FILES`, so its registry mirror could drift
+silently — added.
+
+### Bumps
+
+- React: `3.5.0 → 3.5.1`
+- Vue: `3.3.0 → 3.3.1`
+- `@boldkit/mcp`: `0.1.0 → 0.2.0`
+- `boldkit` (CLI): `0.1.4 → 0.1.5`
+
+> Note: v3.5.0 shipped without a CHANGELOG entry; see the
+> [v3.5.0 release](https://github.com/ANIBIT14/boldkit/releases/tag/v3.5.0) for its notes.
+
+---
+
+## [3.4.9] — 2026-07-21 — Multi-step forms, chart annotations, dark-mode audit & 5 blocks
+
+Four independent workstreams, React + Vue parity throughout.
+
+### Features
+
+🧩 **Multi-step form primitives.** A dependency-free form-state layer (`useMultiStepForm` + `<MultiStepForm>`) that composes with the existing Stepper: per-step validation gates forward navigation, `submit()` fires only on the last step. React + Vue registry items + `/components/multi-step-form` docs with a validated 3-step wizard demo. No new dependency.
+
+📊 **Chart annotations — unified API.** One author-facing vocabulary (`referenceLine`, `callout`, `arrow`) mapped to Recharts (`renderChartAnnotations` → `ReferenceLine`/`ReferenceDot`, React) and echarts (`annotationsToEChartsOption` → `markLine`/`graphic`, Vue). Same annotation objects author in both frameworks. Reference lines require a Cartesian chart; callouts/arrows are data-anchored. Demo on the Charts page (Styles tab).
+
+🧱 **5 new blocks (React + Vue).** Pricing/checkout, Bento grid, Changelog/Roadmap, Comparison table (marketing) and Dashboard layout (application) — composed from existing components, with Blocks-page entries, previews, and doc pages.
+
+### Accessibility
+
+🌗 **Dark-mode contrast audit + fixes + report.** New `scripts/audit-contrast.ts` computes WCAG contrast ratios over every semantic token pair in light **and** dark modes (4.5:1 text / 3:1 UI). Fixed 3 failing pairs — `destructive` `60% → 47%` and light `muted-foreground` `46% → 38%` (across all three `globals.css` copies). Results render as a "Dark-mode contrast" section on `/accessibility` (`contrast-report.json`); the audit is wired into the build and gates on failure.
+
+### Tooling & quality
+
+✅ React tests 532 → 550 (multi-step form ×5, chart annotations ×6, contrast audit ×7); Vue tests add multi-step form + annotation mapper suites. `contrast` added to `build`/`build:ci`.
+
+### Bumps
+
+- React: `3.4.8 → 3.4.9`
+
+---
+
+## [3.4.8] — 2026-07-19 — Platform/DX: MCP server, CLI & WCAG matrix
+
+The v3.7.0 Platform/DX milestone, shipped early: install BoldKit from an AI agent or the terminal, and a published per-component accessibility matrix.
+
+### Features
+
+🤖 **`@boldkit/mcp` — MCP server** (new package, `packages/mcp`). Lets Claude Code, Cursor, or any MCP client install components by natural-language description — for **both React and Vue**. Five tools: `search_components` (scored keyword search over a build-time catalog of all 114 registry items), `get_component`, `get_install_command`, `install_components` (shells out to `shadcn` / `shadcn-vue` — no reimplemented resolvers), and `list_components`. Framework auto-detected from the target project's package.json. Setup: `claude mcp add boldkit -- npx -y @boldkit/mcp`.
+
+⌨️ **`boldkit` CLI** (new package, `packages/cli`). `npx boldkit add button card`, `npx boldkit search "toast"`, `npx boldkit list` — auto-detects React vs Vue, maps names to hosted registry URLs, delegates the install to the right shadcn CLI. `--react`/`--vue`/`--dry-run` flags. Shares its core with `@boldkit/mcp`.
+
+📊 **Published WCAG AA matrix at `/accessibility`.** Per-component axe-core results generated from the real CI test run (not a hand-maintained table), rendered as a matrix with honest "not yet automated" gaps. Raw data at `/a11y-report.json`. New `/docs/mcp` page documents the MCP server + CLI.
+
+### Fixes
+
+🐛 **Rating had a nested-interactive violation (React + Vue).** The `role="slider"` container (focusable) wrapped focusable star buttons — axe `nested-interactive`. Rating is now a `role="group"` of toggle buttons with a roving tabindex and `aria-pressed` state; the group label announces the current value and arrow keys still work via bubbled keydown. Caught by the new matrix generation.
+
+### Tooling & quality
+
+✅ **a11y coverage 19 → 30 components** (adds kbd, spinner, skeleton, stat-card, toggle, sticker, marquee, tag-input, rating, pagination, label); fixtures extracted to `src/test/a11y-fixtures.tsx` and the suite now emits the a11y report consumed by `/accessibility`.
+
+🏗 **Monorepo:** root package renamed `boldkit-site` (private) so the CLI package owns the `boldkit` npm name; workspaces now `vue` + `mcp` + `cli`; `registry:build` gained a final `build-mcp-catalog` step so the MCP catalog can never go stale. _npm publish of `boldkit` + `@boldkit/mcp` is a separate manual step (scope ownership to verify)._
+
+### Bumps
+
+- React: `3.4.7 → 3.4.8`
+- New: `@boldkit/mcp 0.1.0`, `boldkit` (CLI) `0.1.0`
+
+---
+
+## [3.4.7] — 2026-07-18 — Codebase audit: SSR, a11y, tests & theme presets
+
+A prioritized audit pass — fixing correctness/DX findings and shipping installable theme presets.
+
+### Fixes
+
+🐛 **Vue `useTheme` crashed under SSR (Nuxt).** The provider's `watch(theme, …, { immediate: true })` touched `window.document` during `setup`, which runs on the server — a `ReferenceError` before hydration. Both the provider watcher and the fallback `updateTheme` now bail when `window` is undefined. Ships in the `use-theme` registry item.
+
+🐛 **Slider thumb had no accessible name (React + Vue).** The custom Slider spread `aria-label` onto the wrapper `<div>`, not the `role="slider"` thumb, so screen readers announced an unnamed slider (axe: `aria-input-field-name`). `aria-label` / `aria-labelledby` now forward to the thumb; the Vue thumb also gained `aria-valuetext` for parity. Surfaced by the expanded a11y suite.
+
+### Tooling & quality
+
+✅ **Vue now has automated tests.** Added Vitest + Vue Test Utils to `@boldkit/vue` (previously zero coverage) with a baseline for `useThemeProvider`/`useTheme` (incl. the SSR regression), `useIsMobile`, and `Button`. Wired into CI.
+
+✅ **a11y coverage 7 → 19 components.** Extended the axe suite to Tabs, RadioGroup, Select, Slider, Progress, Textarea, Accordion, Table, Breadcrumb, Avatar, Separator, and ToggleGroup.
+
+✅ **CI now verifies the full delivery pipeline.** New `build:ci` step runs typegen + `vite build` + `registry:build` + SSG (skips the SEO-only prerender), so registry/build breakage can no longer ship green.
+
+🧹 **Repo hygiene.** Removed a stray untracked `package-lock.json` and gitignored non-bun lockfiles (repo is bun-only); deleted two dead, unreferenced scripts (`generate-examples.js`, `migrate-doc-sources.ts`).
+
+### Features
+
+🎨 **Theme presets ship as CSS-vars-only swaps.** The 14 builder presets are now emitted to `public/themes/<slug>.css` (+ `index.json`) at build time from a shared source (`src/config/theme-presets.ts`), with a per-preset download in the Theme Builder. Drop a file into your `globals.css` to reskin. _Note: presets swap primary/secondary/accent over BoldKit's default neutrals — full per-preset neutral palettes are a later design pass._
+
+### Bumps
+
+- React: `3.4.6 → 3.4.7`
+- Vue: `3.2.6 → 3.2.7`
+
+---
+
+## [3.4.6] — 2026-07-14 — Vue components all build on Nuxt
+
+Installing and building the **entire** Vue library in a real Nuxt 4 project surfaced latent SFC compile errors — components BoldKit's own app never compiled (unused ones are tree-shaken, and `vue-tsc` doesn't enforce these compiler-only rules).
+
+### Fixes
+
+🐛 **`<script setup>` cannot contain ES module exports.** Eight components declared an injection-key `export const … = Symbol()` inside `<script setup>`, which fails the consumer's build: **Carousel, Dropzone, ChartContainer, ToggleGroup, Timeline, SidebarProvider, Stepper, StepperItem**. Each injection key (and any cross-imported context type) now lives in a paired `<script>` block.
+
+🐛 **`GaugeChart` — `defineProps()` cannot reference a local variable.** `withDefaults` referenced a setup-local `DEFAULT_ZONES`, which gets hoisted out of `setup()`. Moved `DEFAULT_ZONES` + `GaugeChartZone` to module scope.
+
+Verified end-to-end: all **364** components compile in a single Nuxt 4 build, `vue-tsc` clean.
+
+### Bumps
+
+- React: `3.4.5 → 3.4.6`
+- Vue: `3.2.5 → 3.2.6`
+
+---
+
+## [3.4.5] — 2026-07-13 — Nuxt compatibility, motion a11y & SEO prerender
+
+Makes BoldKit install cleanly on **Nuxt 4** (verified end-to-end in a real project), plus an animation-audit pass and a docs-site SEO upgrade.
+
+### Fixes
+
+🐛 **Nuxt / srcDir component resolution (#10).** The Vue registry pinned every file to a hardcoded `components/ui/…` target, which shadcn-vue resolves relative to the project root — so on Nuxt 4 (where `@/` → `app/`) files installed to `./components/ui` while imports pointed at `./app/components/ui`. Files now ship without hardcoded targets and place under whatever your aliases resolve to.
+
+🐛 **Alias-relative registry paths (#10).** `@boldkit/utils` (and other lib/composable items) mis-installed to `app/lib/default/lib/utils.ts` when added alongside a component, because the `registry/default/` path prefix collapsed the CLI's common-root computation. Paths are now alias-relative (`components/ui/…`, `lib/…`, `composables/…`), matching upstream shadcn-vue. Verified live on Nuxt 4.
+
+🐛 **Docs showed a barrel import that doesn't exist (#10).** Every Vue usage example used `import { Button } from '@/components/ui'`, but the registry ships individual `.vue` files with no barrel — so consumers copying the docs hit "cannot find module". All 66 pages now show per-file default imports.
+
+🩹 **Vue `ui` barrel synced with disk** (internal); **Nuxt `componentDir` docs** added for auto-import.
+
+### Motion (React + Vue)
+
+♿ **Universal `prefers-reduced-motion` guard** added to the shipped theme — hand-rolled `transition-all` hover effects now honor reduced-motion.
+⚡ **`transition-all` → scoped `transition`** everywhere (verified zero visual change).
+🎯 **Overlays scale from their trigger**, not center (Radix/Reka transform-origin vars).
+⌨️ **Command palette fades** instead of zooming (high-frequency ⌘K).
+
+### Docs site
+
+🚀 **Route prerendering** — every docs route now ships fully-rendered HTML for crawlers and JS-less AI crawlers, instead of an empty `#root`.
+
+### Bumps
+
+- React: `3.4.4 → 3.4.5`
+- Vue: `3.2.4 → 3.2.5`
+
+---
+
+## [3.4.4] — 2026-07-06 — Chart export fidelity & fullscreen fixes
+
+Patch fixes for the `<ChartToolbar>` shipped in 3.4.3, across React and Vue.
+
+### Fixes
+
+🐛 **PNG / SVG export now downloads the chart, not a toolbar icon.** The export grabbed the container's first `<svg>` — which was a toolbar *button icon*, not the chart — so downloads came out as a tiny glyph. It now skips the toolbar controls and serializes the actual chart.
+
+🐛 **Exports keep their colors in every viewer.** A chart's colors come from CSS variables (`hsl(var(--primary))`) and external stylesheets, neither of which survive serialization. The export now resolves each element's *computed* style to concrete colors and writes them as presentation **attributes** (not just inline style) plus an opaque white backdrop — so Preview, Quick Look, Illustrator, and browsers all render the real chart, not a colorless outline.
+
+🐛 **Fullscreen no longer leaves a black gap.** A fullscreened chart kept its fixed height, letting the browser's black backdrop show through below it. The container now takes the page background and lays the chart out with a definite height (`flex: 1`), so Recharts' `ResponsiveContainer` and ECharts' `autoresize` grow to fill — no black bars.
+
+🩹 **Crisper canvas exports.** ECharts (canvas) PNGs are composited onto white so a transparent chart background doesn't export as black.
+
+### Bumps
+
+- React: `3.4.3 → 3.4.4`
+- Vue: `3.2.3 → 3.2.4`
+
+---
+
+## [3.4.3] — 2026-07-06 — Vue Motion parity, chart export toolbar & CI
+
+A parity-and-foundation release. The headline: the **Vue `<Motion>` adapter** promised in 3.4.2 now ships, closing the last framework gap in the motion system. Alongside it, a new **chart export toolbar** for both frameworks, real **CI**, automated **accessibility** tests, and repo cleanup.
+
+### Highlights
+
+✨ **Vue Motion adapter — parity with React.** `<Motion>`, `<Reveal>`, and `<Stagger>` components plus `useShake` / `useViewTransition` composables now ship for Vue, wrapping the same framework-agnostic `motion-core`. New Vue registry items `motion` + `motion-core` mirror the React `motion-core` / `motion-react` split. The full six-recipe motion language is now identical across React and Vue.
+
+✨ **Chart export toolbar (React + Vue).** New `<ChartToolbar>` wraps any chart with a brutalist overlay to export **PNG**, **SVG**, or **CSV**, and toggle **fullscreen**. Engine-agnostic — it reads the wrapped `<svg>` (Recharts) or `<canvas>` (ECharts), so one shared `chart-export` core drives both frameworks. Registry items: `chart-export` + `chart-toolbar`.
+
+♿ **Automated accessibility.** `axe-core` now runs in the test suite over core components (Button, Input, Label, Badge, Alert, Card, Checkbox, Switch), so a11y regressions fail CI instead of waiting for a manual audit.
+
+🩹 **Continuous integration.** A real CI pipeline (lint + React `tsc` + Vue `vue-tsc` + tests + registry audit) replaces the old React-Native-only workflow.
+
+🧹 **Removed the phantom `react-native` package.** It carried no source — only an Expo example and committed build cache — and is now deleted. `.gitignore` hardened against Expo/Android/iOS build artifacts.
+
+### Docs
+
+- New live docs at **`/components/chart-toolbar`** (React demo + Vue snippets).
+- Vue `<Motion>` examples on **`/components/motion`** are now backed by a real, installable adapter.
+
+### Notes
+
+- No breaking changes. All existing React and Vue components are untouched.
+- Vue Motion installs via `npx shadcn-vue@latest add @boldkit/motion` (pulls `motion-core` transitively).
+
+### Bumps
+
+- React: `3.4.2 → 3.4.3`
+- Vue: `3.2.2 → 3.2.3`
+
+---
+
+## [3.4.2] — 2026-06-18 — Motion system + buttery component retrofit
+
+The signature **"hard look, buttery feel"** release. Neubrutalism's reputation is harsh and static — this patch keeps the hard visual language (3px borders, 4px offset shadows, sharp corners) but gives every interaction a premium, settled motion so the kit *feels* world-class to use.
+
+### Highlights
+
+✨ **Motion system (React).** New `motion`, `motion-core`, and `motion-react` registry items. A framework-agnostic, zero-runtime CSS core (`--bk-*` tokens, canonical keyframes, a reduced-motion guard) drives six signature recipes — `press`, `stamp-in`, `shake`, `reveal`, `slide-hard`, `pulse-shadow` — exposed through `<Motion>`, `<Reveal>`, `<Stagger>` components plus `useShake` / `useViewTransition` hooks. SSR-safe. Live docs at `/components/motion`.
+
+✨ **Buttery retrofit, by default (React + Vue).** Button, Card, Input, Toggle, and Switch now route their press/hover/focus through a shared `.bk-interactive` timing on a new **snap** easing curve — the chunky shadow-collapse *settles* with a small overshoot instead of a flat slide. Easing is split: overshoot applies only to `transform`/`box-shadow`, while colour/border/opacity stay on a smooth `ease-out` (no hover flicker).
+
+🩹 **`.bk-press` press choreography.** Animates `transform` + a hard offset `box-shadow` (composes correctly with a background colour), replacing an earlier pseudo-element approach that could invert under the hover transform.
+
+♿ **Reduced-motion throughout.** Every recipe and the `.bk-interactive` timing collapse to near-instant under `prefers-reduced-motion: reduce`; reveals show their content immediately.
+
+### Notes
+
+- The Vue **`<Motion>`/`<Reveal>` adapter** is not in this release — the buttery **retrofit** ships for Vue now; the Vue adapter components follow in a focused update.
+
+### Bumps
+
+- React: `3.4.1 → 3.4.2`
+- Vue: `3.2.1 → 3.2.2`
+
+---
+
+## [3.4.1] — 2026-06-10 — Custom easing system + docs Theming fix
+
+A motion-polish + docs fix patch. Every transition and animation in BoldKit now runs on a **custom easing system** based on the [animations.dev](https://animations.dev/learn/animation-theory/the-easing-blueprint) easing blueprint — the browser's built-in `ease-out` / `ease-in-out` curves are too weak to read as "snappy" on hard neubrutalist surfaces, so they're replaced with stronger custom `cubic-bezier` curves. Applied identically across **React and Vue 3**.
+
+### Highlights
+
+✨ **Custom easing tokens.** New `--ease-out` (out-quart), `--ease-in-out` (in-out-cubic), and `--ease-in` design tokens in `@theme`, plus a named scale (`--ease-out-quad…expo`, `--ease-in-out-quad…quint`) sorted weakest→strongest. `--default-transition-timing-function` is now `ease-out`, so every `transition-*` utility gets responsive motion for free.
+
+✨ **Every animation retrofitted.** ~37 keyframe animations per stylesheet (accordion, collapsible, bounce, pop, shake, wiggle, jello, etc.) now reference the easing tokens. Continuous `linear` motion (marquee, spin) and the caret blink are intentionally left untouched.
+
+🩹 **Overlays animate with intent.** All 16 React + 18 Vue overlay components (Popover, Dialog, Dropdown, Tooltip, Sheet, Select, Menubar, Context Menu, Hover Card, Command, Tour, …) now apply the custom `ease-out` curve on enter/exit instead of falling back to the browser default.
+
+🐛 **Docs "Theming" opens the full Theme Builder.** The Theming entry in the docs sidebar was rendering the Theme Builder embedded in the narrow docs column, where it didn't lay out fully. It now opens the standalone full-width `/themes` page in a new tab.
+
+### Bumps
+
+- React: `3.4.0 → 3.4.1`
+- Vue: `3.2.0 → 3.2.1`
+
+---
+
+## [3.4.0] — 2026-06-08 — 9 new components + Vue parity
+
+Closes the longest-standing gap against the shadcn component set: BoldKit now ships every classic Radix/Reka primitive. **Nine new components**, each with full React **and** Vue 3 parity, installable via the registry. Plus a manifest-driven docs refactor and a batch of UI fixes surfaced while building them.
+
+### Highlights
+
+✨ **Four classic primitives, finally.** **Context Menu** (right-click menus), **Menubar** (desktop-style app toolbars), **Navigation Menu** (site nav with dropdown panels), and **Resizable** (draggable split panes / dashboard layouts) — neubrutalized over Radix (React) and Reka UI (Vue). These were the only standard shadcn components BoldKit didn't have.
+
+✨ **Five form/layout adds.** **Button Group**, **Input Group** (inputs with leading/trailing addons), **Field** (label + control + description + error composition), **Native Select** (a11y-first styled `<select>`), and a single **Date Picker** (button → calendar popover) to complement the existing Date Range Picker.
+
+✨ **Full Vue 3 parity for all nine.** Every new component ships matching Reka UI implementations and `r/vue/*.json` registry entries — no "coming soon" placeholders.
+
+🐛 **Resizable vertical panels no longer collapse.** `react-resizable-panels` sets an inline `height:100%` that overrides a `h-*` class; demos and docs now use `min-h-*` (the documented pattern) so vertical groups size correctly. The npm dep is pinned to `react-resizable-panels@^2.1.0` so consumers get the matching API.
+
+🐛 **Navigation Menu dropdown renders reliably.** Reworked to render its panel in place (the Radix viewport's measured-height mechanism was collapsing the panel to zero).
+
+🩹 **Date Range Picker presets restyled** as proper neubrutalist buttons (hard border + shadow + press), and the single **Date Picker** now correctly tracks a controlled `value`.
+
+### Internals
+
+- **Docs routes are now manifest-driven.** `src/config/component-docs.tsx` is the single source for every component/block doc route; `App.tsx` maps over it (shrank from 336 → ~165 lines). Adding a component is a one-line entry.
+- New components are registered in the command palette (⌘K) search and the sitemap + `llms-full.txt`.
+- `ComponentDoc` gained an opt-in `previewClassName` (used to give the Navigation Menu preview headroom for its open dropdown).
+
+### Bumps
+
+- React: `3.3.9 → 3.4.0`
+- Vue: `3.1.9 → 3.2.0`
+
+---
+
+## [3.3.9] — 2026-05-29 — Next.js + Tailwind v4 compatibility
+
+Three install-time bugs reported against v3.3.8 — all in the path between BoldKit's docs/registry and a fresh Next.js + Tailwind v4 + shadcn project. None affect existing Vite users.
+
+### Highlights
+
+🩹 **`import.meta.env.DEV` no longer breaks Next.js builds** (#8). Five components emitted Vite-only `import.meta.env.DEV` reads — fine under Vite, fatal under `next build` because Next.js does not type `ImportMeta.env`. Replaced with `process.env.NODE_ENV === 'development'` everywhere (works in both Vite and Next): React `ErrorBoundary`, `Tour`, `Slider`, `SankeyChart`, `Invoice` block, and the Vue `ErrorBoundary` (hoisted to an `isDev` const so the template binding stays SSR-safe). Registry JSONs regenerated.
+
+🩹 **Theme Builder now emits a Tailwind v4 `@theme` bridge** (#7). The generator at `/theme-builder` shipped only `:root { --background: 60 9% 98%; }` etc. — raw HSL channels with no `--color-*` mapping. Pasted into a Tailwind v4 + shadcn project that expects `--color-background: var(--background)`, the utilities resolved to `background-color: 60 9% 98%` (invalid). Generator now prepends a full `@theme { --color-background: hsl(var(--background)); … }` block matching the shipped registry styles, plus the `--radius-sm/md/lg/xl` shorthands. Every preset funnels through `generateCSS()`, so all themes inherit the fix.
+
+🩹 **Registry alias docs use the `{name}.json` template** (#9). shadcn 4.x requires the templated item URL in the `registries` map — BoldKit's install docs showed `"@boldkit": "https://boldkit.dev/r"` (and Vue `…/r/vue`), which fails to resolve `@boldkit/button`. Updated Installation page, Introduction page (both copy-buttons), and README to:
+- React: `https://boldkit.dev/r/{name}.json`
+- Vue: `https://boldkit.dev/r/vue/{name}.json`
+
+### Internals
+
+- `tsconfig.app.json` now includes `"node"` in `types` and adds `@types/node` to devDeps — required so the new `process.env.NODE_ENV` reads type-check under BoldKit's own `tsc -b`. Downstream Next.js users already have these via Next.
+
+### Bumps
+
+- React: `3.3.8 → 3.3.9`
+- Vue: `3.1.8 → 3.1.9`
+
+---
+
+## [3.3.8] — 2026-05-29 — Registry recheck + chart family fix
+
+A follow-up stability pass after a full source-vs-registry recheck. **36 install-breakers** that were silently shipping in v3.3.7 — caught by extending the audit script to cover relative imports, fixed in this release.
+
+### Highlights
+
+🩹 **React chart family is installable.** All 9 standalone chart entries (`donut-chart`, `radar-chart`, `radial-bar-chart`, `gauge-chart`, `sparkline`, `funnel-chart`, `treemap-chart`, `heatmap-chart`, `sankey-chart`) shipped with install targets at `components/ui/chart/<name>.tsx` while their relative `./chart` import resolved to a path nothing shipped. Flattened all chart targets to `components/ui/<name>.tsx` so `./chart` correctly hits the base `chart` entry. Added missing `@boldkit/chart` registryDep to the four entries that import `./empty`.
+
+🩹 **8 Vue entries had missing `registryDependencies` or stale file lists.** `alert-dialog`, `calendar`, `pagination` now declare `button` (each imports `./button-variants`). `toggle-group` declares `toggle`. `dropzone` declares `progress` + `spinner`. `stat-card` declares `card` + `progress`. `empty-state` and `layered-card` now ship their `-variants.ts` sibling. `pagination` and `dropdown-menu` had stale `files:` lists referencing components that don't exist on disk — corrected.
+
+🩹 **20 Vue shapes were missing from the registry.** `SHAPE_FILES` had drifted 20 entries behind the 55 on disk. Replaced with disk auto-discovery so any new shape ships automatically: Apple, Crescent, Decagon, Ellipse, FibonacciSpiral, Gear, Heptagon, KochSnowflake, MobiusStrip, PenroseTriangle, Planet, Rainbow, Rhombus, Seal, Star6, Sun, Torus, Trefoil, Umbrella, WavyRectangle.
+
+✨ **Vue parity for `ascii-shapes` and `error-boundary`.** Both existed on the React side but had no Vue install path. ASCII Shapes now ship all 17 components + constants via a new subdirectory codepath. ErrorBoundary now has a Vue equivalent using `onErrorCaptured` with the same neubrutalism fallback UI; published as `r/vue/error-boundary.json`.
+
+✨ **New `/components/error-boundary` docs page.** Framework-switched preview/code/install with a live "Trigger error" demo button. Sidebar entry + Installation page entry added.
+
+🐛 **Blocks page no longer shows broken install commands.** All 15 block cards were displaying `npx shadcn add boldkit.dev/r/<block>.json` commands that 404'd — the block registry entries don't exist (blocks remain copy/paste-grade). Removed the install bar UI. Each block doc page now has React + Vue "View on GitHub" source links via a new `sourcePaths` prop on `BlockDoc`.
+
+### Internals — new permanent guard
+
+`scripts/audit-registry-imports.mjs` was previously blind to relative imports — only checked `from '@/...'` aliases. Extended to resolve `from './x'` and `from '../x'` against each file's install target, verifying the resolved path is shipped by the same entry or by a declared registryDependency. That single change exposed all 36 issues above in one audit run.
+
+### Bumps
+
+- `package.json`: 3.3.7 → 3.3.8
+- `packages/vue/package.json`: 3.1.7 → 3.1.8
+- README badge: 3.3.7 → 3.3.8
+
+---
+
+## [3.3.7] — 2026-05-26 — Registry health pass
+
+A focused stability release that fixes install-time failures consumers have been hitting and adds permanent guards so the same classes of bug can't silently return.
+
+### Highlights
+
+🩹 **`@boldkit/*` install path now works end-to-end.** Cross-component deps (`button`, `utils`, `math-curves`, etc.) were resolving against shadcn's default registry instead of BoldKit's. All 74 references across React + Vue are now properly scoped.
+
+🩹 **Vue `math-curve-*` family is installable.** `MathCurveLoader`, `MathCurveProgress`, `MathCurveBackground`, and the shared `math-curves` engine were missing from `shadcn-vue` entirely. Now registered.
+
+🩹 **Chart components ship current source.** React chart-X files synced from `src/components/ui/chart/` with import rewriting. Vue chart entries now bundle `ChartEmpty.vue` and `chart-types.ts` so installs compile.
+
+🩹 **37 UI mirrors caught up with `src/`.** Months of bug fixes (focus-visible, ARIA attrs, edge cases) and security helpers (`safeHref`, `sanitizeCssValue`) had never reached the registry. `rating.tsx` registry was an entirely different implementation from src.
+
+✨ **Two new `MathCurveLoader` curves.** `spiral` and `heart`, both already in the runtime — TypeScript just needed widening.
+
+🐛 **`/components/sidebar` no longer crashes.** Active-state demo was missing its `<SidebarProvider>` wrapper.
+
+### ⚠️ Required setup (positive break)
+
+Add the `@boldkit` alias to your `components.json`:
+
+```json
+{
+  "registries": {
+    "@boldkit": "https://boldkit.dev/r"
+  }
+}
+```
+
+(Vue: `https://boldkit.dev/r/vue`.)
+
+Then install components as:
+
+```bash
+npx shadcn@latest add @boldkit/button @boldkit/card
+# or for Vue
+npx shadcn-vue@latest add @boldkit/button @boldkit/card
+```
+
+Single-file installs of leaf items (`utils`, `styles`) still work via direct URL, but **any component with cross-deps requires the alias.**
+
+### Internals — drift can't recur
+
+New `scripts/sync-registry-from-src.js` runs as a pre-step in `registry:build`. It copies `src/components/ui/*.tsx` and selected libs into `registry/default/` and self-verifies — if any in-scope mirror still drifts after sync, the build fails. This protects against the silent-drift class of bug going forward.
+
+### Commits
+
+- `2f68fd1` registry: scope cross-references with `@boldkit/` namespace
+- `86397c2` registry+docs: finish scoping pass, fix build order, update install docs
+- `9b70d71` registry: migrate 6 hand-written Vue entries into build script
+- `2c016b0` math-curves: add `spiral` + `heart` to `LoaderCurveKey`
+- `f9151fa` registry: close Vue math-curve gap + sync 37 drifted React mirrors
+- `b74270f` registry: chart family drift — sync React, complete Vue bundling
+- `de251ec` docs: wrap Active State sidebar demo in `SidebarProvider`
+
+**Full diff:** [`v3.3.6...v3.3.7`](https://github.com/ANIBIT14/boldkit/compare/v3.3.6...v3.3.7)
+
+---
+
 ## [3.3.2] — 2026-05-09
 
 ### 🐛 Bug Fixes

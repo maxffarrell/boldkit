@@ -7,13 +7,13 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Spinner.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Spinner.vue"
+      "path": "components/ui/Spinner.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Spinner"
 }

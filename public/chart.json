@@ -1,12 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "chart",
+  "title": "Chart",
   "description": "Beautiful charts with neubrutalism styling built on Recharts",
   "dependencies": [
     "recharts"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/motion"
   ],
   "files": [
     {

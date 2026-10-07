@@ -7,8 +7,16 @@ interface Props {
   size?: number
   strokeWidth?: number
   filled?: boolean
+  /** Fill colour when `filled`, outline colour when not. */
   color?: string
-  animation?: 'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+  /** Outline colour. Defaults to the foreground token. */
+  strokeColor?: string
+  animation?:
+    | 'none'
+    // smooth presets
+    | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+    // stepped presets — hard, non-interpolated motion (v3.5)
+    | 'spin-step' | 'pulse-hard' | 'marquee-stamp'
   speed?: 'slow' | 'normal' | 'fast'
 }
 
@@ -20,6 +28,19 @@ const props = withDefaults(defineProps<Props>(), {
   speed: 'normal',
 })
 
+/**
+ * Resolve the outline colour.
+ *
+ * `color` used to apply to `fill` only, so `<Shape :filled="false" color="red" />`
+ * rendered a black outline and the prop was a silent no-op. When the shape *is*
+ * its outline, `color` is what the caller meant.
+ */
+const strokeValue = computed(() => {
+  if (props.strokeColor) return props.strokeColor
+  if (!props.filled && props.color) return props.color
+  return 'hsl(var(--foreground))'
+})
+
 const animClass = computed(() => {
   if (!props.animation || props.animation === 'none') return ''
   const s = props.speed && props.speed !== 'normal' ? `-${props.speed}` : ''
@@ -29,6 +50,7 @@ const animClass = computed(() => {
 
 <template>
   <svg
+    aria-hidden="true"
     :width="size"
     :height="size"
     viewBox="0 0 100 100"
@@ -37,21 +59,21 @@ const animClass = computed(() => {
     <path
       d="M50 8 L62 8 L38 50 L26 50 Z"
       :fill="filled ? (color || 'currentColor') : 'none'"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
       stroke-linejoin="round"
     />
     <path
       d="M62 8 L88 52 L76 52 L50 8 Z"
       :fill="filled ? (color || 'currentColor') : 'none'"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
       stroke-linejoin="round"
     />
     <path
       d="M26 50 L38 50 L76 52 L88 52 L82 62 L20 62 Z"
       :fill="filled ? (color || 'currentColor') : 'none'"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
       stroke-linejoin="round"
     />

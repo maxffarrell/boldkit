@@ -1,3 +1,8 @@
+<script lang="ts">
+export const DROPZONE_INJECTION_KEY = Symbol('dropzone')
+
+</script>
+
 <script setup lang="ts">
 import { ref, computed, provide } from 'vue'
 import { cva, type VariantProps } from 'class-variance-authority'
@@ -17,7 +22,7 @@ export interface DropzoneState {
 }
 
 const dropzoneVariants = cva(
-  'relative flex flex-col items-center justify-center border-3 border-dashed border-foreground transition-all duration-200 cursor-pointer',
+  'relative flex flex-col items-center justify-center border-3 border-dashed border-foreground transition duration-200 cursor-pointer',
   {
     variants: {
       state: {
@@ -47,6 +52,8 @@ interface DropzoneProps {
   disabled?: boolean
   variant?: DropzoneVariants['variant']
   class?: string
+  /** Accessible name for the drop target. Matches the React default. */
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<DropzoneProps>(), {
@@ -54,6 +61,7 @@ const props = withDefaults(defineProps<DropzoneProps>(), {
   maxFiles: 10,
   disabled: false,
   variant: 'default',
+  ariaLabel: 'File upload area',
 })
 
 const emit = defineEmits<{
@@ -82,8 +90,8 @@ const stateVariant = computed(() => {
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1)
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
@@ -173,6 +181,12 @@ function handleDragEnter(e: DragEvent) {
 function handleDragLeave(e: DragEvent) {
   e.preventDefault()
   e.stopPropagation()
+  // dragleave also fires when the cursor moves onto a child element; only
+  // clear the highlight when the pointer actually leaves the dropzone.
+  const related = e.relatedTarget as Node | null
+  if (related && (e.currentTarget as HTMLElement).contains(related)) {
+    return
+  }
   isDragging.value = false
 }
 
@@ -190,6 +204,16 @@ function handleDrop(e: DragEvent) {
 
 function handleClick() {
   if (!props.disabled) {
+    inputRef.value?.click()
+  }
+}
+
+// role="button" without a key handler is a keyboard trap: focusable, but Enter
+// and Space do nothing, so the picker can never be opened without a mouse.
+// Mirrors handleKeyDown in src/components/ui/dropzone.tsx.
+function handleKeyDown(e: KeyboardEvent) {
+  if (!props.disabled && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault()
     inputRef.value?.click()
   }
 }
@@ -215,8 +239,6 @@ function reset() {
   }
 }
 
-export const DROPZONE_INJECTION_KEY = Symbol('dropzone')
-
 provide(DROPZONE_INJECTION_KEY, { reset })
 </script>
 
@@ -226,11 +248,13 @@ provide(DROPZONE_INJECTION_KEY, { reset })
     role="button"
     :tabindex="disabled ? -1 : 0"
     :aria-disabled="disabled"
+    :aria-label="ariaLabel"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
     @dragover="handleDragOver"
     @drop="handleDrop"
     @click="handleClick"
+    @keydown="handleKeyDown"
   >
     <input
       ref="inputRef"
@@ -238,6 +262,7 @@ provide(DROPZONE_INJECTION_KEY, { reset })
       :accept="acceptString"
       :multiple="maxFiles > 1"
       :disabled="disabled"
+      tabindex="-1"
       class="hidden"
       @change="handleInputChange"
     />
@@ -247,13 +272,13 @@ provide(DROPZONE_INJECTION_KEY, { reset })
       <div class="flex flex-col items-center gap-3 text-center">
         <div
           :class="cn(
-            'flex items-center justify-center w-16 h-16 border-3 border-foreground bg-muted transition-all duration-200',
+            'flex items-center justify-center w-16 h-16 border-3 border-foreground bg-muted transition duration-200',
             isDragging && 'bg-primary border-primary shadow-[4px_4px_0px_hsl(var(--foreground))] -translate-x-1 -translate-y-1'
           )"
         >
           <Upload
             :class="cn(
-              'h-8 w-8 transition-all duration-200',
+              'h-8 w-8 transition duration-200',
               isDragging ? 'text-primary-foreground animate-bounce' : 'text-foreground'
             )"
           />

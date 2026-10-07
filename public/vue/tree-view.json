@@ -8,15 +8,15 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils",
-    "checkbox",
-    "collapsible"
+    "@boldkit/utils",
+    "@boldkit/checkbox",
+    "@boldkit/collapsible"
   ],
   "files": [
     {
-      "path": "registry/default/ui/TreeView.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TreeView.vue"
+      "path": "components/ui/TreeView.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Tree View"
 }

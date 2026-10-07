@@ -9,7 +9,9 @@ import {
   getAllRoutes,
   DEFAULT_OG_IMAGE,
   type RouteMeta,
+  type Breadcrumb,
 } from '../src/config/routes-meta.js'
+import { PAGE_FAQS } from '../src/config/page-faqs.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = join(__dirname, '..', 'dist')
@@ -22,7 +24,47 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;')
 }
 
-function injectMeta(html: string, meta: RouteMeta): string {
+// Build a BreadcrumbList JSON-LD <script> for crawlers. The `data-schema="breadcrumb"`
+// attribute matches what src/components/SEO.tsx looks for, so the client removes this
+// static block on hydration and re-injects its own — no duplicate structured data.
+function breadcrumbScript(breadcrumbs: Breadcrumb[]): string {
+  if (!breadcrumbs || breadcrumbs.length < 2) return ''
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((b, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: b.name,
+      ...(b.url && { item: b.url }),
+    })),
+  }
+  // Guard against </script> breaking out of the inline JSON.
+  const safe = JSON.stringify(jsonLd).replace(/<\/script/gi, '<\\/script')
+  return `<script type="application/ld+json" data-schema="breadcrumb">${safe}</script>`
+}
+
+// Build an FAQPage JSON-LD <script>. This used to exist ONLY in the client-injected
+// DOM (src/components/SEO.tsx), which meant a crawler reading the served HTML never
+// saw it and FAQ rich results could never fire. Emitting it here makes it independent
+// of whether the puppeteer prerender step runs.
+function faqScript(routePath: string): string {
+  const faq = PAGE_FAQS[routePath]
+  if (!faq || faq.length === 0) return ''
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map(item => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  }
+  const safe = JSON.stringify(jsonLd).replace(/<\/script/gi, '<\\/script')
+  return `<script type="application/ld+json" data-schema="faq">${safe}</script>`
+}
+
+function injectMeta(html: string, meta: RouteMeta, breadcrumbs: Breadcrumb[], routePath: string): string {
   let result = html
 
   // Title
@@ -84,6 +126,34 @@ function injectMeta(html: string, meta: RouteMeta): string {
     `$1${ogImage}$2`,
   )
 
+  // Inject route-specific <h1> into <div id="root"> for crawlers and SEO scanners.
+  // React's createRoot().render() clears these children on mount, so users never see them.
+  // Visually hidden via inline sr-only-style CSS so any pre-hydration paint stays invisible.
+  // Regex matches both the fresh Vite output (`<div id="root"></div>`) and previously-injected
+  // content, so the script is idempotent across re-runs.
+  const srOnly =
+    'position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0'
+  const seoBody = `<div id="root"><h1 style="${srOnly}">${escapeHtml(meta.h1)}</h1><p style="${srOnly}">${escapeHtml(meta.description)}</p></div>`
+  result = result.replace(/<div id="root">[\s\S]*?<\/div>/, seoBody)
+
+  // Update the <noscript> headline to be route-specific too.
+  result = result.replace(
+    /(<noscript>[\s\S]*?<h1>)[^<]*(<\/h1>)/,
+    `$1${escapeHtml(meta.h1)}$2`,
+  )
+
+  // Inject per-page BreadcrumbList JSON-LD before </head> (skipped for single-crumb pages).
+  const crumbs = breadcrumbScript(breadcrumbs)
+  if (crumbs) {
+    result = result.replace(/<\/head>/, `  ${crumbs}\n  </head>`)
+  }
+
+  // Inject per-page FAQPage JSON-LD before </head> (pages without an FAQ get nothing).
+  const faq = faqScript(routePath)
+  if (faq) {
+    result = result.replace(/<\/head>/, `  ${faq}\n  </head>`)
+  }
+
   return result
 }
 
@@ -104,7 +174,7 @@ async function main(): Promise<void> {
   console.log(`Generating HTML for ${routes.length} routes...`)
 
   for (const route of routes) {
-    const html = injectMeta(template, route.meta)
+    const html = injectMeta(template, route.meta, route.breadcrumbs, route.path)
     writeRouteHtml(route.path, html)
   }
 

@@ -3,7 +3,7 @@
 // No React imports — safe for both browser and Node.js build scripts.
 
 export const COUNTS = {
-  components: 56,
+  components: 65,
   charts: 14,
   shapes: 64,
   blocks: 15,
@@ -20,6 +20,7 @@ export interface RouteMeta {
   description: string
   canonical: string
   ogImage?: string
+  h1: string
 }
 
 // Static page meta
@@ -27,79 +28,215 @@ export const PAGE_META: Record<string, RouteMeta> = {
   '/': {
     title: 'BoldKit — Neubrutalism UI for React & Vue 3',
     description:
-      `Free neubrutalism component library for React and Vue 3 with ${COUNTS.components}+ UI components, ` +
-      `${COUNTS.blocks} section blocks, ${COUNTS.templates} templates, ${COUNTS.shapes} animated SVG shapes, and ` +
-      `${COUNTS.charts} chart types. Built on shadcn/ui with thick borders, hard shadows, and bold colors. Install via CLI.`,
+      `Free neubrutalism UI library for React & Vue 3. ${COUNTS.components}+ components, ${COUNTS.blocks} blocks, ${COUNTS.templates} templates, ${COUNTS.shapes} shapes, ${COUNTS.charts} charts. Install via shadcn CLI.`,
     canonical: `${SITE_URL}/`,
+    h1: 'BoldKit — Neubrutalism UI Components for React & Vue 3',
   },
   '/docs': {
     title: 'Documentation | BoldKit',
     description:
-      'Learn how to install and use BoldKit neubrutalism components in your React or Vue 3 project. Comprehensive guides, API references, and examples for both frameworks.',
+      'Install and use BoldKit neubrutalism components in your React or Vue 3 project. Guides, API references, and examples for both frameworks.',
     canonical: `${SITE_URL}/docs`,
+    h1: 'BoldKit Documentation',
   },
   '/docs/installation': {
     title: 'Installation | BoldKit',
     description:
-      'Install BoldKit neubrutalism components using shadcn CLI for React or shadcn-vue for Vue 3. Step-by-step installation guide for TypeScript and Tailwind CSS projects.',
+      'Install BoldKit neubrutalism components via shadcn CLI for React or shadcn-vue for Vue 3. Step-by-step setup for TypeScript and Tailwind CSS.',
     canonical: `${SITE_URL}/docs/installation`,
+    h1: 'Installation Guide',
+  },
+  '/docs/mcp': {
+    title: 'MCP Server & CLI | BoldKit',
+    description:
+      'Install BoldKit neubrutalism components with AI agents via the @boldkit/mcp MCP server, or from the terminal with npx boldkit add. Supports React and Vue 3.',
+    canonical: `${SITE_URL}/docs/mcp`,
+    h1: 'MCP Server & CLI',
   },
   '/docs/theming': {
     title: 'Theming | BoldKit',
     description:
       'Customize BoldKit theme colors and CSS variables for React and Vue 3. Dark mode support included.',
     canonical: `${SITE_URL}/docs/theming`,
+    h1: 'Theming and Customization',
   },
   '/components': {
     title: `${COUNTS.components}+ Neubrutalism Components | BoldKit`,
     description:
-      `Browse ${COUNTS.components}+ neubrutalism components for React and Vue 3. Buttons, cards, inputs, dialogs, spinners, steppers, dropzones and more with thick borders and hard shadows.`,
+      `${COUNTS.components}+ neubrutalism components for React & Vue 3 — buttons, cards, inputs, dialogs, spinners, steppers, and more with thick borders and hard shadows.`,
     canonical: `${SITE_URL}/components`,
+    h1: `${COUNTS.components}+ Neubrutalism Components for React & Vue 3`,
   },
   '/shapes': {
     title: `${COUNTS.shapes} Neubrutalism SVG Shapes | BoldKit`,
-    description: `Collection of ${COUNTS.shapes} unique neubrutalism SVG shapes for React and Vue 3. Bursts, hearts, stars, badges, celestial, and decorative shapes with thick borders.`,
+    description: `${COUNTS.shapes} neubrutalism SVG shapes for React & Vue 3 — bursts, hearts, stars, badges, celestial, and decorative shapes with thick borders.`,
     canonical: `${SITE_URL}/shapes`,
+    h1: `${COUNTS.shapes} Neubrutalism SVG Shapes`,
   },
   '/shapes/builder': {
     title: 'Shape Builder | BoldKit',
     description: `Interactively customize BoldKit SVG shapes. Adjust size, color, border, and shadow for any of the ${COUNTS.shapes} neubrutalism shapes.`,
     canonical: `${SITE_URL}/shapes/builder`,
+    h1: 'Shape Builder',
   },
   '/ascii-shapes': {
     title: 'ASCII Shape Animations | BoldKit',
-    description: 'Animated ASCII art components for React and Vue 3. 7 animations including spiral, rose, wave, vortex, pulse, matrix, and grid — with 5 character sets and 4 sizes.',
+    description: 'Animated ASCII art components for React & Vue 3 — 7 animations (spiral, rose, wave, vortex, pulse, matrix, grid) with 5 character sets.',
     canonical: `${SITE_URL}/ascii-shapes`,
+    h1: 'ASCII Shape Animations',
   },
   '/charts': {
     title: `${COUNTS.charts} Neubrutalism Chart Types | BoldKit`,
-    description: `Neubrutalism styled charts for React and Vue 3. ${COUNTS.charts} chart types including bar, line, area, pie, donut, radar, radial bar, gauge, sparkline, funnel, treemap, heatmap, and sankey charts.`,
+    description: `${COUNTS.charts} neubrutalism chart types for React & Vue 3 — bar, line, area, pie, donut, radar, gauge, sparkline, funnel, treemap, heatmap, sankey.`,
     canonical: `${SITE_URL}/charts`,
+    h1: `${COUNTS.charts} Neubrutalism Chart Types`,
+  },
+  '/accessibility': {
+    title: 'Accessibility - WCAG AA Component Matrix | BoldKit',
+    description: 'WCAG AA accessibility matrix for BoldKit neubrutalism components. Per-component axe-core results generated from the CI test suite, for React and Vue 3.',
+    canonical: `${SITE_URL}/accessibility`,
+    h1: 'WCAG AA Matrix',
   },
   '/themes': {
     title: 'Theme Builder | BoldKit',
     description: 'Customize BoldKit neubrutalism theme colors for React and Vue 3. Generate CSS variables for your design system with live preview.',
     canonical: `${SITE_URL}/themes`,
+    h1: 'Neubrutalism Theme Builder',
   },
   '/templates': {
     title: 'Free Page Templates | BoldKit',
     description: `Free neubrutalism page templates for React and Vue 3. ${COUNTS.templates} full-page templates: landing pages, portfolios, dashboards, pricing, blog, product, and docs.`,
     canonical: `${SITE_URL}/templates`,
+    h1: `${COUNTS.templates} Free Neubrutalism Page Templates`,
   },
   '/blocks': {
     title: `${COUNTS.blocks} Section Blocks | BoldKit`,
-    description: `Free neubrutalism section blocks for React and Vue 3. 10 marketing blocks (hero, features, testimonials, CTA, stats, team, FAQ, footer, contact, logo cloud) and 5 application blocks (auth forms, settings, onboarding, error pages, invoice).`,
+    description: `${COUNTS.blocks} free neubrutalism section blocks for React & Vue 3 — 10 marketing blocks (hero, features, testimonials, CTA, stats, FAQ, footer) and 5 application blocks.`,
     canonical: `${SITE_URL}/blocks`,
+    h1: `${COUNTS.blocks} Neubrutalism Section Blocks`,
   },
   '/studio': {
     title: 'Dot Matrix Studio — Pixel Art & Animation Editor | BoldKit',
-    description: 'Free in-browser dot matrix animation editor. Draw pixel art, build frame-by-frame animations with 8 presets, and export to WebM video, PNG, SVG, or JSON. No installs required.',
+    description: 'Free in-browser dot matrix editor — draw pixel art, build frame-by-frame animations with 8 presets, export to WebM, PNG, SVG, or JSON.',
     canonical: `${SITE_URL}/studio`,
+    h1: 'Dot Matrix Studio — Pixel Art & Animation Editor',
   },
   '/canvas-effects': {
-    title: 'Canvas Effects — 10 Animated Canvas Components | BoldKit',
-    description: 'Free animated canvas components for React, Vue 3, and Nuxt 3. 10 zero-dependency effects including Aurora, Flow Field, Plasma, Metaballs, Matrix Rain, Particle Web, Dot Blob, Dot Wave, Mouse Ripple, and Lissajous Grid. Fully typed with customisable props.',
+    title: 'Canvas Effects — 23 Animated Canvas Components | BoldKit',
+    description: '23 free animated canvas components for React, Vue 3, and Nuxt — Mesh Gradient, Swirl, God Rays, Pulsing Border, Dither, Halftone, CRT, Truchet, Aurora, Flow Field, Plasma, Metaballs, and more. Each pauses off-screen and honours reduced motion.',
     canonical: `${SITE_URL}/canvas-effects`,
+    h1: 'Canvas Effects — 23 Animated Canvas Components',
+  },
+
+  // ── SEO / landing pages - neubrutalism topic cluster ──
+  '/neubrutalism': {
+    title: 'What Is Neubrutalism? The Complete Guide (2026) | BoldKit',
+    description:
+      'Neubrutalism (neobrutalism) explained: thick borders, hard shadows, sharp corners, bold flat color and chunky type. Core traits, do’s and don’ts, accessibility, and how to build it in React & Vue.',
+    canonical: `${SITE_URL}/neubrutalism`,
+    h1: 'What Is Neubrutalism?',
+  },
+  '/neubrutalism/colors': {
+    title: 'Neubrutalism Color Palettes - Copy-Paste Hex & HSL | BoldKit',
+    description:
+      'Ready-to-use neubrutalism color palettes with hex codes - acid lime, electric blue, hot pink, risograph and newsprint. Plus how to pick 2-3 high-contrast colors that pass WCAG.',
+    canonical: `${SITE_URL}/neubrutalism/colors`,
+    h1: 'Neubrutalism Color Palettes',
+  },
+  '/neubrutalism/fonts': {
+    title: 'Best Neubrutalism Fonts & Pairings (2026) | BoldKit',
+    description:
+      'The best fonts for neubrutalist design - bold neo-grotesque and geometric sans display faces, clean body fonts, and mono accents, with ready-made pairing recipes.',
+    canonical: `${SITE_URL}/neubrutalism/fonts`,
+    h1: 'Neubrutalism Fonts',
+  },
+  '/neubrutalism/examples': {
+    title: 'Neubrutalism Website Examples & Patterns | BoldKit',
+    description:
+      'Neubrutalism in the wild - the recurring patterns (sticker collage, marquee tickers, oversized type, hard-bordered bento) plus live, inspectable BoldKit template examples for React & Vue.',
+    canonical: `${SITE_URL}/neubrutalism/examples`,
+    h1: 'Neubrutalism Examples',
+  },
+  '/neubrutalism/vs-brutalism': {
+    title: 'Neubrutalism vs Brutalism vs Memphis - The Differences | BoldKit',
+    description:
+      'How neubrutalism differs from raw brutalism and 80s Memphis design - era, borders, color, shadows and usability compared side by side, with guidance on when to use each.',
+    canonical: `${SITE_URL}/neubrutalism/vs-brutalism`,
+    h1: 'Neubrutalism vs Brutalism',
+  },
+
+  // ── SEO / landing pages - tools + FavGrab funnel ──
+  '/tools': {
+    title: 'Free Brutalist Web Tools | BoldKit',
+    description:
+      'Free in-browser tools from BoldKit - FavGrab favicon extractor & image converter, Dot Matrix Studio, Theme Builder, Shape Builder, Canvas Effects and ASCII Shapes.',
+    canonical: `${SITE_URL}/tools`,
+    h1: 'BoldKit Tools',
+  },
+  '/tools/favicon-generator': {
+    title: 'Free Favicon Generator - PNG, ICO, SVG & App Icons | BoldKit',
+    description:
+      'Generate a complete favicon set from any image. Create favicon.ico plus 16, 32, 180, 192 and 512px PNGs for browsers, iOS, Android and PWAs. Free, in-browser, no signup.',
+    canonical: `${SITE_URL}/tools/favicon-generator`,
+    h1: 'Favicon Generator',
+  },
+  '/tools/png-to-ico': {
+    title: 'Convert PNG to ICO - Free Favicon Converter | BoldKit',
+    description:
+      'Convert a PNG into a multi-resolution favicon.ico (16/32/48) for free in your browser. What ICO is, PNG vs ICO, step-by-step conversion, and the exact link tag to add.',
+    canonical: `${SITE_URL}/tools/png-to-ico`,
+    h1: 'Convert PNG to ICO',
+  },
+  '/tools/favicon-sizes': {
+    title: 'Favicon Sizes & Formats Cheat Sheet (2026) | BoldKit',
+    description:
+      'Every favicon size and format you need in 2026 - 16, 32, 180, 192, 512px, ICO, PNG and SVG - with the exact HTML link tags and the modern minimal set vs the legacy set.',
+    canonical: `${SITE_URL}/tools/favicon-sizes`,
+    h1: 'Favicon Sizes & Formats',
+  },
+  '/tools/extract-favicon': {
+    title: 'How to Extract a Favicon From Any Website | BoldKit',
+    description:
+      'Five ways to grab the favicon from any website - FavGrab, the /favicon.ico path, Google’s favicon endpoint, the page’s link tags and more - plus the formats you get and an ethics note.',
+    canonical: `${SITE_URL}/tools/extract-favicon`,
+    h1: 'Extract a Favicon From Any Website',
+  },
+
+  // ── SEO / landing pages - ecosystem + cross-framework cluster ──
+  '/shadcn-alternatives': {
+    title: 'shadcn Alternatives (2026) - Honest Comparison for React & Vue | BoldKit',
+    description:
+      'A practical guide to shadcn/ui alternatives in 2026 - copy-in registries, styled libraries like daisyUI and Flowbite, headless primitives, and the Vue options. What each is good at, and how to pick.',
+    canonical: `${SITE_URL}/shadcn-alternatives`,
+    h1: 'shadcn Alternatives',
+  },
+  '/vue-ui-components': {
+    title: `Vue 3 UI Components - ${COUNTS.components}+ shadcn-vue Compatible | BoldKit`,
+    description:
+      `Free neubrutalism UI components for Vue 3 and Nuxt. ${COUNTS.components}+ components, ${COUNTS.charts} chart types and ${COUNTS.shapes} shapes, installed via the shadcn-vue CLI and built on Reka UI. MIT licensed.`,
+    canonical: `${SITE_URL}/vue-ui-components`,
+    h1: 'Vue UI Components',
+  },
+  '/nuxt-ui-components': {
+    title: 'Nuxt UI Components - shadcn-vue Registry Setup for Nuxt 3 & 4 | BoldKit',
+    description:
+      'Install neubrutalism UI components into Nuxt 3 or Nuxt 4 with the shadcn-vue CLI. Working setup, the app/ directory path gotcha, SSR notes, and how it compares to Nuxt UI.',
+    canonical: `${SITE_URL}/nuxt-ui-components`,
+    h1: 'Nuxt UI Components',
+  },
+  '/react-vue-component-library': {
+    title: 'React + Vue Component Library - One Design System, Both Frameworks | BoldKit',
+    description:
+      'How to run one design system across React and Vue 3 without maintaining two drifting codebases. Shared CSS tokens, parallel registries, and where framework idioms should diverge.',
+    canonical: `${SITE_URL}/react-vue-component-library`,
+    h1: 'One Library, Two Frameworks',
+  },
+  '/mcp-ui-components': {
+    title: 'MCP Server for UI Components - Install with Claude Code & Cursor | BoldKit',
+    description:
+      'Give your AI coding agent a real component catalogue. The BoldKit MCP server exposes search, component details and install commands for React and Vue, so agents stop hallucinating component names.',
+    canonical: `${SITE_URL}/mcp-ui-components`,
+    h1: 'Install UI Components With AI',
   },
 }
 
@@ -113,31 +250,39 @@ export const COMPONENT_TITLES: Record<string, string> = {
   badge: 'Badge',
   breadcrumb: 'Breadcrumb',
   button: 'Button',
+  'button-group': 'Button Group',
   calendar: 'Calendar',
   card: 'Card',
   carousel: 'Carousel',
+  'chart-toolbar': 'Chart Toolbar',
   checkbox: 'Checkbox',
   collapsible: 'Collapsible',
   combobox: 'Combobox',
   command: 'Command',
+  'context-menu': 'Context Menu',
   'data-table': 'Data Table',
+  'date-picker': 'Date Picker',
   'date-range-picker': 'Date Range Picker',
   dialog: 'Dialog',
+  field: 'Field',
   'donut-chart': 'Donut Chart',
   drawer: 'Drawer',
   'dropdown-menu': 'Dropdown Menu',
   dropzone: 'Dropzone',
   'empty-state': 'Empty State',
-  'funnel-chart': 'Funnel Chart',
   'gauge-chart': 'Gauge Chart',
-  'heatmap-chart': 'Heatmap Chart',
   'hover-card': 'Hover Card',
   input: 'Input',
+  'input-group': 'Input Group',
   'input-otp': 'Input OTP',
   kbd: 'Kbd',
   label: 'Label',
   'layered-card': 'Layered Card',
   marquee: 'Marquee',
+  motion: 'Motion',
+  menubar: 'Menubar',
+  'native-select': 'Native Select',
+  'navigation-menu': 'Navigation Menu',
   'math-curve-background': 'Math Curve Background',
   'math-curve-loader': 'Math Curve Loader',
   'math-curve-progress': 'Math Curve Progress',
@@ -148,7 +293,7 @@ export const COMPONENT_TITLES: Record<string, string> = {
   'radial-bar-chart': 'Radial Bar Chart',
   'radio-group': 'Radio Group',
   rating: 'Rating',
-  'sankey-chart': 'Sankey Chart',
+  resizable: 'Resizable',
   'scroll-area': 'Scroll Area',
   select: 'Select',
   separator: 'Separator',
@@ -161,6 +306,7 @@ export const COMPONENT_TITLES: Record<string, string> = {
   spinner: 'Spinner',
   'stat-card': 'Stat Card',
   stepper: 'Stepper',
+  'multi-step-form': 'Multi-Step Form',
   sticker: 'Sticker',
   switch: 'Switch',
   table: 'Table',
@@ -174,7 +320,6 @@ export const COMPONENT_TITLES: Record<string, string> = {
   tooltip: 'Tooltip',
   tour: 'Tour',
   'tree-view': 'Tree View',
-  'treemap-chart': 'Treemap Chart',
 }
 
 // Block slug -> display title map
@@ -194,6 +339,11 @@ export const BLOCK_TITLES: Record<string, string> = {
   'onboarding-flow': 'Onboarding Flow',
   'error-pages': 'Error Pages',
   invoice: 'Invoice',
+  'pricing-section': 'Pricing Section',
+  'bento-grid': 'Bento Grid',
+  'changelog-section': 'Changelog',
+  'comparison-table': 'Comparison Table',
+  'dashboard-layout': 'Dashboard Layout',
 }
 
 // Template slug -> display title map
@@ -212,8 +362,9 @@ export function getComponentMeta(slug: string): RouteMeta {
   const title = COMPONENT_TITLES[slug] ?? slug
   return {
     title: `${title} — Neubrutalism Component for React & Vue 3 | BoldKit`,
-    description: `${title} component with neubrutalism styling for React and Vue 3. Thick borders, hard shadows, bold colors. Install via shadcn CLI for React or shadcn-vue for Vue.`,
+    description: `${title} — neubrutalism React & Vue 3 component with thick borders, hard shadows, bold colors. Install via shadcn or shadcn-vue.`,
     canonical: `${SITE_URL}/components/${slug}`,
+    h1: `${title} — Neubrutalism Component for React & Vue 3`,
   }
 }
 
@@ -223,6 +374,7 @@ export function getBlockMeta(slug: string): RouteMeta {
     title: `${title} Block — Neubrutalism Section for React & Vue 3 | BoldKit`,
     description: `${title} block with neubrutalism styling for React and Vue 3. Multiple variants included. Perfect for landing pages and web applications.`,
     canonical: `${SITE_URL}/blocks/${slug}`,
+    h1: `${title} — Neubrutalism Block for React & Vue 3`,
   }
 }
 
@@ -232,7 +384,62 @@ export function getTemplateMeta(slug: string): RouteMeta {
     title: `${title} — Free Neubrutalism Template | BoldKit`,
     description: `Free neubrutalism ${title.toLowerCase()} for React and Vue 3. Copy, paste, and customize for your project.`,
     canonical: `${SITE_URL}/templates/${slug}`,
+    h1: `${title} — Free Neubrutalism Template`,
   }
+}
+
+// Breadcrumb trail (used for static BreadcrumbList JSON-LD in generate-html)
+export type Breadcrumb = { name: string; url?: string }
+
+// Readable labels for path segments not covered by the component/block/template maps.
+const SEGMENT_LABELS: Record<string, string> = {
+  components: 'Components',
+  blocks: 'Blocks',
+  templates: 'Templates',
+  docs: 'Documentation',
+  installation: 'Installation',
+  theming: 'Theming',
+  charts: 'Charts',
+  shapes: 'Shapes',
+  builder: 'Shape Builder',
+  themes: 'Theme Builder',
+  studio: 'Dot Matrix Studio',
+  'ascii-shapes': 'ASCII Shapes',
+  'canvas-effects': 'Canvas Effects',
+  neubrutalism: 'Neubrutalism',
+  tools: 'Tools',
+  colors: 'Colors',
+  fonts: 'Fonts',
+  examples: 'Examples',
+  'vs-brutalism': 'vs Brutalism',
+  'favicon-generator': 'Favicon Generator',
+  'png-to-ico': 'PNG to ICO',
+  'favicon-sizes': 'Favicon Sizes',
+  'extract-favicon': 'Extract Favicon',
+}
+
+function labelForSegment(segment: string): string {
+  return (
+    COMPONENT_TITLES[segment] ??
+    BLOCK_TITLES[segment] ??
+    TEMPLATE_TITLES[segment] ??
+    SEGMENT_LABELS[segment] ??
+    segment.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  )
+}
+
+// Build a breadcrumb trail from a route path. The last crumb (current page) has no url.
+export function getBreadcrumbs(path: string): Breadcrumb[] {
+  if (path === '/') return [{ name: 'Home' }]
+  const segments = path.split('/').filter(Boolean)
+  const crumbs: Breadcrumb[] = [{ name: 'Home', url: `${SITE_URL}/` }]
+  let acc = ''
+  segments.forEach((seg, i) => {
+    acc += `/${seg}`
+    const isLast = i === segments.length - 1
+    crumbs.push(isLast ? { name: labelForSegment(seg) } : { name: labelForSegment(seg), url: `${SITE_URL}${acc}` })
+  })
+  return crumbs
 }
 
 // Type for sitemap routes
@@ -242,6 +449,7 @@ export type SitemapRoute = {
   priority: number
   changefreq: string
   lastmod: string
+  breadcrumbs: Breadcrumb[]
 }
 
 // Full route list used by generate-html and generate-sitemap scripts
@@ -249,11 +457,21 @@ export function getAllRoutes(): SitemapRoute[] {
   const routes: SitemapRoute[] = []
   const LAST_MODIFIED = '2026-04-15'
 
+  // Per-route overrides for pages that changed after LAST_MODIFIED. Bumping
+  // the global date instead would mark all 136 URLs as freshly updated, which
+  // is both untrue and the kind of signal search engines discount.
+  const UPDATED: Record<string, string> = {
+    '/canvas-effects': '2026-08-27',   // 4 new effects + shared lifecycle rewrite
+    '/': '2026-08-27',                 // homepage now features the new effects
+  }
+  const lastmodFor = (path: string) => UPDATED[path] ?? LAST_MODIFIED
+
   // Static pages
   const staticPriorities: Record<string, { priority: number; changefreq: string }> = {
     '/': { priority: 1.0, changefreq: 'weekly' },
     '/docs': { priority: 0.9, changefreq: 'weekly' },
     '/docs/installation': { priority: 0.9, changefreq: 'monthly' },
+    '/docs/mcp': { priority: 0.8, changefreq: 'monthly' },
     '/docs/theming': { priority: 0.7, changefreq: 'monthly' },
     '/components': { priority: 0.9, changefreq: 'monthly' },
     '/shapes': { priority: 0.9, changefreq: 'monthly' },
@@ -261,48 +479,73 @@ export function getAllRoutes(): SitemapRoute[] {
     '/ascii-shapes': { priority: 0.8, changefreq: 'monthly' },
     '/charts': { priority: 0.9, changefreq: 'monthly' },
     '/themes': { priority: 0.8, changefreq: 'monthly' },
+    '/accessibility': { priority: 0.7, changefreq: 'monthly' },
     '/templates': { priority: 0.9, changefreq: 'monthly' },
     '/blocks': { priority: 0.9, changefreq: 'monthly' },
     '/studio': { priority: 0.9, changefreq: 'monthly' },
     '/canvas-effects': { priority: 0.9, changefreq: 'monthly' },
+    // SEO topic cluster - neubrutalism
+    '/neubrutalism': { priority: 0.9, changefreq: 'monthly' },
+    '/neubrutalism/colors': { priority: 0.7, changefreq: 'monthly' },
+    '/neubrutalism/fonts': { priority: 0.7, changefreq: 'monthly' },
+    '/neubrutalism/examples': { priority: 0.7, changefreq: 'monthly' },
+    '/neubrutalism/vs-brutalism': { priority: 0.7, changefreq: 'monthly' },
+    // SEO tools cluster - FavGrab funnel
+    '/tools': { priority: 0.8, changefreq: 'monthly' },
+    '/tools/favicon-generator': { priority: 0.8, changefreq: 'monthly' },
+    '/tools/png-to-ico': { priority: 0.7, changefreq: 'monthly' },
+    '/tools/favicon-sizes': { priority: 0.7, changefreq: 'monthly' },
+    '/tools/extract-favicon': { priority: 0.7, changefreq: 'monthly' },
+
+    '/shadcn-alternatives': { priority: 0.9, changefreq: 'monthly' },
+    '/vue-ui-components': { priority: 0.9, changefreq: 'monthly' },
+    '/nuxt-ui-components': { priority: 0.8, changefreq: 'monthly' },
+    '/react-vue-component-library': { priority: 0.8, changefreq: 'monthly' },
+    '/mcp-ui-components': { priority: 0.8, changefreq: 'monthly' },
   }
 
   for (const [path, seo] of Object.entries(staticPriorities)) {
     const meta = PAGE_META[path]
     if (!meta) throw new Error(`Missing PAGE_META for path: ${path}`)
-    routes.push({ path, meta, ...seo, lastmod: LAST_MODIFIED })
+    routes.push({ path, meta, ...seo, lastmod: lastmodFor(path), breadcrumbs: getBreadcrumbs(path) })
   }
 
   // Component pages
   for (const slug of Object.keys(COMPONENT_TITLES)) {
+    const path = `/components/${slug}`
     routes.push({
-      path: `/components/${slug}`,
+      path,
       meta: getComponentMeta(slug),
       priority: 0.8,
       changefreq: 'monthly',
       lastmod: LAST_MODIFIED,
+      breadcrumbs: getBreadcrumbs(path),
     })
   }
 
   // Block pages
   for (const slug of Object.keys(BLOCK_TITLES)) {
+    const path = `/blocks/${slug}`
     routes.push({
-      path: `/blocks/${slug}`,
+      path,
       meta: getBlockMeta(slug),
       priority: 0.8,
       changefreq: 'monthly',
       lastmod: LAST_MODIFIED,
+      breadcrumbs: getBreadcrumbs(path),
     })
   }
 
   // Template pages
   for (const slug of Object.keys(TEMPLATE_TITLES)) {
+    const path = `/templates/${slug}`
     routes.push({
-      path: `/templates/${slug}`,
+      path,
       meta: getTemplateMeta(slug),
       priority: 0.8,
       changefreq: 'monthly',
       lastmod: LAST_MODIFIED,
+      breadcrumbs: getBreadcrumbs(path),
     })
   }
 

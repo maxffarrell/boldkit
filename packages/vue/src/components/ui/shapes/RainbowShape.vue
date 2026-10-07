@@ -7,8 +7,16 @@ interface Props {
   size?: number
   strokeWidth?: number
   filled?: boolean
+  /** Fill colour when `filled`, outline colour when not. */
   color?: string
-  animation?: 'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+  /** Outline colour. Defaults to the foreground token. */
+  strokeColor?: string
+  animation?:
+    | 'none'
+    // smooth presets
+    | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+    // stepped presets — hard, non-interpolated motion (v3.5)
+    | 'spin-step' | 'pulse-hard' | 'marquee-stamp'
   speed?: 'slow' | 'normal' | 'fast'
 }
 
@@ -18,6 +26,19 @@ const props = withDefaults(defineProps<Props>(), {
   filled: true,
   animation: 'none',
   speed: 'normal',
+})
+
+/**
+ * Resolve the outline colour.
+ *
+ * `color` used to apply to `fill` only, so `<Shape :filled="false" color="red" />`
+ * rendered a black outline and the prop was a silent no-op. When the shape *is*
+ * its outline, `color` is what the caller meant.
+ */
+const strokeValue = computed(() => {
+  if (props.strokeColor) return props.strokeColor
+  if (!props.filled && props.color) return props.color
+  return 'hsl(var(--foreground))'
 })
 
 const animClass = computed(() => {
@@ -30,6 +51,7 @@ const animClass = computed(() => {
 
 <template>
   <svg
+    aria-hidden="true"
     :width="size"
     :height="size * 0.6"
     viewBox="0 0 100 60"
@@ -59,21 +81,21 @@ const animClass = computed(() => {
     <path
       d="M5 55 Q5 10 50 10 Q95 10 95 55"
       fill="none"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
       stroke-linecap="round"
     />
     <path
       d="M15 55 Q15 22 50 22 Q85 22 85 55"
       fill="none"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
       stroke-linecap="round"
     />
     <path
       d="M25 55 Q25 34 50 34 Q75 34 75 55"
       fill="none"
-      stroke="hsl(var(--foreground))"
+      :stroke="strokeValue"
       :stroke-width="strokeWidth"
       stroke-linecap="round"
     />

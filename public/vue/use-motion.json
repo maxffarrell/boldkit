@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-motion",
+  "type": "registry:ui",
+  "description": "Motion composables (useShake, useViewTransition) backing the <Motion> primitives. Reduced-motion aware.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@boldkit/utils",
+    "@boldkit/motion-core"
+  ],
+  "files": [
+    {
+      "path": "composables/useMotion.ts",
+      "type": "registry:composable"
+    }
+  ],
+  "title": "Use Motion"
+}

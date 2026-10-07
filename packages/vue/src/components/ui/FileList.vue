@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { cn } from '@/lib/utils'
 import Progress from './Progress.vue'
 import Spinner from './Spinner.vue'
@@ -26,8 +25,8 @@ const emit = defineEmits<{
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1)
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
@@ -74,7 +73,8 @@ function handleRemove(file: File) {
       <button
         v-else
         type="button"
-        class="flex items-center justify-center w-8 h-8 border-3 border-foreground bg-background hover:bg-destructive hover:text-destructive-foreground hover:shadow-[2px_2px_0px_hsl(var(--foreground))] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
+        aria-label="Remove file"
+        class="flex items-center justify-center w-8 h-8 border-3 border-foreground bg-background hover:bg-destructive hover:text-destructive-foreground hover:shadow-[2px_2px_0px_hsl(var(--foreground))] hover:-translate-x-0.5 hover:-translate-y-0.5 transition"
         @click.stop="handleRemove(item.file)"
       >
         <X class="h-4 w-4" />

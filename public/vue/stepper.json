@@ -7,38 +7,33 @@
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Stepper.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Stepper.vue"
+      "path": "components/ui/Stepper.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/StepperContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StepperContent.vue"
+      "path": "components/ui/StepperContent.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/StepperItem.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StepperItem.vue"
+      "path": "components/ui/StepperItem.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/StepperList.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StepperList.vue"
+      "path": "components/ui/StepperList.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/StepperSeparator.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StepperSeparator.vue"
+      "path": "components/ui/StepperSeparator.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/StepperTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StepperTrigger.vue"
+      "path": "components/ui/StepperTrigger.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Stepper"
 }

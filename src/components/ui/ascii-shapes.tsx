@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { prefersReducedMotion, onReducedMotionChange } from '@/lib/motion-core'
 
 // ============================================================================
 // Types
@@ -255,7 +256,7 @@ function drawTorus(grid: string[][], cols: number, rows: number, t: number, char
       const oz1 =  oy * sinA + oz * cosA
       const ox2 =  ox * cosB - oy1 * sinB
       const oy2 =  ox * sinB + oy1 * cosB
-      const oz2 =  ox * Math.sin(B) + oz1 * Math.cos(B)
+      const oz2 =  oz1
       const zDist = K2 - oz2
       if (zDist <= 0) continue
       const ooz = 1.0 / zDist
@@ -914,7 +915,6 @@ function makeAsciiComponent(drawFn: DrawFn, defaultCharset: AsciiCharset = 'clas
         const g = makeGrid(cols, rows)
         drawFn(g, cols, rows, 0, chars, matrixStateRef.current)
         return gridToLines(g)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [cols, rows, chars])
 
       React.useEffect(() => {
@@ -927,7 +927,6 @@ function makeAsciiComponent(drawFn: DrawFn, defaultCharset: AsciiCharset = 'clas
               if (span) span.textContent = lines[i] ?? ''
             })
           } else {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             pre!.textContent = lines.join('\n')
           }
         }
@@ -938,18 +937,65 @@ function makeAsciiComponent(drawFn: DrawFn, defaultCharset: AsciiCharset = 'clas
         }
 
         const startTime = performance.now()
-        let rafId: number
+        let rafId = 0
+        let onScreen = true
 
-        function frame(now: number) {
+        // One frame, without scheduling the next.
+        function draw(now: number) {
           const t = (now - startTime) * speedMul
           const g = makeGrid(cols, rows)
           drawFn(g, cols, rows, t, chars, matrixStateRef.current)
           writeLines(gridToLines(g))
+        }
+
+        function frame(now: number) {
+          draw(now)
           rafId = requestAnimationFrame(frame)
         }
 
-        rafId = requestAnimationFrame(frame)
-        return () => cancelAnimationFrame(rafId)
+        // A rAF loop that rewrites textContent every frame is invisible to a
+        // CSS reduced-motion query, keeps allocating a cols×rows grid while
+        // scrolled off-screen, and keeps ticking in a background tab. The
+        // canvas effects already centralise all three concerns in
+        // canvas-effect-core; this brings the ASCII loop up to the same bar.
+        function shouldAnimate() {
+          return onScreen && !document.hidden && !prefersReducedMotion()
+        }
+
+        function syncLoop() {
+          if (shouldAnimate()) {
+            if (!rafId) rafId = requestAnimationFrame(frame)
+          } else if (rafId) {
+            cancelAnimationFrame(rafId)
+            rafId = 0
+          }
+        }
+
+        // Always paint one frame so a paused/reduced-motion shape isn't blank.
+        draw(performance.now())
+        syncLoop()
+
+        const observer =
+          typeof IntersectionObserver !== 'undefined'
+            ? new IntersectionObserver((entries) => {
+                onScreen = entries.some((e) => e.isIntersecting)
+                syncLoop()
+              })
+            : null
+        observer?.observe(pre)
+
+        document.addEventListener('visibilitychange', syncLoop)
+        const unsubscribeMotion = onReducedMotionChange(syncLoop)
+
+        return () => {
+          if (rafId) cancelAnimationFrame(rafId)
+          observer?.disconnect()
+          document.removeEventListener('visibilitychange', syncLoop)
+          unsubscribeMotion()
+        }
+      // Keyed on the public props: cols/rows/chars/speedMul/initialLines are
+      // all derived from them, and listing the derived values would restart
+      // the loop on every render.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [size, charset, speed, animated, multicolor])
 

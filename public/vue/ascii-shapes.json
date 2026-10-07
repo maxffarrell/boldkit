@@ -1,0 +1,93 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "ascii-shapes",
+  "type": "registry:ui",
+  "description": "17 animated ASCII art components (Spiral, Rose, Wave, Vortex, Pulse, Matrix, Grid, Torus, Sphere, Cube, Helix, Donut, Trefoil Knot, Geodesic Dome, Saturn, Hyperboloid, DNA) with 5 character sets, 4 sizes, and SSR-safe static mode",
+  "dependencies": [],
+  "registryDependencies": [
+    "@boldkit/utils"
+  ],
+  "files": [
+    {
+      "path": "components/ui/ascii-shapes/AsciiCube.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiDNA.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiDonut.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiGeodesicDome.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiGrid.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiHelix.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiHyperboloid.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiMatrix.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiPulse.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiRose.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiSaturn.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiSphere.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiSpiral.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiTorus.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiTrefoilKnot.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiVortex.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/AsciiWave.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/constants.ts",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/index.ts",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ascii-shapes/useAsciiLoop.ts",
+      "type": "registry:ui"
+    }
+  ],
+  "title": "ASCII Shapes"
+}

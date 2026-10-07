@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -49,6 +50,8 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
       return (
         <div
           ref={ref}
+          role="status"
+          aria-label="Loading"
           className={cn(spinnerVariants({ size, variant }), 'gap-1', className)}
           {...props}
         >
@@ -63,6 +66,8 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
       return (
         <div
           ref={ref}
+          role="status"
+          aria-label="Loading"
           className={cn(spinnerVariants({ size, variant }), 'gap-0.5', className)}
           {...props}
         >
@@ -77,6 +82,8 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
       return (
         <div
           ref={ref}
+          role="status"
+          aria-label="Loading"
           className={cn(spinnerVariants({ size, variant }), 'relative', className)}
           {...props}
         >
@@ -94,6 +101,8 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
       return (
         <div
           ref={ref}
+          role="status"
+          aria-label="Loading"
           className={cn(spinnerVariants({ size, variant }), className)}
           {...props}
         >
@@ -109,6 +118,8 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
     return (
       <div
         ref={ref}
+        role="status"
+        aria-label="Loading"
         className={cn(spinnerVariants({ size, variant }), className)}
         {...props}
       >

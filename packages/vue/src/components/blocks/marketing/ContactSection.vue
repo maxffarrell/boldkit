@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { cn } from '@/lib/utils'
+import { cn, safeHref } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -79,7 +79,7 @@ const handleSubmit = () => {
               </div>
               <div>
                 <p class="font-bold text-sm uppercase">Email</p>
-                <a :href="`mailto:${contactInfo.email}`" class="text-muted-foreground hover:text-foreground">
+                <a :href="safeHref(`mailto:${contactInfo.email}`)" class="text-muted-foreground hover:text-foreground">
                   {{ contactInfo.email }}
                 </a>
               </div>
@@ -91,7 +91,7 @@ const handleSubmit = () => {
               </div>
               <div>
                 <p class="font-bold text-sm uppercase">Phone</p>
-                <a :href="`tel:${contactInfo.phone}`" class="text-muted-foreground hover:text-foreground">
+                <a :href="safeHref(`tel:${contactInfo.phone}`)" class="text-muted-foreground hover:text-foreground">
                   {{ contactInfo.phone }}
                 </a>
               </div>
@@ -210,31 +210,31 @@ const handleSubmit = () => {
       </div>
 
       <div class="grid md:grid-cols-3 gap-6 mb-12">
-        <Card v-if="contactInfo?.email" class="text-center hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all">
+        <Card v-if="contactInfo?.email" class="text-center hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition">
           <CardContent class="pt-6">
             <div class="w-16 h-16 mx-auto flex items-center justify-center border-3 border-foreground bg-primary mb-4 shadow-[4px_4px_0px_hsl(var(--shadow-color))]">
               <Mail class="h-7 w-7 text-primary-foreground" />
             </div>
             <h3 class="font-bold uppercase mb-2">Email Us</h3>
-            <a :href="`mailto:${contactInfo.email}`" class="text-muted-foreground hover:text-foreground">
+            <a :href="safeHref(`mailto:${contactInfo.email}`)" class="text-muted-foreground hover:text-foreground">
               {{ contactInfo.email }}
             </a>
           </CardContent>
         </Card>
 
-        <Card v-if="contactInfo?.phone" class="text-center hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all">
+        <Card v-if="contactInfo?.phone" class="text-center hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition">
           <CardContent class="pt-6">
             <div class="w-16 h-16 mx-auto flex items-center justify-center border-3 border-foreground bg-secondary mb-4 shadow-[4px_4px_0px_hsl(var(--shadow-color))]">
               <Phone class="h-7 w-7 text-secondary-foreground" />
             </div>
             <h3 class="font-bold uppercase mb-2">Call Us</h3>
-            <a :href="`tel:${contactInfo.phone}`" class="text-muted-foreground hover:text-foreground">
+            <a :href="safeHref(`tel:${contactInfo.phone}`)" class="text-muted-foreground hover:text-foreground">
               {{ contactInfo.phone }}
             </a>
           </CardContent>
         </Card>
 
-        <Card class="text-center hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all">
+        <Card class="text-center hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition">
           <CardContent class="pt-6">
             <div class="w-16 h-16 mx-auto flex items-center justify-center border-3 border-foreground bg-accent mb-4 shadow-[4px_4px_0px_hsl(var(--shadow-color))]">
               <MessageCircle class="h-7 w-7 text-accent-foreground" />

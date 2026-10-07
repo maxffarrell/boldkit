@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -93,7 +94,7 @@ export function OnboardingWizard({
               aria-label={`Step ${index + 1} of ${steps.length}: ${step.title}`}
               aria-current={index === currentStep ? 'step' : undefined}
               className={cn(
-                'w-10 h-10 flex items-center justify-center border-3 border-foreground font-bold transition-all',
+                'w-10 h-10 flex items-center justify-center border-3 border-foreground font-bold transition',
                 index < currentStep
                   ? 'bg-success text-success-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))]'
                   : index === currentStep
@@ -387,7 +388,7 @@ export function ProfileSetup({
                   type="button"
                   onClick={() => setFormData({ ...formData, role: role.value })}
                   className={cn(
-                    'p-2 text-sm border-2 border-foreground font-medium transition-all',
+                    'p-2 text-sm border-2 border-foreground font-medium transition',
                     formData.role === role.value
                       ? 'bg-primary text-primary-foreground shadow-[3px_3px_0px_hsl(var(--shadow-color))]'
                       : 'bg-card hover:bg-muted'
@@ -411,7 +412,7 @@ export function ProfileSetup({
                   type="button"
                   onClick={() => toggleInterest(interest.value)}
                   className={cn(
-                    'p-2 text-sm border-2 border-foreground font-medium transition-all flex items-center gap-2',
+                    'p-2 text-sm border-2 border-foreground font-medium transition flex items-center gap-2',
                     formData.interests.includes(interest.value)
                       ? 'bg-secondary text-secondary-foreground shadow-[3px_3px_0px_hsl(var(--shadow-color))]'
                       : 'bg-card hover:bg-muted'
@@ -460,12 +461,22 @@ export function WorkspaceSetup({
   const [workspaceName, setWorkspaceName] = React.useState('')
   const [memberEmail, setMemberEmail] = React.useState('')
   const [members, setMembers] = React.useState<string[]>([])
+  const [emailError, setEmailError] = React.useState<string | null>(null)
 
   const addMember = () => {
-    if (memberEmail && !members.includes(memberEmail)) {
-      setMembers([...members, memberEmail])
-      setMemberEmail('')
+    const trimmed = memberEmail.trim()
+    if (!trimmed) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailError('Enter a valid email address')
+      return
     }
+    if (members.includes(trimmed)) {
+      setEmailError('Already invited')
+      return
+    }
+    setMembers([...members, trimmed])
+    setMemberEmail('')
+    setEmailError(null)
   }
 
   const removeMember = (email: string) => {
@@ -512,13 +523,19 @@ export function WorkspaceSetup({
                 id="invite"
                 type="email"
                 value={memberEmail}
-                onChange={(e) => setMemberEmail(e.target.value)}
+                onChange={(e) => {
+                  setMemberEmail(e.target.value)
+                  if (emailError) setEmailError(null)
+                }}
                 placeholder="colleague@email.com"
               />
               <Button type="button" variant="outline" onClick={addMember}>
                 Add
               </Button>
             </div>
+            {emailError && (
+              <p className="text-xs font-bold text-destructive">{emailError}</p>
+            )}
           </div>
 
           {members.length > 0 && (
@@ -617,7 +634,7 @@ export function GoalSelection({
               type="button"
               onClick={() => toggleGoal(goal.id)}
               className={cn(
-                'flex items-start gap-4 p-4 border-3 border-foreground text-left transition-all',
+                'flex items-start gap-4 p-4 border-3 border-foreground text-left transition',
                 selected.includes(goal.id)
                   ? 'bg-primary/10 shadow-[4px_4px_0px_hsl(var(--shadow-color))] translate-x-[-2px] translate-y-[-2px]'
                   : 'bg-card hover:bg-muted'

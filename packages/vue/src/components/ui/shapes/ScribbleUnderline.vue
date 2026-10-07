@@ -6,7 +6,12 @@ interface Props {
   class?: string
   size?: number
   strokeWidth?: number
-  animation?: 'none' | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+  animation?:
+    | 'none'
+    // smooth presets
+    | 'spin' | 'pulse' | 'float' | 'wiggle' | 'bounce' | 'glitch'
+    // stepped presets — hard, non-interpolated motion (v3.5)
+    | 'spin-step' | 'pulse-hard' | 'marquee-stamp'
   speed?: 'slow' | 'normal' | 'fast'
 }
 
@@ -27,6 +32,7 @@ const animClass = computed(() => {
 
 <template>
   <svg
+    aria-hidden="true"
     :width="size"
     :height="size * 0.2"
     viewBox="0 0 100 20"

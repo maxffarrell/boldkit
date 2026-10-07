@@ -7,23 +7,21 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Collapsible.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Collapsible.vue"
+      "path": "components/ui/Collapsible.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/CollapsibleTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/CollapsibleTrigger.vue"
+      "path": "components/ui/CollapsibleTrigger.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/CollapsibleContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/CollapsibleContent.vue"
+      "path": "components/ui/CollapsibleContent.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Collapsible"
 }

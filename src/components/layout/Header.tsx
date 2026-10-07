@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { SearchCommand } from '@/components/SearchCommand'
 import { GitHubStars } from '@/components/GitHubStars'
 import { useTheme } from '@/hooks/use-theme'
+import { toggleThemeWithReveal } from '@/lib/theme-transition'
 import {
   Moon,
   Sun,
@@ -40,10 +41,14 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
 
-  // Close mobile menu on route change
-  useEffect(() => {
+  // Close mobile menu on route change. Adjusted during render rather than in
+  // an effect — React's documented pattern for reacting to a changed value,
+  // and it avoids the extra render pass an effect would queue.
+  const [prevPath, setPrevPath] = useState(location.pathname)
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname)
     setMobileMenuOpen(false)
-  }, [location.pathname])
+  }
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -114,7 +119,7 @@ export function Header() {
             <div className="relative">
               <img
                 src="https://ik.imagekit.io/fincalfy/304a4c07-8de1-41af-813e-e7556234b973.png"
-                alt=""
+                alt="BoldKit logo"
                 className="h-7 w-7 transition-transform group-hover:rotate-[-6deg] duration-200"
               />
             </div>
@@ -128,7 +133,7 @@ export function Header() {
               variant="secondary"
               className="text-[9px] px-1 py-0 h-4 hidden sm:inline-flex"
             >
-              v3.3
+              v3.5
             </Badge>
           </Link>
 
@@ -171,7 +176,15 @@ export function Header() {
             {/* Theme toggle */}
             <button
               className="h-8 w-8 flex items-center justify-center border-3 border-foreground bg-background hover:bg-foreground hover:text-background transition-colors duration-150 shrink-0"
-              onClick={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}
+              onClick={(e) => {
+                const next = resolvedTheme === 'light' ? 'dark' : 'light'
+                const rect = e.currentTarget.getBoundingClientRect()
+                toggleThemeWithReveal(
+                  next,
+                  { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+                  () => setTheme(next),
+                )
+              }}
               aria-label={resolvedTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               title={resolvedTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
@@ -228,7 +241,7 @@ export function Header() {
                       to={item.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
-                        'flex items-center gap-3 px-3 py-3 font-bold text-base border-3 transition-all duration-100',
+                        'flex items-center gap-3 px-3 py-3 font-bold text-base border-3 transition duration-100',
                         isActive
                           ? 'border-foreground bg-primary text-primary-foreground shadow-[3px_3px_0px_hsl(var(--foreground))]'
                           : 'border-transparent hover:border-foreground hover:bg-muted hover:shadow-[3px_3px_0px_hsl(var(--foreground))] hover:translate-x-[-2px] hover:translate-y-[-2px]'
@@ -255,7 +268,7 @@ export function Header() {
                 href="https://github.com/ANIBIT14/boldkit"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-3 font-bold text-base border-3 border-transparent hover:border-foreground hover:bg-muted hover:shadow-[3px_3px_0px_hsl(var(--foreground))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-100"
+                className="flex items-center gap-3 px-3 py-3 font-bold text-base border-3 border-transparent hover:border-foreground hover:bg-muted hover:shadow-[3px_3px_0px_hsl(var(--foreground))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition duration-100"
               >
                 <Github className="h-4 w-4 shrink-0" />
                 <span>GitHub</span>

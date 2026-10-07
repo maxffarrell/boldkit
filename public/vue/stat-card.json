@@ -7,13 +7,15 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/card",
+    "@boldkit/progress"
   ],
   "files": [
     {
-      "path": "registry/default/ui/StatCard.vue",
-      "type": "registry:ui",
-      "target": "components/ui/StatCard.vue"
+      "path": "components/ui/StatCard.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Stat Card"
 }

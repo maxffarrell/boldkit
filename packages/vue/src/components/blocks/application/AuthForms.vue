@@ -38,13 +38,23 @@ const confirmPassword = ref('')
 const rememberMe = ref(false)
 const otpValues = ref(['', '', '', '', '', ''])
 const inputRefs = ref<HTMLInputElement[]>([])
+const agreedToTerms = ref(false)
+const error = ref('')
+const forgotSubmitted = ref(false)
 
 const handleOtpInput = (index: number, event: Event) => {
   const target = event.target as HTMLInputElement
-  const value = target.value
+  // Only accept digits; keep the model and the DOM input in sync.
+  const digit = target.value.replace(/\D/g, '').slice(-1)
+  otpValues.value[index] = digit
+  target.value = digit
 
-  if (value && index < 5) {
+  if (digit && index < 5) {
     inputRefs.value[index + 1]?.focus()
+  }
+  // Auto-submit once every digit is filled (parity with paste + React).
+  if (otpValues.value.every((v) => v !== '')) {
+    handleSubmit()
   }
 }
 
@@ -73,8 +83,18 @@ const handleSubmit = () => {
   if (props.variant === 'login') {
     emit('submit', { email: email.value, password: password.value, rememberMe: String(rememberMe.value) })
   } else if (props.variant === 'signup') {
+    if (password.value !== confirmPassword.value) {
+      error.value = 'Passwords do not match'
+      return
+    }
+    if (!agreedToTerms.value) {
+      error.value = 'You must accept the terms to continue'
+      return
+    }
+    error.value = ''
     emit('submit', { name: name.value, email: email.value, password: password.value })
   } else if (props.variant === 'forgotPassword') {
+    forgotSubmitted.value = true
     emit('submit', { email: email.value })
   } else if (props.variant === 'otpVerification') {
     emit('submit', { otp: otpValues.value.join('') })
@@ -99,7 +119,7 @@ const handleSubmit = () => {
             <Label for="email">Email</Label>
             <div class="relative">
               <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input id="email" v-model="email" type="email" placeholder="you@example.com" class="pl-10" required />
+              <Input id="email" v-model="email" type="email" autocomplete="email" placeholder="you@example.com" class="pl-10" required />
             </div>
           </div>
           <div class="space-y-2">
@@ -110,6 +130,7 @@ const handleSubmit = () => {
                 id="password"
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
+                autocomplete="current-password"
                 placeholder="••••••••"
                 class="pl-10 pr-10"
                 required
@@ -190,23 +211,30 @@ const handleSubmit = () => {
             <Label for="signup-email">Email</Label>
             <div class="relative">
               <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input id="signup-email" v-model="email" type="email" placeholder="you@example.com" class="pl-10" required />
+              <Input id="signup-email" v-model="email" type="email" autocomplete="email" placeholder="you@example.com" class="pl-10" required />
             </div>
           </div>
           <div class="space-y-2">
             <Label for="signup-password">Password</Label>
             <div class="relative">
               <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input id="signup-password" v-model="password" type="password" placeholder="••••••••" class="pl-10" required />
+              <Input id="signup-password" v-model="password" type="password" autocomplete="new-password" placeholder="••••••••" class="pl-10" required />
             </div>
           </div>
           <div class="space-y-2">
             <Label for="confirm-password">Confirm Password</Label>
             <div class="relative">
               <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input id="confirm-password" v-model="confirmPassword" type="password" placeholder="••••••••" class="pl-10" required />
+              <Input id="confirm-password" v-model="confirmPassword" type="password" autocomplete="new-password" placeholder="••••••••" class="pl-10" required />
             </div>
           </div>
+          <div class="flex items-start gap-2">
+            <Checkbox id="terms" v-model:checked="agreedToTerms" />
+            <Label for="terms" class="text-sm cursor-pointer leading-snug">
+              I agree to the Terms of Service and Privacy Policy
+            </Label>
+          </div>
+          <p v-if="error" class="text-sm font-bold text-destructive">{{ error }}</p>
           <Button type="submit" class="w-full">Create Account</Button>
         </form>
       </CardContent>
@@ -232,7 +260,7 @@ const handleSubmit = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form class="space-y-4" @submit.prevent="handleSubmit">
+        <form v-if="!forgotSubmitted" class="space-y-4" @submit.prevent="handleSubmit">
           <div class="space-y-2">
             <Label for="reset-email">Email</Label>
             <div class="relative">
@@ -242,6 +270,19 @@ const handleSubmit = () => {
           </div>
           <Button type="submit" class="w-full">Send Reset Link</Button>
         </form>
+        <div v-else class="space-y-4 text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center border-3 border-foreground bg-success text-success-foreground shadow-[3px_3px_0px_hsl(var(--shadow-color))]">
+            <Mail class="h-6 w-6" />
+          </div>
+          <p class="font-bold uppercase">Check your email</p>
+          <p class="text-sm text-muted-foreground">
+            We've sent a password reset link to
+            <span class="font-bold text-foreground">{{ email }}</span>.
+          </p>
+          <Button variant="outline" class="w-full" @click="forgotSubmitted = false">
+            Resend link
+          </Button>
+        </div>
       </CardContent>
       <CardFooter class="justify-center">
         <Button variant="ghost" class="gap-2" @click="emit('back')">
@@ -332,11 +373,11 @@ const handleSubmit = () => {
         <form class="space-y-4" @submit.prevent="handleSubmit">
           <div class="space-y-2">
             <Label for="split-email">Email</Label>
-            <Input id="split-email" v-model="email" type="email" placeholder="you@example.com" required />
+            <Input id="split-email" v-model="email" type="email" autocomplete="email" placeholder="you@example.com" required />
           </div>
           <div class="space-y-2">
             <Label for="split-password">Password</Label>
-            <Input id="split-password" v-model="password" type="password" placeholder="••••••••" required />
+            <Input id="split-password" v-model="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
           </div>
           <Button type="submit" class="w-full">Sign In</Button>
         </form>

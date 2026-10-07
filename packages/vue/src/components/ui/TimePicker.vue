@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { cn } from '@/lib/utils'
 import { Clock } from 'lucide-vue-next'
 import Popover from './Popover.vue'
@@ -195,7 +195,7 @@ const periods: readonly ('AM' | 'PM')[] = ['AM', 'PM']
       </Button>
     </PopoverTrigger>
     <PopoverContent
-      :class="cn('w-auto p-0 overflow-hidden', 'animate-in fade-in-0 zoom-in-95 duration-200')"
+      :class="cn('w-auto p-0 overflow-hidden', 'ease-out animate-in fade-in-0 zoom-in-95 duration-200')"
       align="start"
       :side-offset="4"
     >
@@ -220,7 +220,7 @@ const periods: readonly ('AM' | 'PM')[] = ['AM', 'PM']
                 :class="
                   cn(
                     'w-full px-2 py-1.5 text-center text-sm',
-                    'transition-all duration-150 ease-out',
+                    'transition duration-150 ease-out',
                     'hover:bg-muted hover:scale-105',
                     'focus:outline-none focus:bg-muted',
                     selectedHour === hour &&
@@ -260,7 +260,7 @@ const periods: readonly ('AM' | 'PM')[] = ['AM', 'PM']
                 :class="
                   cn(
                     'w-full px-2 py-1.5 text-center text-sm',
-                    'transition-all duration-150 ease-out',
+                    'transition duration-150 ease-out',
                     'hover:bg-muted hover:scale-105',
                     'focus:outline-none focus:bg-muted',
                     selectedMinute === minute &&
@@ -294,7 +294,7 @@ const periods: readonly ('AM' | 'PM')[] = ['AM', 'PM']
                 :class="
                   cn(
                     'w-full px-2 py-1.5 text-center text-sm',
-                    'transition-all duration-150 ease-out',
+                    'transition duration-150 ease-out',
                     'hover:bg-muted hover:scale-105',
                     'focus:outline-none focus:bg-muted',
                     selectedSecond === second &&
@@ -325,7 +325,7 @@ const periods: readonly ('AM' | 'PM')[] = ['AM', 'PM']
               :class="
                 cn(
                   'w-full px-2 py-3 text-center text-sm font-bold',
-                  'transition-all duration-150 ease-out',
+                  'transition duration-150 ease-out',
                   'hover:bg-muted hover:scale-105',
                   'focus:outline-none focus:bg-muted',
                   selectedPeriod === period &&

@@ -1,6 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { cn, safeHref } from '@/lib/utils'
 import { ArrowRight, Play, Sparkles, Star, Zap } from 'lucide-react'
 
 // ============================================================================
@@ -53,7 +54,7 @@ export function HeroCentered({
             {primaryAction && (
               primaryAction.href ? (
                 <Button size="lg" asChild>
-                  <a href={primaryAction.href}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
+                  <a href={safeHref(primaryAction.href)}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
                 </Button>
               ) : (
                 <Button size="lg" onClick={primaryAction.onClick}>
@@ -65,7 +66,7 @@ export function HeroCentered({
             {secondaryAction && (
               secondaryAction.href ? (
                 <Button size="lg" variant="outline" asChild>
-                  <a href={secondaryAction.href}>{secondaryAction.label}</a>
+                  <a href={safeHref(secondaryAction.href)}>{secondaryAction.label}</a>
                 </Button>
               ) : (
                 <Button size="lg" variant="outline" onClick={secondaryAction.onClick}>
@@ -131,7 +132,7 @@ export function HeroSplit({
               {primaryAction && (
                 primaryAction.href ? (
                   <Button size="lg" asChild>
-                    <a href={primaryAction.href}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
+                    <a href={safeHref(primaryAction.href)}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
                   </Button>
                 ) : (
                   <Button size="lg" onClick={primaryAction.onClick}>
@@ -143,7 +144,7 @@ export function HeroSplit({
               {secondaryAction && (
                 secondaryAction.href ? (
                   <Button size="lg" variant="outline" asChild>
-                    <a href={secondaryAction.href}><Play className="mr-2 h-4 w-4" />{secondaryAction.label}</a>
+                    <a href={safeHref(secondaryAction.href)}><Play className="mr-2 h-4 w-4" />{secondaryAction.label}</a>
                   </Button>
                 ) : (
                   <Button size="lg" variant="outline" onClick={secondaryAction.onClick}>
@@ -213,7 +214,7 @@ export function HeroWithStats({
           {primaryAction && (
             primaryAction.href ? (
               <Button size="lg" asChild>
-                <a href={primaryAction.href}>{primaryAction.label}<Zap className="ml-2 h-4 w-4" /></a>
+                <a href={safeHref(primaryAction.href)}>{primaryAction.label}<Zap className="ml-2 h-4 w-4" /></a>
               </Button>
             ) : (
               <Button size="lg" onClick={primaryAction.onClick}>
@@ -273,7 +274,7 @@ export function HeroMinimal({
           {primaryAction && (
             primaryAction.href ? (
               <Button size="lg" className="shrink-0" asChild>
-                <a href={primaryAction.href}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
+                <a href={safeHref(primaryAction.href)}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
               </Button>
             ) : (
               <Button size="lg" className="shrink-0" onClick={primaryAction.onClick}>
@@ -341,7 +342,7 @@ export function HeroWithVideo({
           {primaryAction && (
             primaryAction.href ? (
               <Button size="lg" asChild>
-                <a href={primaryAction.href}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
+                <a href={safeHref(primaryAction.href)}>{primaryAction.label}<ArrowRight className="ml-2 h-4 w-4" /></a>
               </Button>
             ) : (
               <Button size="lg" onClick={primaryAction.onClick}>
@@ -362,7 +363,7 @@ export function HeroWithVideo({
           </div>
           {/* Play button overlay */}
           <div className="absolute inset-0 flex items-center justify-center bg-foreground/20 group-hover:bg-foreground/30 transition-colors">
-            <div className="w-20 h-20 bg-primary border-3 border-foreground flex items-center justify-center shadow-[4px_4px_0px_hsl(var(--shadow-color))] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px] group-hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition-all">
+            <div className="w-20 h-20 bg-primary border-3 border-foreground flex items-center justify-center shadow-[4px_4px_0px_hsl(var(--shadow-color))] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px] group-hover:shadow-[8px_8px_0px_hsl(var(--shadow-color))] transition">
               <Play className="h-8 w-8 fill-current" />
             </div>
           </div>

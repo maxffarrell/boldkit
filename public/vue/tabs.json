@@ -7,28 +7,25 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Tabs.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Tabs.vue"
+      "path": "components/ui/Tabs.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TabsList.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TabsList.vue"
+      "path": "components/ui/TabsList.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TabsTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TabsTrigger.vue"
+      "path": "components/ui/TabsTrigger.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/TabsContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TabsContent.vue"
+      "path": "components/ui/TabsContent.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Tabs"
 }

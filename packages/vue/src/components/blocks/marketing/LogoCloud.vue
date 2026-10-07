@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
+import { cn, safeHref } from '@/lib/utils'
 import Marquee from '@/components/ui/Marquee.vue'
-import type { Component } from 'vue'
+import { computed, type Component } from 'vue'
 
 type LogoCloudVariant = 'grid' | 'marquee' | 'cards' | 'withStats'
 
@@ -25,6 +25,12 @@ interface LogoCloudProps {
   speed?: 'slow' | 'normal' | 'fast'
   direction?: 'left' | 'right'
   stats?: StatItem[]
+  /**
+   * withStats only — cap the number of logos rendered. Omit to render all of
+   * them; the 3-column grid simply grows another row. Previously hard-capped
+   * at 9, which dropped the rest silently.
+   */
+  maxLogos?: number
   class?: string
 }
 
@@ -34,6 +40,10 @@ const props = withDefaults(defineProps<LogoCloudProps>(), {
   speed: 'normal',
   direction: 'left',
 })
+
+const visibleLogos = computed(() =>
+  props.maxLogos === undefined ? props.logos : props.logos.slice(0, props.maxLogos)
+)
 
 const gridCols: Record<number, string> = {
   3: 'grid-cols-3',
@@ -63,7 +73,7 @@ const gridCols: Record<number, string> = {
         <template v-for="logo in logos" :key="`logo-${logo.name}`">
           <a
             v-if="logo.url"
-            :href="logo.url"
+            :href="safeHref(logo.url)"
             target="_blank"
             rel="noopener noreferrer"
             class="flex items-center justify-center h-12 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
@@ -140,7 +150,7 @@ const gridCols: Record<number, string> = {
         <div
           v-for="logo in logos"
           :key="`logo-${logo.name}`"
-          class="border-3 border-foreground bg-card p-6 flex items-center justify-center h-24 hover:shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all cursor-pointer"
+          class="border-3 border-foreground bg-card p-6 flex items-center justify-center h-24 hover:shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition cursor-pointer"
         >
           <img
             v-if="typeof logo.logo === 'string'"
@@ -182,7 +192,7 @@ const gridCols: Record<number, string> = {
 
         <div class="grid grid-cols-3 gap-6">
           <div
-            v-for="logo in logos.slice(0, 9)"
+            v-for="logo in visibleLogos"
             :key="`logo-${logo.name}`"
             class="flex items-center justify-center h-16 opacity-70 hover:opacity-100 transition-opacity"
           >
@@ -190,7 +200,7 @@ const gridCols: Record<number, string> = {
               v-if="typeof logo.logo === 'string'"
               :src="logo.logo"
               :alt="logo.name"
-              class="h-8 w-auto object-contain grayscale hover:grayscale-0 transition-all"
+              class="h-8 w-auto object-contain grayscale hover:grayscale-0 transition"
             />
             <component v-else :is="logo.logo" />
           </div>

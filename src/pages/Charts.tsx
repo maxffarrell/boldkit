@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
+import { copyToClipboard } from '@/lib/clipboard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -30,7 +31,9 @@ import {
   TreemapChart,
   HeatmapChart,
   SankeyChart,
+  renderChartAnnotations,
 } from '@/components/ui/chart'
+import type { ChartAnnotation } from '@/components/ui/chart'
 import type { ChartConfig, ChartPalette } from '@/components/ui/chart'
 import {
   Area,
@@ -69,6 +72,12 @@ const barData = [
   { month: 'Apr', desktop: 73, mobile: 190 },
   { month: 'May', desktop: 209, mobile: 130 },
   { month: 'Jun', desktop: 214, mobile: 140 },
+]
+
+const annotationDemo: ChartAnnotation[] = [
+  { kind: 'referenceLine', axis: 'y', value: 200, label: 'Target', dash: true },
+  { kind: 'callout', x: 'Feb', y: 305, text: 'Peak' },
+  { kind: 'arrow', from: { x: 'Apr', y: 73 }, to: { x: 'May', y: 209 }, label: 'Recovery' },
 ]
 
 const lineData = [
@@ -1293,8 +1302,8 @@ function ChartCard({
 
   const currentCode = framework === 'react' ? code : framework === 'vue' ? (vueCode || code) : (svelteCode || '<!-- Svelte chart example coming soon. -->')
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(currentCode)
+  const copyCode = async () => {
+    if (!(await copyToClipboard(currentCode))) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -1993,7 +2002,20 @@ export function Charts() {
   ]}
   config={chartConfig}
 />`}
-                vueCode={`<!-- Vue: Use vue-echarts with pie chart type -->`}
+                vueCode={`<script setup lang="ts">
+import DonutChart from '@/components/ui/DonutChart.vue'
+
+const data = [
+  { name: 'Chrome', value: 275, fill: 'hsl(var(--primary))' },
+  { name: 'Safari', value: 200, fill: 'hsl(var(--secondary))' },
+  { name: 'Firefox', value: 187, fill: 'hsl(var(--accent))' },
+  { name: 'Edge', value: 173, fill: 'hsl(var(--success))' },
+]
+</script>
+
+<template>
+  <DonutChart :data="data" :config="chartConfig" />
+</template>`}
               >
                 <DonutChart
                   data={[
@@ -2017,7 +2039,25 @@ export function Charts() {
   config={chartConfig}
   centerContent={<DonutChartCenter value="835" label="Total" />}
 />`}
-                vueCode={`<!-- Vue: Use vue-echarts with center label -->`}
+                vueCode={`<script setup lang="ts">
+import DonutChart from '@/components/ui/DonutChart.vue'
+
+const data = [
+  { name: 'Chrome', value: 275, fill: 'hsl(var(--primary))' },
+  { name: 'Safari', value: 200, fill: 'hsl(var(--secondary))' },
+  { name: 'Firefox', value: 187, fill: 'hsl(var(--accent))' },
+  { name: 'Edge', value: 173, fill: 'hsl(var(--success))' },
+]
+</script>
+
+<template>
+  <DonutChart :data="data" :config="chartConfig">
+    <div class="text-center">
+      <div class="text-3xl font-black">835</div>
+      <div class="text-xs font-bold uppercase tracking-wide">Total</div>
+    </div>
+  </DonutChart>
+</template>`}
               >
                 <DonutChart
                   data={[
@@ -2038,7 +2078,19 @@ export function Charts() {
                 trend="up"
                 trendValue="0%"
                 code={`<DonutChart data={data} config={config} variant="separated" />`}
-                vueCode={`<!-- Vue: Use vue-echarts with padAngle -->`}
+                vueCode={`<script setup lang="ts">
+import DonutChart from '@/components/ui/DonutChart.vue'
+
+const data = [
+  { name: 'Desktop', value: 450, fill: 'hsl(var(--primary))' },
+  { name: 'Mobile', value: 320, fill: 'hsl(var(--secondary))' },
+  { name: 'Tablet', value: 180, fill: 'hsl(var(--accent))' },
+]
+</script>
+
+<template>
+  <DonutChart :data="data" :config="config" variant="separated" />
+</template>`}
               >
                 <DonutChart
                   data={[
@@ -2058,7 +2110,20 @@ export function Charts() {
                 trend="down"
                 trendValue="-3.2%"
                 code={`<DonutChart data={data} config={config} showLabels="outside" />`}
-                vueCode={`<!-- Vue: Use vue-echarts with label config -->`}
+                vueCode={`<script setup lang="ts">
+import DonutChart from '@/components/ui/DonutChart.vue'
+
+const data = [
+  { name: 'Q1', value: 250, fill: 'hsl(var(--primary))' },
+  { name: 'Q2', value: 300, fill: 'hsl(var(--secondary))' },
+  { name: 'Q3', value: 280, fill: 'hsl(var(--accent))' },
+  { name: 'Q4', value: 320, fill: 'hsl(var(--success))' },
+]
+</script>
+
+<template>
+  <DonutChart :data="data" :config="config" show-labels="outside" />
+</template>`}
               >
                 <DonutChart
                   data={[
@@ -2091,7 +2156,19 @@ export function Charts() {
   ]}
   config={chartConfig}
 />`}
-                vueCode={`<!-- Vue: Use vue-echarts with gauge type -->`}
+                vueCode={`<script setup lang="ts">
+import RadialBarChart from '@/components/ui/RadialBarChart.vue'
+
+const data = [
+  { name: 'Progress', value: 75 },
+  { name: 'Goals', value: 60 },
+  { name: 'Tasks', value: 45 },
+]
+</script>
+
+<template>
+  <RadialBarChart :data="data" :config="config" />
+</template>`}
               >
                 <RadialBarChart
                   data={[
@@ -2114,7 +2191,19 @@ export function Charts() {
                 trend="up"
                 trendValue="+7.8%"
                 code={`<RadialBarChart data={data} config={config} showLegend />`}
-                vueCode={`<!-- Vue: Use vue-echarts with legend -->`}
+                vueCode={`<script setup lang="ts">
+import RadialBarChart from '@/components/ui/RadialBarChart.vue'
+
+const data = [
+  { name: 'Sales', value: 85, fill: 'hsl(var(--success))' },
+  { name: 'Revenue', value: 70, fill: 'hsl(var(--primary))' },
+  { name: 'Expenses', value: 55, fill: 'hsl(var(--warning))' },
+]
+</script>
+
+<template>
+  <RadialBarChart :data="data" :config="config" show-label />
+</template>`}
               >
                 <RadialBarChart
                   data={[
@@ -2153,7 +2242,21 @@ export function Charts() {
   dataKeys={['A', 'B']}
   config={chartConfig}
 />`}
-                vueCode={`<!-- Vue: Use vue-echarts with radar type -->`}
+                vueCode={`<script setup lang="ts">
+import RadarChart from '@/components/ui/RadarChart.vue'
+
+const data = [
+  { subject: 'Math', A: 120, B: 110 },
+  { subject: 'Chinese', A: 98, B: 130 },
+  { subject: 'English', A: 86, B: 130 },
+  { subject: 'Geography', A: 99, B: 100 },
+  { subject: 'Physics', A: 85, B: 90 },
+]
+</script>
+
+<template>
+  <RadarChart :data="data" :data-keys="['A', 'B']" :config="config" />
+</template>`}
               >
                 <RadarChart
                   data={[
@@ -2179,7 +2282,21 @@ export function Charts() {
                 trend="up"
                 trendValue="0%"
                 code={`<RadarChart data={data} dataKeys={keys} variant="filled" />`}
-                vueCode={`<!-- Vue: Use vue-echarts with areaStyle -->`}
+                vueCode={`<script setup lang="ts">
+import RadarChart from '@/components/ui/RadarChart.vue'
+
+const data = [
+  { subject: 'Speed', value: 80 },
+  { subject: 'Strength', value: 90 },
+  { subject: 'Defense', value: 70 },
+  { subject: 'Magic', value: 85 },
+  { subject: 'Stamina', value: 75 },
+]
+</script>
+
+<template>
+  <RadarChart :data="data" :data-keys="['value']" :config="config" :fill-opacity="0.6" />
+</template>`}
               >
                 <RadarChart
                   data={[
@@ -2205,7 +2322,22 @@ export function Charts() {
                 trend="down"
                 trendValue="-2.1%"
                 code={`<RadarChart data={data} dataKeys={keys} variant="outlined" />`}
-                vueCode={`<!-- Vue: Use vue-echarts without areaStyle -->`}
+                vueCode={`<script setup lang="ts">
+import RadarChart from '@/components/ui/RadarChart.vue'
+
+const data = [
+  { subject: 'Jan', sales: 65, target: 80 },
+  { subject: 'Feb', sales: 75, target: 80 },
+  { subject: 'Mar', sales: 90, target: 80 },
+  { subject: 'Apr', sales: 70, target: 80 },
+  { subject: 'May', sales: 85, target: 80 },
+  { subject: 'Jun', sales: 95, target: 80 },
+]
+</script>
+
+<template>
+  <RadarChart :data="data" :data-keys="['sales', 'target']" :config="config" :fill-opacity="0" />
+</template>`}
               >
                 <RadarChart
                   data={[
@@ -2237,7 +2369,13 @@ export function Charts() {
                 trend="up"
                 trendValue="+5%"
                 code={`<GaugeChart value={72} label="Performance" />`}
-                vueCode={`<!-- Vue: Use vue-echarts with gauge type -->`}
+                vueCode={`<script setup lang="ts">
+import GaugeChart from '@/components/ui/GaugeChart.vue'
+</script>
+
+<template>
+  <GaugeChart :value="72" label="Performance" />
+</template>`}
               >
                 <div className="flex justify-center py-4">
                   <GaugeChart value={72} label="Performance" />
@@ -2250,7 +2388,13 @@ export function Charts() {
                 trend="down"
                 trendValue="-15%"
                 code={`<GaugeChart value={25} label="CPU" />`}
-                vueCode={`<!-- Vue: Use vue-echarts gauge -->`}
+                vueCode={`<script setup lang="ts">
+import GaugeChart from '@/components/ui/GaugeChart.vue'
+</script>
+
+<template>
+  <GaugeChart :value="25" label="CPU" />
+</template>`}
               >
                 <div className="flex justify-center py-4">
                   <GaugeChart value={25} label="CPU" />
@@ -2263,7 +2407,13 @@ export function Charts() {
                 trend="up"
                 trendValue="+20%"
                 code={`<GaugeChart value={92} label="Score" />`}
-                vueCode={`<!-- Vue: Use vue-echarts gauge -->`}
+                vueCode={`<script setup lang="ts">
+import GaugeChart from '@/components/ui/GaugeChart.vue'
+</script>
+
+<template>
+  <GaugeChart :value="92" label="Score" />
+</template>`}
               >
                 <div className="flex justify-center py-4">
                   <GaugeChart value={92} label="Score" />
@@ -2284,7 +2434,19 @@ export function Charts() {
   ]}
   label="Temp"
 />`}
-                vueCode={`<!-- Vue: Use vue-echarts with axisLine data -->`}
+                vueCode={`<script setup lang="ts">
+import GaugeChart from '@/components/ui/GaugeChart.vue'
+
+const zones = [
+  { from: 0, to: 50, color: 'hsl(var(--info))' },
+  { from: 50, to: 80, color: 'hsl(var(--warning))' },
+  { from: 80, to: 100, color: 'hsl(var(--destructive))' },
+]
+</script>
+
+<template>
+  <GaugeChart :value="65" :zones="zones" label="Temp" />
+</template>`}
               >
                 <div className="flex justify-center py-4">
                   <GaugeChart
@@ -2305,7 +2467,13 @@ export function Charts() {
                 trend="up"
                 trendValue="+3%"
                 code={`<GaugeChart value={60} size="sm" />`}
-                vueCode={`<!-- Vue: Adjust size in styles -->`}
+                vueCode={`<script setup lang="ts">
+import GaugeChart from '@/components/ui/GaugeChart.vue'
+</script>
+
+<template>
+  <GaugeChart :value="60" size="sm" />
+</template>`}
               >
                 <div className="flex justify-center py-4">
                   <GaugeChart value={60} size="sm" />
@@ -2318,7 +2486,13 @@ export function Charts() {
                 trend="up"
                 trendValue="+8%"
                 code={`<GaugeChart value={85} size="lg" label="Health" />`}
-                vueCode={`<!-- Vue: Adjust size in styles -->`}
+                vueCode={`<script setup lang="ts">
+import GaugeChart from '@/components/ui/GaugeChart.vue'
+</script>
+
+<template>
+  <GaugeChart :value="85" size="lg" label="Health" />
+</template>`}
               >
                 <div className="flex justify-center py-4">
                   <GaugeChart value={85} size="lg" label="Health" />
@@ -2336,7 +2510,15 @@ export function Charts() {
                 trend="up"
                 trendValue="+12%"
                 code={`<Sparkline data={[10, 25, 15, 30, 20, 35, 28]} type="line" />`}
-                vueCode={`<!-- Vue: Use vue-echarts mini line chart -->`}
+                vueCode={`<script setup lang="ts">
+import SparklineChart from '@/components/ui/SparklineChart.vue'
+
+const data = [10, 25, 15, 30, 20, 35, 28]
+</script>
+
+<template>
+  <SparklineChart :data="data" type="line" />
+</template>`}
               >
                 <div className="flex items-center justify-center h-[100px]">
                   <Sparkline
@@ -2354,7 +2536,15 @@ export function Charts() {
                 trend="up"
                 trendValue="+8%"
                 code={`<Sparkline data={data} type="area" trend="up" />`}
-                vueCode={`<!-- Vue: Use vue-echarts with areaStyle -->`}
+                vueCode={`<script setup lang="ts">
+import SparklineChart from '@/components/ui/SparklineChart.vue'
+
+const data = [5, 15, 10, 25, 18, 30, 22, 35]
+</script>
+
+<template>
+  <SparklineChart :data="data" type="area" trend="up" />
+</template>`}
               >
                 <div className="flex items-center justify-center h-[100px]">
                   <Sparkline
@@ -2373,7 +2563,15 @@ export function Charts() {
                 trend="up"
                 trendValue="0%"
                 code={`<Sparkline data={data} type="bar" />`}
-                vueCode={`<!-- Vue: Use vue-echarts bar type -->`}
+                vueCode={`<script setup lang="ts">
+import SparklineChart from '@/components/ui/SparklineChart.vue'
+
+const data = [20, 35, 25, 40, 30, 45, 35]
+</script>
+
+<template>
+  <SparklineChart :data="data" type="bar" />
+</template>`}
               >
                 <div className="flex items-center justify-center h-[100px]">
                   <Sparkline
@@ -2391,7 +2589,15 @@ export function Charts() {
                 trend="up"
                 trendValue="+25%"
                 code={`<Sparkline data={data} trend="up" showEndDot />`}
-                vueCode={`<!-- Vue: Style with success color -->`}
+                vueCode={`<script setup lang="ts">
+import SparklineChart from '@/components/ui/SparklineChart.vue'
+
+const data = [10, 12, 15, 14, 18, 22, 25, 30]
+</script>
+
+<template>
+  <SparklineChart :data="data" trend="up" show-end-dot />
+</template>`}
               >
                 <div className="flex items-center justify-center h-[100px]">
                   <Sparkline
@@ -2410,7 +2616,15 @@ export function Charts() {
                 trend="down"
                 trendValue="-18%"
                 code={`<Sparkline data={data} trend="down" showEndDot />`}
-                vueCode={`<!-- Vue: Style with destructive color -->`}
+                vueCode={`<script setup lang="ts">
+import SparklineChart from '@/components/ui/SparklineChart.vue'
+
+const data = [30, 28, 25, 22, 20, 18, 15, 12]
+</script>
+
+<template>
+  <SparklineChart :data="data" trend="down" show-end-dot />
+</template>`}
               >
                 <div className="flex items-center justify-center h-[100px]">
                   <Sparkline
@@ -2429,7 +2643,15 @@ export function Charts() {
                 trend="up"
                 trendValue=""
                 code={`<Sparkline data={data} type="area" showEndDot />`}
-                vueCode={`<!-- Vue: Add markPoint for end -->`}
+                vueCode={`<script setup lang="ts">
+import SparklineChart from '@/components/ui/SparklineChart.vue'
+
+const data = [15, 20, 18, 25, 22, 28, 24]
+</script>
+
+<template>
+  <SparklineChart :data="data" type="area" show-end-dot />
+</template>`}
               >
                 <div className="flex items-center justify-center h-[100px]">
                   <Sparkline
@@ -2469,6 +2691,36 @@ export function Charts() {
                   </Card>
                 ))}
               </div>
+            </div>
+
+            {/* Annotations */}
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-black uppercase tracking-tight mb-2">Annotations</h2>
+                <p className="text-muted-foreground">
+                  Reference lines, callouts, and brutalist arrows via one unified API
+                  (<code>renderChartAnnotations</code>). Reference lines require a Cartesian chart;
+                  callouts and arrows are data-anchored. Vue maps the same annotation objects to
+                  echarts <code>markLine</code>/<code>graphic</code>.
+                </p>
+              </div>
+              <Card className="overflow-hidden min-w-0">
+                <CardHeader className="pb-2">
+                  <CardTitle>Reference line + callout + arrow</CardTitle>
+                  <CardDescription>One annotation array, dropped into a bar chart</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[280px] w-full">
+                    <BarChart data={barData}>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <Bar dataKey="desktop" fill="hsl(var(--primary))" stroke="hsl(var(--foreground))" strokeWidth={3} />
+                      {renderChartAnnotations(annotationDemo)}
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Color Palettes */}
@@ -2767,26 +3019,18 @@ const data = [
 ]
 
 <FunnelChart data={data} />` : `<script setup lang="ts">
-import { use } from 'echarts/core'
-import { FunnelChart } from 'echarts/charts'
-import VChart from 'vue-echarts'
-use([FunnelChart, /* renderers */])
+import FunnelChart from '@/components/ui/FunnelChart.vue'
 
-const option = ref({
-  series: [{
-    type: 'funnel',
-    data: [
-      { name: 'Visitors', value: 100 },
-      { name: 'Sign-ups', value: 38 },
-      { name: 'Trials',   value: 17 },
-      { name: 'Customers',value: 7 },
-    ]
-  }]
-})
+const data = [
+  { name: 'Visitors',  value: 12400 },
+  { name: 'Sign-ups',  value: 4800 },
+  { name: 'Trials',    value: 2100 },
+  { name: 'Customers', value: 840 },
+]
 </script>
 
 <template>
-  <VChart :option="option" autoresize style="height: 300px" />
+  <FunnelChart :data="data" />
 </template>`}</code>
                 </pre>
               </CardContent>
@@ -2845,25 +3089,18 @@ const data = [
 ]
 
 <TreemapChart data={data} height={320} />` : `<script setup lang="ts">
-import { use } from 'echarts/core'
-import { TreemapChart } from 'echarts/charts'
-import VChart from 'vue-echarts'
-use([TreemapChart, /* renderers */])
+import TreemapChart from '@/components/ui/TreemapChart.vue'
 
-const option = ref({
-  series: [{
-    type: 'treemap',
-    data: [
-      { name: 'Engineering', value: 8100 },
-      { name: 'Marketing',   value: 3600 },
-      { name: 'Design',      value: 4200 },
-    ]
-  }]
-})
+const data = [
+  { name: 'Engineering', value: 8100 },
+  { name: 'Marketing',   value: 3600 },
+  { name: 'Design',      value: 4200 },
+  { name: 'Sales',       value: 2900 },
+]
 </script>
 
 <template>
-  <VChart :option="option" autoresize style="height: 320px" />
+  <TreemapChart :data="data" height="320px" />
 </template>`}</code>
                 </pre>
               </CardContent>
@@ -2917,22 +3154,19 @@ const option = ref({
   ]}
   cellSize={44}
 />` : `<script setup lang="ts">
-import { use } from 'echarts/core'
-import { HeatmapChart } from 'echarts/charts'
-import { GridComponent, VisualMapComponent } from 'echarts/components'
-import VChart from 'vue-echarts'
+import HeatmapChart from '@/components/ui/HeatmapChart.vue'
 
-const option = ref({
-  visualMap: { min: 0, max: 100, calculable: true },
-  series: [{
-    type: 'heatmap',
-    data: [[0, 0, 42], [0, 1, 87], /* ... */],
-  }]
-})
+const rows = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+const cols = ['9am', '12pm', '3pm', '6pm', '9pm']
+const data = [
+  { row: 'Mon', col: '9am',  value: 42 },
+  { row: 'Mon', col: '12pm', value: 87 },
+  // ...
+]
 </script>
 
 <template>
-  <VChart :option="option" autoresize style="height: 300px" />
+  <HeatmapChart :data="data" :rows="rows" :cols="cols" />
 </template>`}</code>
                 </pre>
               </CardContent>
@@ -3002,28 +3236,23 @@ const option = ref({
     { source: 'trial',    target: 'purchase', value: 1540 },
   ]}
 />` : `<script setup lang="ts">
-import { use } from 'echarts/core'
-import { SankeyChart } from 'echarts/charts'
-import VChart from 'vue-echarts'
+import SankeyChart from '@/components/ui/SankeyChart.vue'
 
-const option = ref({
-  series: [{
-    type: 'sankey',
-    nodes: [
-      { name: 'Organic' },
-      { name: 'Landing' },
-      { name: 'Purchase' },
-    ],
-    links: [
-      { source: 'Organic', target: 'Landing',  value: 3200 },
-      { source: 'Landing', target: 'Purchase', value: 1540 },
-    ]
-  }]
-})
+const nodes = [
+  { id: 'organic',  label: 'Organic' },
+  { id: 'landing',  label: 'Landing' },
+  { id: 'trial',    label: 'Trial' },
+  { id: 'purchase', label: 'Purchase' },
+]
+const links = [
+  { source: 'organic',  target: 'landing',  value: 3200 },
+  { source: 'landing',  target: 'trial',    value: 2800 },
+  { source: 'trial',    target: 'purchase', value: 1540 },
+]
 </script>
 
 <template>
-  <VChart :option="option" autoresize style="height: 300px" />
+  <SankeyChart :nodes="nodes" :links="links" />
 </template>`}</code>
                 </pre>
               </CardContent>

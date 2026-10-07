@@ -1,13 +1,15 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "empty-state",
+  "title": "Empty State",
   "description": "Empty state component with icon, title, description, and optional actions",
   "dependencies": [
     "class-variance-authority",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/button"
   ],
   "files": [
     {

@@ -3,13 +3,15 @@
   "name": "particle-web",
   "description": "Proximity particle graph — particles connected by proximity-faded lines",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@boldkit/use-canvas-effect"
+  ],
   "files": [
     {
-      "path": "registry/default/ui/canvas-effects/ParticleWeb.vue",
-      "type": "registry:ui",
-      "target": "components/ui/canvas-effects/ParticleWeb.vue"
+      "path": "components/ui/canvas-effects/ParticleWeb.vue",
+      "type": "registry:ui"
     }
   ],
-  "type": "registry:ui"
+  "type": "registry:ui",
+  "title": "Particle Web"
 }

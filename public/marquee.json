@@ -1,10 +1,11 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "marquee",
+  "title": "Marquee",
   "description": "Auto-scrolling text ticker with neubrutalism styling - a common brutalist design element",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

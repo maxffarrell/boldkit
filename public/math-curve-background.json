@@ -1,13 +1,16 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "math-curve-background",
+  "title": "Math Curve Background",
   "description": "Ambient animated mathematical curve background layer with neubrutalism aesthetics — wraps content with a slow-moving curve animation",
   "dependencies": [
     "@radix-ui/react-slot"
   ],
   "registryDependencies": [
-    "utils",
-    "math-curves"
+    "@boldkit/utils",
+    "@boldkit/math-curves",
+    "@boldkit/error-boundary",
+    "@boldkit/motion-core"
   ],
   "files": [
     {

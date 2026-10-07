@@ -1,14 +1,15 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "command",
+  "title": "Command",
   "description": "Fast, composable, command menu for React with neubrutalism styling",
   "dependencies": [
     "cmdk",
     "lucide-react"
   ],
   "registryDependencies": [
-    "utils",
-    "dialog"
+    "@boldkit/utils",
+    "@boldkit/dialog"
   ],
   "files": [
     {

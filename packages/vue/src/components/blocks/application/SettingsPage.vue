@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui'
 import Button from '@/components/ui/Button.vue'
@@ -10,7 +10,7 @@ import Avatar from '@/components/ui/Avatar.vue'
 import AvatarImage from '@/components/ui/AvatarImage.vue'
 import AvatarFallback from '@/components/ui/AvatarFallback.vue'
 import Separator from '@/components/ui/Separator.vue'
-import { User, Bell, Shield, Palette, Trash2, Upload, Save, AlertTriangle } from 'lucide-vue-next'
+import { User, Bell, Shield, Palette, Trash2, Upload, Save, AlertTriangle, Check } from 'lucide-vue-next'
 
 type SettingsVariant = 'profile' | 'notifications' | 'security' | 'appearance' | 'dangerZone' | 'fullPage'
 
@@ -43,7 +43,49 @@ const emit = defineEmits<{
   (e: 'save', data: Record<string, unknown>): void
   (e: 'deleteAccount'): void
   (e: 'themeChange', theme: 'light' | 'dark' | 'system'): void
+  (e: 'accentColorChange', color: string): void
 }>()
+
+// Appearance prefs survive a reload. Same storage key and shape as the React
+// block so a project using both frameworks stays consistent. Never throws —
+// private mode blocks localStorage.
+const APPEARANCE_STORAGE_KEY = 'boldkit-settings-appearance'
+type AppearanceTheme = 'light' | 'dark' | 'system'
+
+function readAppearance(): { theme: AppearanceTheme; accentColor: string } {
+  const fallback = { theme: 'system' as AppearanceTheme, accentColor: '#3b82f6' }
+  try {
+    const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as Partial<typeof fallback>
+    return {
+      theme: (['light', 'dark', 'system'] as const).includes(parsed.theme as AppearanceTheme)
+        ? (parsed.theme as AppearanceTheme)
+        : fallback.theme,
+      accentColor: accentColors.some((c) => c.value === parsed.accentColor)
+        ? parsed.accentColor!
+        : fallback.accentColor,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+const accentColors = [
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Purple', value: '#a855f7' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Red', value: '#ef4444' },
+]
+const accentColor = ref(readAppearance().accentColor)
+const setAccentColor = (value: string) => {
+  // Guard: only accept a value from the known palette.
+  if (!accentColors.some((c) => c.value === value)) return
+  accentColor.value = value
+  emit('accentColorChange', value)
+}
 
 const profileName = ref(props.user?.name || '')
 const profileEmail = ref(props.user?.email || '')
@@ -58,7 +100,15 @@ const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 
-const theme = ref<'light' | 'dark' | 'system'>('system')
+const theme = ref<AppearanceTheme>(readAppearance().theme)
+
+watch([theme, accentColor], ([t, c]) => {
+  try {
+    localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify({ theme: t, accentColor: c }))
+  } catch {
+    // storage unavailable — the UI still works for this session
+  }
+})
 const activeTab = ref<SettingsVariant>('profile')
 
 const getInitials = (name: string) => {
@@ -221,8 +271,9 @@ const getInitials = (name: string) => {
           <Label class="mb-4 block">Theme</Label>
           <div class="grid grid-cols-3 gap-4">
             <button
+              :aria-pressed="theme === 'light'"
               :class="cn(
-                'border-3 border-foreground p-4 text-center transition-all',
+                'border-3 border-foreground p-4 text-center transition',
                 theme === 'light' ? 'bg-primary text-primary-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))]' : 'hover:bg-muted'
               )"
               @click="theme = 'light'; emit('themeChange', 'light')"
@@ -230,8 +281,9 @@ const getInitials = (name: string) => {
               <div class="font-bold">Light</div>
             </button>
             <button
+              :aria-pressed="theme === 'dark'"
               :class="cn(
-                'border-3 border-foreground p-4 text-center transition-all',
+                'border-3 border-foreground p-4 text-center transition',
                 theme === 'dark' ? 'bg-primary text-primary-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))]' : 'hover:bg-muted'
               )"
               @click="theme = 'dark'; emit('themeChange', 'dark')"
@@ -239,8 +291,9 @@ const getInitials = (name: string) => {
               <div class="font-bold">Dark</div>
             </button>
             <button
+              :aria-pressed="theme === 'system'"
               :class="cn(
-                'border-3 border-foreground p-4 text-center transition-all',
+                'border-3 border-foreground p-4 text-center transition',
                 theme === 'system' ? 'bg-primary text-primary-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))]' : 'hover:bg-muted'
               )"
               @click="theme = 'system'; emit('themeChange', 'system')"
@@ -249,9 +302,33 @@ const getInitials = (name: string) => {
             </button>
           </div>
         </div>
+
+        <Separator />
+
+        <div>
+          <Label class="mb-4 block">Accent Color</Label>
+          <div class="flex flex-wrap gap-3">
+            <button
+              v-for="color in accentColors"
+              :key="color.value"
+              type="button"
+              :title="color.name"
+              :aria-label="color.name"
+              :aria-pressed="accentColor === color.value"
+              :style="{ backgroundColor: color.value }"
+              :class="cn(
+                'w-10 h-10 border-3 border-foreground transition flex items-center justify-center',
+                accentColor === color.value && 'ring-2 ring-offset-2 ring-foreground'
+              )"
+              @click="setAccentColor(color.value)"
+            >
+              <Check v-if="accentColor === color.value" class="h-5 w-5 text-white" />
+            </button>
+          </div>
+        </div>
       </CardContent>
       <CardFooter class="justify-end">
-        <Button class="gap-2" @click="emit('save', { theme })">
+        <Button class="gap-2" @click="emit('save', { theme, accentColor })">
           <Save class="h-4 w-4" />
           Save Preferences
         </Button>
@@ -292,7 +369,7 @@ const getInitials = (name: string) => {
           v-for="tab in (['profile', 'notifications', 'security', 'appearance', 'dangerZone'] as const)"
           :key="tab"
           :class="cn(
-            'w-full text-left px-4 py-3 border-3 border-foreground font-bold uppercase text-sm transition-all',
+            'w-full text-left px-4 py-3 border-3 border-foreground font-bold uppercase text-sm transition',
             activeTab === tab
               ? 'bg-primary text-primary-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))]'
               : 'hover:bg-muted'

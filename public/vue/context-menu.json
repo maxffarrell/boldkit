@@ -1,0 +1,68 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "context-menu",
+  "type": "registry:ui",
+  "description": "Displays a menu triggered by right-click",
+  "dependencies": [
+    "reka-ui",
+    "lucide-vue-next"
+  ],
+  "registryDependencies": [
+    "@boldkit/utils"
+  ],
+  "files": [
+    {
+      "path": "components/ui/ContextMenu.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuTrigger.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuContent.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuItem.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuCheckboxItem.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuRadioGroup.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuRadioItem.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuLabel.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuSeparator.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuShortcut.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuSub.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuSubTrigger.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/ContextMenuSubContent.vue",
+      "type": "registry:ui"
+    }
+  ],
+  "title": "Context Menu"
+}

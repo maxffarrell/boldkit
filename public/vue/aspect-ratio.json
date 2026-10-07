@@ -7,13 +7,13 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/AspectRatio.vue",
-      "type": "registry:ui",
-      "target": "components/ui/AspectRatio.vue"
+      "path": "components/ui/AspectRatio.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Aspect Ratio"
 }

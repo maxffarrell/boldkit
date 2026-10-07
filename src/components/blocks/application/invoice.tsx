@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -77,7 +78,7 @@ export function Invoice({
     (data.tax?.amount ?? 0) -
     (data.discount?.amount ?? 0)
 
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     if (Math.abs(computedSubtotal - data.subtotal) > 0.01) {
       console.warn(
         `[Invoice] subtotal mismatch: passed ${data.subtotal.toFixed(2)}, computed ${computedSubtotal.toFixed(2)}`
@@ -459,7 +460,7 @@ export function InvoiceSummary({
   return (
     <div
       className={cn(
-        'border-3 border-foreground p-4 bg-card shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:shadow-[6px_6px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all',
+        'border-3 border-foreground p-4 bg-card shadow-[4px_4px_0px_hsl(var(--shadow-color))] hover:shadow-[6px_6px_0px_hsl(var(--shadow-color))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition',
         className
       )}
     >
@@ -495,7 +496,7 @@ export function InvoiceSummary({
         <p className="text-2xl font-black font-mono">${amount.toFixed(2)}</p>
         <div className="flex gap-2">
           {onDownload && (
-            <Button variant="ghost" size="sm" onClick={onDownload}>
+            <Button variant="ghost" size="sm" aria-label="Download invoice" onClick={onDownload}>
               <Download className="h-4 w-4" />
             </Button>
           )}

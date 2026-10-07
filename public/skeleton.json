@@ -1,10 +1,12 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "skeleton",
+  "title": "Skeleton",
   "description": "Used to show a placeholder while content is loading",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/motion"
   ],
   "files": [
     {

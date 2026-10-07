@@ -14,7 +14,7 @@ if (!context) {
   throw new Error('CarouselDots must be used within a Carousel')
 }
 
-const hasMultipleSnaps = computed(() => context.scrollSnaps.value.length > 1)
+const hasMultipleSnaps = computed(() => (context.scrollSnaps.value ?? []).length > 1)
 </script>
 
 <template>
@@ -27,7 +27,7 @@ const hasMultipleSnaps = computed(() => context.scrollSnaps.value.length > 1)
       :key="index"
       type="button"
       :class="cn(
-        'h-3 w-3 border-2 border-foreground transition-all duration-200',
+        'h-3 w-3 border-2 border-foreground transition duration-200',
         index === context.selectedIndex.value
           ? 'bg-primary scale-110 shadow-[2px_2px_0px_hsl(var(--shadow-color))]'
           : 'bg-muted hover:bg-muted/80'

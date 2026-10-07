@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
 import { cn } from '@/lib/utils'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { prefersReducedMotion, onReducedMotionChange } from '@/lib/motion-core'
 import {
   buildPath,
   getPoint,
@@ -24,7 +24,6 @@ export interface MathCurveBackgroundProps extends React.HTMLAttributes<HTMLDivEl
   trackColor?: string
   headColor?: string
   strokeWidth?: number
-  asChild?: boolean
   children?: React.ReactNode
 }
 
@@ -38,7 +37,6 @@ const MathCurveBackground = React.forwardRef<HTMLDivElement, MathCurveBackground
       trackColor,
       headColor,
       strokeWidth = 2,
-      asChild = false,
       children,
       ...props
     },
@@ -57,7 +55,9 @@ const MathCurveBackground = React.forwardRef<HTMLDivElement, MathCurveBackground
     React.useEffect(() => {
       startTimeRef.current = performance.now()
 
-      const tick = () => {
+      // Draw one frame. Separated from scheduling so reduced motion can render
+      // a static frame without starting the loop.
+      const draw = () => {
         const now = performance.now()
         const elapsed = (now - startTimeRef.current) % durationMs
         const progress = elapsed / durationMs
@@ -78,12 +78,30 @@ const MathCurveBackground = React.forwardRef<HTMLDivElement, MathCurveBackground
           rectRef.current.setAttribute('transform', `rotate(${angle} ${cx} ${cy})`)
         }
 
+      }
+
+      const tick = () => {
+        draw()
         rafRef.current = requestAnimationFrame(tick)
       }
 
-      rafRef.current = requestAnimationFrame(tick)
+      // A CSS media query can't stop a loop that mutates SVG attributes, so
+      // the reduced-motion preference has to be consulted here.
+      const start = () => {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = 0
+        if (prefersReducedMotion()) {
+          draw()
+          return
+        }
+        rafRef.current = requestAnimationFrame(tick)
+      }
+
+      start()
+      const unsubscribe = onReducedMotionChange(start)
 
       return () => {
+        unsubscribe()
         cancelAnimationFrame(rafRef.current)
       }
     }, [curve, speed, durationMs, strokeWidth])
@@ -91,11 +109,9 @@ const MathCurveBackground = React.forwardRef<HTMLDivElement, MathCurveBackground
     const resolvedTrackStroke = trackColor ?? 'currentColor'
     const resolvedHeadFill = headColor ?? 'hsl(var(--primary))'
 
-    const Container = asChild ? Slot : 'div'
-
     return (
       <ErrorBoundary>
-        <Container
+        <div
           ref={ref}
           className={cn('relative', className)}
           {...props}
@@ -140,7 +156,7 @@ const MathCurveBackground = React.forwardRef<HTMLDivElement, MathCurveBackground
           </svg>
           {/* Children sit above the SVG */}
           <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
-        </Container>
+        </div>
       </ErrorBoundary>
     )
   }

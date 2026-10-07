@@ -7,13 +7,14 @@
     "vue-sonner"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils",
+    "@boldkit/use-theme"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Sonner.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Sonner.vue"
+      "path": "components/ui/Sonner.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Sonner"
 }

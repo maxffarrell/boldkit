@@ -7,13 +7,13 @@
     "lucide-vue-next"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/TagInput.vue",
-      "type": "registry:ui",
-      "target": "components/ui/TagInput.vue"
+      "path": "components/ui/TagInput.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Tag Input"
 }

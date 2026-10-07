@@ -1,10 +1,8 @@
 <script lang="ts">
-import { type Component, defineComponent, computed, h, type PropType } from 'vue'
-import { ChevronRight, Folder, File } from 'lucide-vue-next'
+import { type Component, defineComponent, computed, h, ref, watch, type PropType, type VNode } from 'vue'
+import { ChevronRight, Folder, File, Check } from 'lucide-vue-next'
 import Collapsible from './Collapsible.vue'
 import CollapsibleContent from './CollapsibleContent.vue'
-import CollapsibleTrigger from './CollapsibleTrigger.vue'
-import Checkbox from './Checkbox.vue'
 import { cn } from '@/lib/utils'
 
 export interface TreeNode {
@@ -59,8 +57,16 @@ const TreeViewNode = defineComponent({
       type: Boolean,
       required: true,
     },
+    focusedId: {
+      type: String as PropType<string | null>,
+      default: null,
+    },
+    setFocusedId: {
+      type: Function as PropType<(id: string) => void>,
+      required: true,
+    },
   },
-  setup(props) {
+  setup(props): () => VNode {
     const hasChildren = computed(
       () => props.node.children && props.node.children.length > 0
     )
@@ -72,139 +78,151 @@ const TreeViewNode = defineComponent({
       return hasChildren.value ? Folder : File
     })
 
-    const handleNodeClick = () => {
+    const handleNodeClick = (e: MouseEvent) => {
       if (props.node.disabled) return
+      // A treeitem contains its descendants' group, so a click inside a child
+      // must not also activate this node.
+      e.stopPropagation()
+      props.setFocusedId(props.node.id)
+      if (hasChildren.value) {
+        props.toggleExpanded(props.node.id)
+      }
       if (props.selectionMode !== 'none') {
         props.toggleSelected(props.node.id, props.node)
       }
     }
 
-    const handleChevronClick = (e: MouseEvent) => {
-      e.stopPropagation()
-      props.toggleExpanded(props.node.id)
-    }
+    const itemEl = ref<HTMLElement | null>(null)
+    const isFocused = computed(() => props.focusedId === props.node.id)
 
-    const handleCheckboxClick = (e: MouseEvent) => {
-      e.stopPropagation()
-    }
-
-    const handleCheckboxChange = () => {
-      if (!props.node.disabled) {
-        props.toggleSelected(props.node.id, props.node)
+    // Move DOM focus to whichever node holds the roving tabindex, otherwise
+    // the focus ring stops tracking arrow-key navigation.
+    watch(isFocused, (focused) => {
+      if (!focused || !itemEl.value) return
+      const tree = itemEl.value.closest('[role="tree"]')
+      if (tree?.contains(document.activeElement) && document.activeElement !== itemEl.value) {
+        itemEl.value.focus()
       }
-    }
+    })
 
     return () => {
-      const nodeContent = h(
+      const row = h(
         'div',
         {
           class: cn(
             'flex items-center gap-2 px-2 py-1.5 cursor-pointer select-none transition-colors duration-150',
-            'hover:bg-muted focus:outline-none focus:bg-muted',
+            'hover:bg-muted',
+            isFocused.value && 'bg-muted',
             selected.value && 'bg-accent',
             props.node.disabled && 'opacity-50 cursor-not-allowed'
           ),
           style: { paddingLeft: `${props.depth * 16 + 8}px` },
-          tabindex: props.node.disabled ? -1 : 0,
-          role: 'treeitem',
-          'aria-expanded': hasChildren.value ? expanded.value : undefined,
-          'aria-selected': selected.value,
-          'aria-disabled': props.node.disabled,
-          onKeydown: (e: KeyboardEvent) => props.handleKeyDown(e, props.node),
-          onClick: handleNodeClick,
         },
         [
-          // Expand/collapse chevron
+          // Expand/collapse affordance. Presentational, not a button: the row
+          // already toggles on click and ArrowLeft/ArrowRight do it from the
+          // keyboard, and a real button here would be interactive content
+          // nested inside the treeitem.
           hasChildren.value
-            ? h(
-                'button',
-                {
-                  type: 'button',
-                  class: cn(
-                    'flex items-center justify-center w-5 h-5 transition-transform duration-200 flex-shrink-0',
-                    expanded.value && 'rotate-90'
-                  ),
-                  onClick: handleChevronClick,
-                  'aria-label': expanded.value ? 'Collapse' : 'Expand',
-                },
-                h(ChevronRight, { class: 'w-4 h-4 stroke-[3]' })
-              )
-            : h('span', { class: 'w-5 h-5 flex-shrink-0' }),
-
-          // Checkbox
-          props.showCheckboxes && props.selectionMode !== 'none'
-            ? h(Checkbox, {
-                checked: selected.value,
-                disabled: props.node.disabled,
-                class:
-                  'h-5 w-5 border-2 border-foreground data-[state=checked]:bg-primary data-[state=checked]:shadow-[2px_2px_0px_hsl(var(--shadow-color))]',
-                'onUpdate:checked': handleCheckboxChange,
-                onClick: handleCheckboxClick,
+            ? h(ChevronRight, {
+                'aria-hidden': 'true',
+                class: cn(
+                  'w-4 h-4 flex-shrink-0 stroke-[3] transition-transform duration-200',
+                  expanded.value && 'rotate-90'
+                ),
               })
+            : h('span', { class: 'w-4 h-5 flex-shrink-0' }),
+
+          // Checkbox — drawn, not a real control. `aria-selected` on the
+          // treeitem already conveys the state, and a focusable checkbox
+          // inside a treeitem is an axe `nested-interactive` violation.
+          props.showCheckboxes && props.selectionMode !== 'none'
+            ? h(
+                'span',
+                {
+                  'aria-hidden': 'true',
+                  class: cn(
+                    'flex h-5 w-5 flex-shrink-0 items-center justify-center border-2 border-foreground',
+                    selected.value && 'bg-primary shadow-[2px_2px_0px_hsl(var(--shadow-color))]'
+                  ),
+                },
+                selected.value ? [h(Check, { class: 'h-3.5 w-3.5 stroke-[4]' })] : []
+              )
             : null,
 
           // Icon
           props.showIcons
             ? h(IconComponent.value, {
+                'aria-hidden': 'true',
                 class: 'w-5 h-5 flex-shrink-0 stroke-[2.5]',
               })
             : null,
 
           // Label
-          h(
-            'span',
-            { class: 'font-medium text-sm truncate' },
-            props.node.label
-          ),
+          h('span', { class: 'font-medium text-sm truncate' }, props.node.label),
         ]
       )
 
-      if (hasChildren.value) {
-        return h(
-          Collapsible,
-          {
-            open: expanded.value,
-            'onUpdate:open': () => props.toggleExpanded(props.node.id),
+      // The treeitem owns its own group, so every treeitem's nearest
+      // role-bearing ancestor is `tree` or `group` (axe aria-required-parent).
+      // It used to be wrapped in a CollapsibleTrigger, which broke that and
+      // made the row a button containing other buttons.
+      return h(
+        'div',
+        {
+          ref: itemEl,
+          role: 'treeitem',
+          // Pin the name to the label — the descendants' group lives inside
+          // this element and would otherwise be folded into its name.
+          'aria-label': props.node.label,
+          'aria-expanded': hasChildren.value ? expanded.value : undefined,
+          // Only advertise selection where selection is actually possible.
+          'aria-selected': props.selectionMode === 'none' ? undefined : selected.value,
+          'aria-disabled': props.node.disabled,
+          tabindex: isFocused.value && !props.node.disabled ? 0 : -1,
+          class: 'focus:outline-none',
+          onKeydown: (e: KeyboardEvent) => props.handleKeyDown(e, props.node),
+          onFocus: (e: FocusEvent) => {
+            if (e.target === e.currentTarget) props.setFocusedId(props.node.id)
           },
-          () => [
-            h(CollapsibleTrigger, { asChild: true }, () => nodeContent),
-            h(CollapsibleContent, null, () =>
-              h(
-                'div',
-                { role: 'group' },
-                props.node.children!.map((child) =>
-                  h(TreeViewNode, {
-                    key: child.id,
-                    node: child,
-                    depth: props.depth + 1,
-                    isExpanded: props.isExpanded,
-                    isSelected: props.isSelected,
-                    toggleExpanded: props.toggleExpanded,
-                    toggleSelected: props.toggleSelected,
-                    handleKeyDown: props.handleKeyDown,
-                    selectionMode: props.selectionMode,
-                    showCheckboxes: props.showCheckboxes,
-                    showIcons: props.showIcons,
-                  })
+          onClick: handleNodeClick,
+        },
+        [
+          row,
+          hasChildren.value
+            ? h(Collapsible, { open: expanded.value }, () =>
+                h(CollapsibleContent, null, () =>
+                  h(
+                    'div',
+                    { role: 'group' },
+                    props.node.children!.map((child) =>
+                      h(TreeViewNode, {
+                        key: child.id,
+                        node: child,
+                        depth: props.depth + 1,
+                        isExpanded: props.isExpanded,
+                        isSelected: props.isSelected,
+                        toggleExpanded: props.toggleExpanded,
+                        toggleSelected: props.toggleSelected,
+                        handleKeyDown: props.handleKeyDown,
+                        selectionMode: props.selectionMode,
+                        showCheckboxes: props.showCheckboxes,
+                        showIcons: props.showIcons,
+                        focusedId: props.focusedId,
+                        setFocusedId: props.setFocusedId,
+                      })
+                    )
+                  )
                 )
               )
-            ),
-          ]
-        )
-      }
-
-      return nodeContent
+            : null,
+        ]
+      )
     }
   },
 })
 
-export { TreeViewNode }
-</script>
-
-<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-
-interface TreeViewProps {
+export interface TreeViewProps {
   data: TreeNode[]
   expandedIds?: string[]
   selectedIds?: string[]
@@ -215,6 +233,11 @@ interface TreeViewProps {
   defaultSelectedIds?: string[]
   class?: string
 }
+
+export { TreeViewNode }
+</script>
+
+<script setup lang="ts">
 
 const props = withDefaults(defineProps<TreeViewProps>(), {
   expandedIds: undefined,
@@ -298,7 +321,51 @@ const toggleSelected = (id: string, node: TreeNode) => {
   emit('update:selectedIds', newSelectedIds)
 }
 
+// Flattened visible order — what ArrowUp/ArrowDown/Home/End walk.
+const visibleIds = computed(() => {
+  const out: string[] = []
+  const walk = (nodes: TreeNode[]) => {
+    for (const item of nodes) {
+      out.push(item.id)
+      if (item.children?.length && isExpanded(item.id)) walk(item.children)
+    }
+  }
+  walk(props.data)
+  return out
+})
+
+// An ARIA tree is a single tab stop: exactly one node carries tabindex=0 and
+// the arrow keys move between nodes. Every node being tabbable made a
+// 200-node tree cost 200 Tab presses to get past.
+const focusedIdRef = ref<string | null>(null)
+const activeId = computed(() =>
+  focusedIdRef.value && visibleIds.value.includes(focusedIdRef.value)
+    ? focusedIdRef.value
+    : (visibleIds.value[0] ?? null)
+)
+const setFocusedId = (id: string) => {
+  focusedIdRef.value = id
+}
+
+const moveFocus = (from: string, delta: number | 'first' | 'last') => {
+  const ids = visibleIds.value
+  if (!ids.length) return
+  const current = Math.max(0, ids.indexOf(from))
+  const next =
+    delta === 'first'
+      ? 0
+      : delta === 'last'
+        ? ids.length - 1
+        : Math.min(ids.length - 1, Math.max(0, current + delta))
+  setFocusedId(ids[next])
+}
+
 const handleKeyDown = (event: KeyboardEvent, node: TreeNode) => {
+  // A treeitem contains its descendants' group, so a key pressed on a child
+  // also bubbles to every ancestor treeitem. Without this, the outermost
+  // handler runs last and overwrites the focus the child just moved.
+  if (event.target !== event.currentTarget) return
+
   const hasChildren = node.children && node.children.length > 0
 
   switch (event.key) {
@@ -311,17 +378,33 @@ const handleKeyDown = (event: KeyboardEvent, node: TreeNode) => {
         toggleExpanded(node.id)
       }
       break
+    case 'ArrowDown':
+      event.preventDefault()
+      moveFocus(node.id, 1)
+      break
+    case 'ArrowUp':
+      event.preventDefault()
+      moveFocus(node.id, -1)
+      break
+    case 'Home':
+      event.preventDefault()
+      moveFocus(node.id, 'first')
+      break
+    case 'End':
+      event.preventDefault()
+      moveFocus(node.id, 'last')
+      break
     case 'ArrowRight':
       event.preventDefault()
-      if (hasChildren && !isExpanded(node.id)) {
-        toggleExpanded(node.id)
-      }
+      // APG: expand a collapsed parent, else move into it.
+      if (hasChildren && !isExpanded(node.id)) toggleExpanded(node.id)
+      else if (hasChildren) moveFocus(node.id, 1)
       break
     case 'ArrowLeft':
       event.preventDefault()
-      if (hasChildren && isExpanded(node.id)) {
-        toggleExpanded(node.id)
-      }
+      // APG: collapse an expanded parent, else move out to the parent.
+      if (hasChildren && isExpanded(node.id)) toggleExpanded(node.id)
+      else moveFocus(node.id, -1)
       break
   }
 }
@@ -333,9 +416,9 @@ const handleKeyDown = (event: KeyboardEvent, node: TreeNode) => {
     role="tree"
   >
     <TreeViewNode
-      v-for="node in data"
-      :key="node.id"
-      :node="node"
+      v-for="rootNode in data"
+      :key="rootNode.id"
+      :node="rootNode"
       :depth="0"
       :is-expanded="isExpanded"
       :is-selected="isSelected"
@@ -345,6 +428,8 @@ const handleKeyDown = (event: KeyboardEvent, node: TreeNode) => {
       :selection-mode="selectionMode"
       :show-checkboxes="showCheckboxes"
       :show-icons="showIcons"
+      :focused-id="activeId"
+      :set-focused-id="setFocusedId"
     />
   </div>
 </template>

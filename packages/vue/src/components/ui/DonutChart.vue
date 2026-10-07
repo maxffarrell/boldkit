@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart } from 'echarts/charts'
 import { TooltipComponent, LegendComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { cn } from '@/lib/utils'
-import { neubrutalismTheme, type ChartConfig } from './chart-utils'
+import { type ChartConfig, useResolvedChart } from './chart-utils'
 import { chartContainerVariants } from './chart-variants'
+import ChartEmpty from './ChartEmpty.vue'
 import type { VariantProps } from 'class-variance-authority'
 
 // Register ECharts components
@@ -31,9 +32,17 @@ interface DonutChartProps {
   height?: string
   variant?: ChartVariants['variant']
   class?: string
+  emptyMessage?: string
+  /** React calls this `emptyState`. Accepted here so the same prop name works
+   *  in both frameworks; `emptyMessage` stays supported. */
+  emptyState?: string
+  /** Accessible name. React exposes this on every chart; without it the
+   *  chart ships with no name at all. */
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<DonutChartProps>(), {
+  ariaLabel: 'Donut chart',
   innerRadius: '60%',
   outerRadius: '80%',
   showLabels: 'none',
@@ -42,10 +51,28 @@ const props = withDefaults(defineProps<DonutChartProps>(), {
   variant: 'default',
 })
 
+// Prefer the React-compatible name when both are given.
+const resolvedEmptyMessage = computed(() => props.emptyState ?? props.emptyMessage)
+
+// ECharts draws to a canvas, which has no CSS cascade: an
+// `hsl(var(--primary))` string assigned to fillStyle is silently dropped.
+// Resolve the option and theme against this element before they reach VChart.
+const rootEl = ref<HTMLElement | null>(null)
+const { theme: resolvedTheme, resolve } = useResolvedChart(rootEl)
+const resolvedOption = computed(() => resolve(option.value))
+
+const isEmpty = computed(() => !props.data || props.data.length === 0)
+
 const option = computed(() => ({
   tooltip: {
     trigger: 'item',
     formatter: '{b}: {c} ({d}%)',
+    backgroundColor: 'hsl(var(--background))',
+    borderColor: 'hsl(var(--foreground))',
+    borderWidth: 3,
+    padding: [6, 10],
+    textStyle: { color: 'hsl(var(--foreground))', fontFamily: "'DM Mono', monospace", fontSize: 12 },
+    extraCssText: 'border-radius: 0; box-shadow: 4px 4px 0px hsl(var(--foreground));',
   },
   legend: props.showLegend ? {
     orient: 'horizontal',
@@ -83,13 +110,17 @@ const option = computed(() => ({
 
 <template>
   <div
+    ref="rootEl"
+    role="img"
+    :aria-label="ariaLabel"
     data-slot="chart"
     :class="cn(chartContainerVariants({ variant }), props.class)"
   >
-    <div class="relative" :style="{ height }">
+    <ChartEmpty v-if="isEmpty" :message="resolvedEmptyMessage" />
+    <div v-else class="relative" :style="{ height }">
       <VChart
-        :option="option"
-        :theme="neubrutalismTheme"
+        :option="resolvedOption"
+        :theme="resolvedTheme"
         :autoresize="true"
         style="width: 100%; height: 100%"
       />

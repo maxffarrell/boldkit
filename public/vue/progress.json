@@ -7,13 +7,18 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Progress.vue",
+      "path": "components/ui/Progress.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "styles/motion.css",
       "type": "registry:ui",
-      "target": "components/ui/Progress.vue"
+      "target": "styles/motion.css"
     }
-  ]
+  ],
+  "title": "Progress"
 }

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { FunnelChart as RechartsFC, Funnel, LabelList, Tooltip, ResponsiveContainer } from 'recharts'
+import { ChartEmpty } from './empty'
 
 export interface FunnelChartData {
   name: string
@@ -14,6 +15,9 @@ export interface FunnelChartProps extends React.HTMLAttributes<HTMLDivElement> {
   showTooltip?: boolean
   animated?: boolean
   height?: number
+  /** Accessible label for screen readers (default: "Funnel chart") */
+  ariaLabel?: string
+  emptyState?: React.ReactNode
 }
 
 const NEUBRUTALISM_COLORS = [
@@ -33,11 +37,17 @@ const FunnelChart = React.forwardRef<HTMLDivElement, FunnelChartProps>(
       showTooltip = true,
       animated = true,
       height = 300,
+      ariaLabel = 'Funnel chart',
+      emptyState,
       className,
       ...props
     },
     ref
   ) => {
+    if (!data || data.length === 0) {
+      return <ChartEmpty ref={ref} message={emptyState} className={className} {...props} />
+    }
+
     const coloredData = data.map((d, i) => ({
       ...d,
       fill: d.fill || NEUBRUTALISM_COLORS[i % NEUBRUTALISM_COLORS.length],
@@ -46,6 +56,8 @@ const FunnelChart = React.forwardRef<HTMLDivElement, FunnelChartProps>(
     return (
       <div
         ref={ref}
+        role="img"
+        aria-label={ariaLabel}
         className={cn('w-full', className)}
         style={{ height }}
         {...props}
@@ -77,10 +89,13 @@ const FunnelChart = React.forwardRef<HTMLDivElement, FunnelChartProps>(
                   borderRadius: 0,
                   boxShadow: '4px 4px 0px hsl(var(--foreground))',
                   background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 12,
                 }}
-                formatter={(value: number | undefined, name: string | undefined) => [`${(value ?? 0).toLocaleString()}`, name ?? '']}
+                itemStyle={{ color: 'hsl(var(--foreground))' }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
+                formatter={(value, name) => [`${Number(value ?? 0).toLocaleString()}`, String(name ?? '')]}
               />
             )}
           </RechartsFC>

@@ -3,13 +3,15 @@
   "name": "flow-field",
   "description": "Noise-driven particle trails — particles follow a smooth value-noise angle field",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@boldkit/use-canvas-effect"
+  ],
   "files": [
     {
-      "path": "registry/default/ui/canvas-effects/FlowField.vue",
-      "type": "registry:ui",
-      "target": "components/ui/canvas-effects/FlowField.vue"
+      "path": "components/ui/canvas-effects/FlowField.vue",
+      "type": "registry:ui"
     }
   ],
-  "type": "registry:ui"
+  "type": "registry:ui",
+  "title": "Flow Field"
 }

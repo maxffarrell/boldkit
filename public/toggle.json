@@ -1,13 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "toggle",
+  "title": "Toggle",
   "description": "A two-state button that can be either on or off",
   "dependencies": [
     "@radix-ui/react-toggle",
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {

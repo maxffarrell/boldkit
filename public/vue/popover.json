@@ -7,23 +7,21 @@
     "reka-ui"
   ],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Popover.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Popover.vue"
+      "path": "components/ui/Popover.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/PopoverTrigger.vue",
-      "type": "registry:ui",
-      "target": "components/ui/PopoverTrigger.vue"
+      "path": "components/ui/PopoverTrigger.vue",
+      "type": "registry:ui"
     },
     {
-      "path": "registry/default/ui/PopoverContent.vue",
-      "type": "registry:ui",
-      "target": "components/ui/PopoverContent.vue"
+      "path": "components/ui/PopoverContent.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Popover"
 }

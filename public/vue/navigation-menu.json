@@ -1,0 +1,49 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "navigation-menu",
+  "type": "registry:ui",
+  "description": "A collection of links and dropdown panels for site navigation",
+  "dependencies": [
+    "reka-ui",
+    "lucide-vue-next",
+    "class-variance-authority"
+  ],
+  "registryDependencies": [
+    "@boldkit/utils"
+  ],
+  "files": [
+    {
+      "path": "components/ui/NavigationMenu.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/NavigationMenuList.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/NavigationMenuItem.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/NavigationMenuTrigger.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/NavigationMenuContent.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/NavigationMenuLink.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/NavigationMenuIndicator.vue",
+      "type": "registry:ui"
+    },
+    {
+      "path": "components/ui/navigation-menu-variants.ts",
+      "type": "registry:ui"
+    }
+  ],
+  "title": "Navigation Menu"
+}

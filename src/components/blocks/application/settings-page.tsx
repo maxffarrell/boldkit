@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,9 +57,13 @@ export function ProfileSettings({
   const [formData, setFormData] = React.useState(user)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  React.useEffect(() => {
+  // Reset the form when a different user is passed in. Adjusted during render
+  // rather than in an effect, so the fields never show the previous user.
+  const [prevUser, setPrevUser] = React.useState(user)
+  if (prevUser !== user) {
+    setPrevUser(user)
     setFormData(user)
-  }, [user])
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,8 +102,9 @@ export function ProfileSettings({
               </Avatar>
               <button
                 type="button"
+                aria-label="Upload avatar"
                 onClick={handleAvatarClick}
-                className="absolute -bottom-1 -right-1 w-8 h-8 flex items-center justify-center border-2 border-foreground bg-primary text-primary-foreground shadow-[2px_2px_0px_hsl(var(--shadow-color))] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                className="absolute -bottom-1 -right-1 w-8 h-8 flex items-center justify-center border-2 border-foreground bg-primary text-primary-foreground shadow-[2px_2px_0px_hsl(var(--shadow-color))] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition"
               >
                 <Upload className="h-4 w-4" />
               </button>
@@ -444,10 +450,12 @@ export function SecuritySettings({
 // ============================================================================
 // SETTINGS VARIANT 4: Appearance Settings
 // ============================================================================
+export type AppearanceTheme = 'light' | 'dark' | 'system'
+
 export interface AppearanceSettingsProps {
-  theme?: 'light' | 'dark' | 'system'
+  theme?: AppearanceTheme
   accentColor?: string
-  onThemeChange?: (theme: 'light' | 'dark' | 'system') => void
+  onThemeChange?: (theme: AppearanceTheme) => void
   onAccentColorChange?: (color: string) => void
   className?: string
 }
@@ -490,9 +498,10 @@ export function AppearanceSettings({
               <button
                 key={value}
                 type="button"
-                onClick={() => onThemeChange?.(value as 'light' | 'dark' | 'system')}
+                aria-pressed={theme === value}
+                onClick={() => onThemeChange?.(value as AppearanceTheme)}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-4 border-3 border-foreground transition-all',
+                  'flex flex-col items-center gap-2 p-4 border-3 border-foreground transition',
                   theme === value
                     ? 'bg-primary text-primary-foreground shadow-[4px_4px_0px_hsl(var(--shadow-color))]'
                     : 'bg-card hover:bg-muted'
@@ -515,13 +524,13 @@ export function AppearanceSettings({
               <button
                 key={color.value}
                 type="button"
-                onClick={() => {
-                  if (accentColors.some(ac => ac.value === color.value)) {
-                    onAccentColorChange?.(color.value)
-                  }
-                }}
+                // The swatch has no text and lucide hides the check, so without
+                // these the button is unnamed and its selected state invisible.
+                aria-label={color.name}
+                aria-pressed={accentColor === color.value}
+                onClick={() => onAccentColorChange?.(color.value)}
                 className={cn(
-                  'w-10 h-10 border-3 border-foreground transition-all',
+                  'w-10 h-10 border-3 border-foreground transition',
                   accentColor === color.value &&
                     'ring-2 ring-offset-2 ring-foreground'
                 )}
@@ -615,7 +624,42 @@ export interface SettingsPageProps {
   className?: string
 }
 
+const APPEARANCE_STORAGE_KEY = 'boldkit-settings-appearance'
+
+/** Read/write appearance prefs. Never throws — private mode blocks localStorage. */
+function readAppearance(): { theme: AppearanceTheme; accentColor: string } {
+  const fallback = { theme: 'system' as AppearanceTheme, accentColor: '#3b82f6' }
+  try {
+    const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as Partial<typeof fallback>
+    return {
+      theme: (['light', 'dark', 'system'] as const).includes(parsed.theme as AppearanceTheme)
+        ? (parsed.theme as AppearanceTheme)
+        : fallback.theme,
+      accentColor: accentColors.some((c) => c.value === parsed.accentColor)
+        ? parsed.accentColor!
+        : fallback.accentColor,
+    }
+  } catch {
+    return fallback
+  }
+}
+
 export function SettingsPage({ defaultTab = 'profile', className }: SettingsPageProps) {
+  // AppearanceSettings is controlled by design, so on its own the full-page
+  // composition rendered dead buttons — clicks changed nothing and nothing
+  // survived a reload. This owns the state and persists it.
+  const [appearance, setAppearance] = React.useState(readAppearance)
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(appearance))
+    } catch {
+      // storage unavailable — the UI still works for this session
+    }
+  }, [appearance])
+
   return (
     <div className={cn('max-w-4xl mx-auto py-8 px-4', className)}>
       <div className="mb-8">
@@ -678,7 +722,12 @@ export function SettingsPage({ defaultTab = 'profile', className }: SettingsPage
         </TabsContent>
 
         <TabsContent value="appearance">
-          <AppearanceSettings />
+          <AppearanceSettings
+            theme={appearance.theme}
+            accentColor={appearance.accentColor}
+            onThemeChange={(theme) => setAppearance((a) => ({ ...a, theme }))}
+            onAccentColorChange={(accentColor) => setAppearance((a) => ({ ...a, accentColor }))}
+          />
         </TabsContent>
 
         <TabsContent value="billing">

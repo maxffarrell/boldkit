@@ -6,6 +6,7 @@ import {
   PolarAngleAxis,
 } from 'recharts'
 import { ChartContainer } from './container'
+import { ChartEmpty } from './empty'
 import { ChartTooltip, ChartTooltipContent } from './tooltip'
 import { ChartLegend, ChartLegendContent } from './legend'
 import type { ChartConfig } from './types'
@@ -30,6 +31,7 @@ export interface RadialBarChartProps extends React.HTMLAttributes<HTMLDivElement
   endAngle?: number
   animated?: boolean
   maxValue?: number
+  emptyState?: React.ReactNode
 }
 
 const RadialBarChartComponent = React.forwardRef<HTMLDivElement, RadialBarChartProps>(
@@ -48,21 +50,29 @@ const RadialBarChartComponent = React.forwardRef<HTMLDivElement, RadialBarChartP
       endAngle = -270,
       animated = true,
       maxValue,
+      emptyState,
       className,
       ...props
     },
     ref
   ) => {
-    // Calculate max value for the scale
-    const calculatedMax = maxValue || (data.length > 0 ? Math.max(...data.map((d) => d.value)) : 1)
+    // Calculate max value for the scale. Use reduce (not spread) to avoid a
+    // RangeError on very large datasets, and floor at 1 so an all-negative or
+    // empty dataset can't produce a non-positive domain.
+    const calculatedMax =
+      maxValue ?? ((data ?? []).reduce((m, d) => Math.max(m, d.value), 0) || 1)
 
     // Assign a chart color to each item that does not supply its own fill
     const chartData = React.useMemo(() => {
-      return data.map((item, index) => ({
+      return (data ?? []).map((item, index) => ({
         ...item,
         fill: item.fill || `hsl(var(--chart-${(index % 5) + 1}))`,
       }))
     }, [data])
+
+    if (!data || data.length === 0) {
+      return <ChartEmpty ref={ref} message={emptyState} className={className} {...props} />
+    }
 
     return (
       <ChartContainer

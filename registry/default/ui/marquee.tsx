@@ -36,7 +36,11 @@ const Marquee = React.forwardRef<HTMLDivElement, MarqueeProps>(
     },
     ref
   ) => {
-    const animationClass = direction === 'right' ? 'animate-marquee-reverse' : speedClasses[speed]
+    // Use the speed-based class for both directions so `speed` is always
+    // honored; flip to a right-scroll via animation-direction (the dedicated
+    // *-reverse speed classes were never defined in the CSS).
+    const animationClass = speedClasses[speed]
+    const animationDirection = direction === 'right' ? 'reverse' : undefined
 
     return (
       <div
@@ -44,7 +48,6 @@ const Marquee = React.forwardRef<HTMLDivElement, MarqueeProps>(
         className={cn(
           'flex overflow-hidden',
           bordered && 'border-3 border-foreground bg-background',
-          pauseOnHover && 'group',
           className
         )}
         {...props}
@@ -53,26 +56,26 @@ const Marquee = React.forwardRef<HTMLDivElement, MarqueeProps>(
           className={cn(
             'marquee-content flex shrink-0 items-center gap-8 py-3',
             animationClass,
-            pauseOnHover && 'group-hover:[animation-play-state:paused]'
+            pauseOnHover && 'hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]'
           )}
-          style={{
-            animationDirection: direction === 'right' ? 'reverse' : 'normal',
-          }}
+          style={{ animationDirection }}
         >
           {Array.from({ length: repeat }).map((_, i) => (
             <React.Fragment key={i}>{children}</React.Fragment>
           ))}
         </div>
+        {/* Visual duplicate. `inert` as well as aria-hidden, or anything
+            focusable inside it is a tab stop within an aria-hidden subtree
+            (axe `aria-hidden-focus`). */}
         <div
           className={cn(
             'marquee-content flex shrink-0 items-center gap-8 py-3',
             animationClass,
-            pauseOnHover && 'group-hover:[animation-play-state:paused]'
+            pauseOnHover && 'hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]'
           )}
-          style={{
-            animationDirection: direction === 'right' ? 'reverse' : 'normal',
-          }}
+          style={{ animationDirection }}
           aria-hidden="true"
+          inert
         >
           {Array.from({ length: repeat }).map((_, i) => (
             <React.Fragment key={i}>{children}</React.Fragment>

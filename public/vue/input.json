@@ -5,13 +5,13 @@
   "description": "Displays a form input with thick borders",
   "dependencies": [],
   "registryDependencies": [
-    "utils"
+    "@boldkit/utils"
   ],
   "files": [
     {
-      "path": "registry/default/ui/Input.vue",
-      "type": "registry:ui",
-      "target": "components/ui/Input.vue"
+      "path": "components/ui/Input.vue",
+      "type": "registry:ui"
     }
-  ]
+  ],
+  "title": "Input"
 }

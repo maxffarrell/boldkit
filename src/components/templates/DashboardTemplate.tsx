@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -143,13 +143,18 @@ export function DashboardTemplate() {
   const { resolvedTheme, setTheme } = useTheme()
   const [isThemeAnimating, setIsThemeAnimating] = useState(false)
   const isTogglingRef = useRef(false)
+  const themeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (themeTimerRef.current) clearTimeout(themeTimerRef.current)
+  }, [])
 
   const handleThemeToggle = () => {
     if (isTogglingRef.current) return
     isTogglingRef.current = true
     setIsThemeAnimating(true)
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-    setTimeout(() => {
+    themeTimerRef.current = setTimeout(() => {
       setIsThemeAnimating(false)
       isTogglingRef.current = false
     }, 400)
@@ -167,7 +172,7 @@ export function DashboardTemplate() {
       {/* Floating Theme Toggle */}
       <button
         onClick={handleThemeToggle}
-        className="fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full border-4 border-foreground bg-background shadow-[4px_4px_0px_hsl(var(--foreground))] flex items-center justify-center hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] transition-all"
+        className="fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full border-4 border-foreground bg-background shadow-[4px_4px_0px_hsl(var(--foreground))] flex items-center justify-center hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_hsl(var(--foreground))] transition"
         aria-label="Toggle theme"
       >
         {resolvedTheme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -239,7 +244,7 @@ export function DashboardTemplate() {
               <p className="font-bold text-sm truncate">Admin User</p>
               <p className="text-xs text-background/60 truncate">admin@example.com</p>
             </div>
-            <Button variant="ghost" size="icon" className="text-background/60 hover:text-background hover:bg-background/10">
+            <Button variant="ghost" size="icon" aria-label="Log out" className="text-background/60 hover:text-background hover:bg-background/10">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -268,7 +273,7 @@ export function DashboardTemplate() {
                 3
               </span>
             </Button>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" aria-label="Help">
               <HelpCircle className="h-4 w-4" />
             </Button>
             <Avatar className="border-2 border-foreground lg:hidden">
@@ -421,7 +426,7 @@ export function DashboardTemplate() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Input placeholder="Search orders..." className="w-48" />
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" aria-label="More options">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </div>

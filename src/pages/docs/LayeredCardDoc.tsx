@@ -8,78 +8,9 @@ import {
 } from '@/components/ui/layered-card'
 import { Button } from '@/components/ui/button'
 import { ComponentDoc, ExampleSection } from '@/components/docs/ComponentDoc'
+import sourceCode from '@/components/ui/layered-card.tsx?raw'
+import vueSourceCode from '@vue-ui/LayeredCard.vue?raw'
 
-const sourceCode = `import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-
-const layeredCardVariants = cva(
-  'relative border-3 border-foreground bg-card text-card-foreground',
-  {
-    variants: {
-      layers: {
-        single: '',
-        double: '',
-        triple: '',
-      },
-      offset: {
-        sm: '',
-        default: '',
-        lg: '',
-      },
-      layerColor: {
-        default: '',
-        primary: '',
-        secondary: '',
-        accent: '',
-        muted: '',
-      },
-    },
-    defaultVariants: {
-      layers: 'double',
-      offset: 'default',
-      layerColor: 'default',
-    },
-  }
-)
-
-const LayeredCard = React.forwardRef<HTMLDivElement, LayeredCardProps>(
-  ({ className, layers, offset, layerColor, interactive, children, ...props }, ref) => {
-    // Component implementation with background layers
-    return (
-      <div ref={ref} className={cn(layeredCardVariants({ layers, offset, layerColor }), className)} {...props}>
-        {/* Background layer divs */}
-        {children}
-      </div>
-    )
-  }
-)
-
-const LayeredCardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 border-b-3 border-foreground bg-muted p-4', className)} {...props} />
-  )
-)
-
-const LayeredCardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-xl font-bold uppercase tracking-wide', className)} {...props} />
-  )
-)
-
-const LayeredCardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-4', className)} {...props} />
-  )
-)
-
-const LayeredCardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center border-t-3 border-foreground bg-muted p-4', className)} {...props} />
-  )
-)
-
-export { LayeredCard, LayeredCardHeader, LayeredCardTitle, LayeredCardDescription, LayeredCardContent, LayeredCardFooter }`
 
 const usageCode = `import {
   LayeredCard,
@@ -104,95 +35,13 @@ export default function Example() {
   )
 }`
 
-const vueSourceCode = `<script setup lang="ts">
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-
-const layeredCardVariants = cva(
-  'relative border-3 border-foreground bg-card text-card-foreground',
-  {
-    variants: {
-      layers: {
-        single: '',
-        double: '',
-        triple: '',
-      },
-      offset: {
-        sm: '',
-        default: '',
-        lg: '',
-      },
-      layerColor: {
-        default: '',
-        primary: '',
-        secondary: '',
-        accent: '',
-        muted: '',
-      },
-    },
-    defaultVariants: {
-      layers: 'double',
-      offset: 'default',
-      layerColor: 'default',
-    },
-  }
-)
-
-type LayeredCardVariants = VariantProps<typeof layeredCardVariants>
-
-defineProps<{
-  class?: string
-  layers?: LayeredCardVariants['layers']
-  offset?: LayeredCardVariants['offset']
-  layerColor?: LayeredCardVariants['layerColor']
-  interactive?: boolean
-}>()
-</script>
-
-<!-- LayeredCard -->
-<template>
-  <div :class="cn(layeredCardVariants({ layers, offset, layerColor }), props.class)">
-    <!-- Background layers rendered here -->
-    <slot />
-  </div>
-</template>
-
-<!-- LayeredCardHeader -->
-<template>
-  <div :class="cn('flex flex-col space-y-1.5 border-b-3 border-foreground bg-muted p-4', props.class)">
-    <slot />
-  </div>
-</template>
-
-<!-- LayeredCardTitle -->
-<template>
-  <h3 :class="cn('text-xl font-bold uppercase tracking-wide', props.class)">
-    <slot />
-  </h3>
-</template>
-
-<!-- LayeredCardContent -->
-<template>
-  <div :class="cn('p-4', props.class)">
-    <slot />
-  </div>
-</template>
-
-<!-- LayeredCardFooter -->
-<template>
-  <div :class="cn('flex items-center border-t-3 border-foreground bg-muted p-4', props.class)">
-    <slot />
-  </div>
-</template>`
 
 const vueUsageCode = `<script setup lang="ts">
-import {
-  LayeredCard,
-  LayeredCardHeader,
-  LayeredCardTitle,
-  LayeredCardDescription,
-  LayeredCardContent,
-} from '@/components/ui'
+import LayeredCard from '@/components/ui/LayeredCard.vue'
+import LayeredCardHeader from '@/components/ui/LayeredCardHeader.vue'
+import LayeredCardTitle from '@/components/ui/LayeredCardTitle.vue'
+import LayeredCardDescription from '@/components/ui/LayeredCardDescription.vue'
+import LayeredCardContent from '@/components/ui/LayeredCardContent.vue'
 </script>
 
 <template>

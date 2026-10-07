@@ -1,13 +1,15 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "math-curve-progress",
+  "title": "Math Curve Progress",
   "description": "Progress indicator that traces a mathematical curve — value-driven head moves along the curve path from 0 to 100%",
   "dependencies": [
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "utils",
-    "math-curves"
+    "@boldkit/utils",
+    "@boldkit/math-curves",
+    "@boldkit/error-boundary"
   ],
   "files": [
     {
